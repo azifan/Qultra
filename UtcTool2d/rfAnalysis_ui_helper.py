@@ -493,6 +493,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         avMBF = a*median + b
         windowFreqs /= 1000000 # Hz -> MHz
         x /= 1000000 # Hz -> MHz
+        PsGraphDisplayGUI.ax.vlines([self.imgInfoStruct.lowBandFreq/1000000, self.imgInfoStruct.upBandFreq/1000000], ymin=np.amin(windowNPSs), ymax=np.amax(windowNPSs), colors='purple', label="Band Lims")
         for i in range(len(windowNPSs)):
             PsGraphDisplayGUI.ax.plot(windowFreqs, windowNPSs[i], c='blue', alpha=0.2, zorder=1)
         PsGraphDisplayGUI.ax.plot(windowFreqs, np.mean(windowNPSs, axis=0), c='red', zorder=10, label="NPS")

@@ -304,7 +304,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.analysisParamsGUI.latWinSizeVal.setValue(self.imgInfoStruct.width/100)#7#1#1480/20000000*10000 # must be at least 10 times wavelength
 
         speedOfSoundInTissue = 1540 #m/s
-        waveLength = (speedOfSoundInTissue/self.imgInfoStruct.samplingFrequency)*1000 #mm
+        waveLength = (speedOfSoundInTissue/self.imgInfoStruct.centerFrequency)*1000 #mm
         self.analysisParamsGUI.axWinSizeVal.setMinimum(10*waveLength) # must be at least 10 times wavelength
         self.analysisParamsGUI.latWinSizeVal.setMinimum(10*waveLength) # must be at least 10 times wavelength
 
