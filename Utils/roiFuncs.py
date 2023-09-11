@@ -239,7 +239,7 @@ def computeSpecWindowsIQ(
         imSs[i]=p[0]
         imSi[i]=p[1]
 
-    return imWinTopBottomDepth, imWinLeftRightWidth, imMbf, imSs, imSi
+    return imWinTopBottomDepth, imWinLeftRightWidth, imMbf, imSs, imSi, imF[0], imNps
 
 
 
