@@ -4,6 +4,7 @@ from UtcTool2dIQ.rfAnalysis_ui import *
 from Utils.roiFuncs import *
 from UtcTool2dIQ.exportData_ui_helper import *
 from UtcTool2dIQ.saveRoi_ui_helper import *
+from UtcTool2dIQ.psGraphDisplay_ui_helper import *
 
 import os
 import numpy as np
@@ -147,7 +148,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
 	            background-color: rgba(0,0,0,0);
             }""")
 
-        global roisLeft, roisRight, roisTop, roisBottom, mbf, ss, si, minMBF, minSS, minSI, \
+        global roisLeft, roisRight, roisTop, roisBottom, mbf, ss, si, minMBF, minSS, minSI, PsGraphDisplayGUI, windowNPSs, windowFreqs, mbfPoint, \
         maxMBF, maxSS, maxSI, curDisp, cmap, tempROISelected, selectedROI, indMBF, indSI, indSS, scanConverted
         roisLeft = []
         roisRight = []
@@ -170,6 +171,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         indSI = None
         indSS = None
         scanConverted = False
+        PsGraphDisplayGUI = PsGraphDisplay()
 
         self.splineX = splineX
         self.splineY = splineY
@@ -241,6 +243,16 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.exportDataButton.clicked.connect(self.moveToExport)
         self.saveDataButton.clicked.connect(self.saveData)
         self.saveRoiButton.clicked.connect(self.saveRoi)
+        self.displayNpsButton.clicked.connect(self.displayNps)
+        self.displayNpsButton.setCheckable(True)
+
+    def displayNps(self):
+        global PsGraphDisplayGUI
+        if self.displayNpsButton.isChecked():
+            PsGraphDisplayGUI.show()
+        else:
+            PsGraphDisplayGUI.hide()
+
 
     def saveRoi(self):
         self.saveRoiGUI.rfAnalysisGUI = self
@@ -263,6 +275,9 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.dataFrame = self.dataFrame.append(self.newData, ignore_index=True)
 
     def backToLastScreen(self):
+        global PsGraphDisplayGUI
+        PsGraphDisplayGUI.hide()
+        del PsGraphDisplayGUI
         self.lastGui.dataFrame = self.dataFrame
         self.lastGui.show()
         self.hide()
@@ -455,14 +470,31 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.canvas.draw()
 
     def computeWindowSpec(self):
-        global mbf, ss, si, minMBF, maxMBF, minSS, maxSS, minSI, maxSI
-        self.winTopBottomDepth, self.winLeftRightWidth, mbf, ss, si = computeSpecWindowsIQ(self.imgDataStruct.rf,self.refDataStruct.rf, self.roiWindowSplinesStructPreSC.top, self.roiWindowSplinesStructPreSC.bottom, self.roiWindowSplinesStructPreSC.left, self.roiWindowSplinesStructPreSC.right, self.minFrequency, self.maxFrequency, self.lowBandFreq, self.upBandFreq, self.samplingFreq)
+        global mbf, ss, si, minMBF, maxMBF, minSS, maxSS, minSI, maxSI, windowNPSs, windowFreqs, PsGraphDisplayGUI, mbfPoint
+        self.winTopBottomDepth, self.winLeftRightWidth, mbf, ss, si, windowFreqs, windowNPSs = computeSpecWindowsIQ(self.imgDataStruct.rf,self.refDataStruct.rf, self.roiWindowSplinesStructPreSC.top, self.roiWindowSplinesStructPreSC.bottom, self.roiWindowSplinesStructPreSC.left, self.roiWindowSplinesStructPreSC.right, self.minFrequency, self.maxFrequency, self.lowBandFreq, self.upBandFreq, self.samplingFreq)
         minMBF = min(mbf)
         maxMBF = max(mbf)
         minSS = min(ss)
         maxSS = max(ss)
         minSI = min(si)
         maxSI = max(si)
+        a = np.average(ss)
+        b = np.average(si)
+        x = np.linspace(min(windowFreqs), max(windowFreqs), 100)
+        y = a*x + b
+        median = round((min(windowFreqs)+max(windowFreqs))/2)
+        avMBF = a*median + b
+        windowFreqs /= 1000000 # Hz -> MHz
+        x /= 1000000 # Hz -> MHz
+        PsGraphDisplayGUI.ax.vlines([self.imgInfoStruct.lowBandFreq/1000000, self.imgInfoStruct.upBandFreq/1000000], ymin=np.amin(windowNPSs), ymax=np.amax(windowNPSs), colors='purple', label="Band Lims")
+        for i in range(len(windowNPSs)):
+            PsGraphDisplayGUI.ax.plot(windowFreqs, windowNPSs[i], c='blue', alpha=0.2, zorder=1)
+        PsGraphDisplayGUI.ax.plot(windowFreqs, np.mean(windowNPSs, axis=0), c='red', zorder=10, label="NPS")
+        PsGraphDisplayGUI.ax.plot(x, y, c='orange', zorder=11, label= "LOBF")
+        mbfPoint = PsGraphDisplayGUI.ax.scatter(median/1000000, avMBF, marker="o", zorder=12, c="green", label="MBF")
+        PsGraphDisplayGUI.figure.subplots_adjust(left=0.11,right=0.97, bottom=0.2,top=0.96)
+        PsGraphDisplayGUI.figure.legend()
+        PsGraphDisplayGUI.canvas.draw()
 
     def updateLegend(self):
         self.figLeg.clear()
@@ -512,7 +544,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.canvasLeg.draw()
 
     def chooseWindow(self): # select previously computed ROI window to run analysis on
-        global tempROISelected
+        global tempROISelected, PsGraphDisplayGUI, mbfPoint
         if self.chooseWindowButton.isChecked():
             image, =self.ax.plot([], [], marker="o",markersize=3, markerfacecolor="red")
             self.cid = image.figure.canvas.mpl_connect('button_press_event', onSelect)
@@ -521,6 +553,26 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 updateWindows(self.ax)
         else:
             image, = self.ax.plot([], [], marker="o", markersize=3, markerfacecolor="red")
+
+            [PsGraphDisplayGUI.ax.lines.pop() for i in range(2)]
+            mbfPoint.remove()
+            PsGraphDisplayGUI.figure.legend().remove()
+
+            a = np.average(ss)
+            b = np.average(si)
+            x = np.linspace(min(windowFreqs*1000000), max(windowFreqs*1000000), 100)
+            y = a*x + b
+            median = round((min(windowFreqs*1000000)+max(windowFreqs*1000000))/2)
+            avMBF = a*median + b
+            x /= 1000000 # Hz -> MHz
+            PsGraphDisplayGUI.ax.plot()
+            PsGraphDisplayGUI.ax.plot(windowFreqs, np.mean(windowNPSs, axis=0), c='red', zorder=10, label="NPS")
+            PsGraphDisplayGUI.ax.plot(x, y, c='orange', zorder=11, label= "LOBF")
+            mbfPoint = PsGraphDisplayGUI.ax.scatter(median/1000000, avMBF, marker="o", zorder=12, c="green", label="MBF")
+
+            PsGraphDisplayGUI.figure.legend()
+            PsGraphDisplayGUI.canvas.draw()
+
             if curDisp != "clear" and curDisp != "" and selectedROI != -1:
                 self.ax.patches.pop()
             self.canvas.draw()
@@ -532,7 +584,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
     
     
 def onSelect(event): # Update ROI window selected after computation
-    global curDisp, coloredROI, tempROISelected, selectedROI, indMBF, indSI, indSS
+    global curDisp, coloredROI, tempROISelected, selectedROI, indMBF, indSI, indSS, PsGraphDisplayGUI, mbfPoint
     temp = curDisp
     curDisp = "clear"
     updateWindows(event.inaxes)
@@ -583,7 +635,24 @@ def onSelect(event): # Update ROI window selected after computation
             else:
                 rect = matplotlib.patches.Rectangle((roisLeft[i], roisBottom[i]), (roisRight[i]-roisLeft[i]), (roisTop[i]-roisBottom[i]), linewidth=1, fill = True, color=cmap[int((255/(maxSI-minSI))*(si[i]-minSI))])
             event.inaxes.add_patch(rect)
-    event.inaxes.add_patch(coloredROI)
+    if coloredROI is not None:
+        event.inaxes.add_patch(coloredROI)
+        [PsGraphDisplayGUI.ax.lines.pop() for i in range(2)]
+        mbfPoint.remove()
+        a = ss[selectedROI]
+        b = si[selectedROI]
+        x = windowFreqs * 1000000
+        y = a*x + b
+        x /= 1000000
+        mid = mbf[selectedROI]
+        nps = windowNPSs[selectedROI]
+        PsGraphDisplayGUI.ax.plot(windowFreqs, nps, c='red', zorder=10, label="NPS")
+        PsGraphDisplayGUI.ax.plot(x, y, c='orange', zorder=11, label="LOBF")
+        mbfPoint = PsGraphDisplayGUI.ax.scatter(windowFreqs[round(len(windowFreqs)/2)], mid, marker='o', zorder=12, label="MBF", c="green")
+        PsGraphDisplayGUI.figure.legend().remove()
+        PsGraphDisplayGUI.figure.legend()
+        PsGraphDisplayGUI.canvas.draw()
+
     event.inaxes.figure.canvas.draw()
 
 def updateWindows(curAx):

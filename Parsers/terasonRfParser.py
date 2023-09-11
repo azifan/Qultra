@@ -7,8 +7,8 @@ class InfoStruct():
         # Designed fro RF analysis using Terason US System
         # self.minFrequency = 7000000
         # self.maxFrequency = 17000000
-        self.minFrequency = 0
-        self.maxFrequency = 20000000
+        self.minFrequency = 3000000
+        self.maxFrequency = 15000000
         self.lowBandFreq = 5000000
         self.upBandFreq = 13000000
         self.depth = None
