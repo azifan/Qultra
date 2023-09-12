@@ -86,3 +86,11 @@ gdown --no-check-certificate --folder \
 https://drive.google.com/drive/folders/1IQeHYJNu6G7WO2XwlPPmc_ZsfUpzYQgM
 deactivate
 ```
+
+## Dev Practices
+
+The main branch of this repository is read-only for all users. To contribute to this repository, email [David Spector](davidspector9@gmail.com) to become a contributer.
+
+### Branch Naming
+
+When working on any feature of the software, use the NAME-FEATURE branch naming convention. When finished, submit a pull request to merge with the main branch.
