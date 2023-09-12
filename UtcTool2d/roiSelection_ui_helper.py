@@ -286,7 +286,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 phantFileName = str(phantFileName[:-3]+'.mat')
 
         # Display Philips image and assign relevant default analysis params
-        self.frame = 0
+        self.frame = None
         self.imArray, self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = matParser.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation, self.frame)
         self.arHeight = self.imArray.shape[0]
         self.arWidth = self.imArray.shape[1]
@@ -383,7 +383,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.endDepthVal = 0.16
         self.clipFactorVal = 95
         self.samplingFreqVal = 20
-        self.frame = 0
+        self.frame = None
 
         self.plotOnCanvas()
         
@@ -484,6 +484,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.analysisParamsGUI.upBandFreqVal.setValue(np.round(self.imgInfoStruct.upBandFreq/1000000, decimals=2))
             self.analysisParamsGUI.samplingFreqVal.setValue(np.round(self.imgInfoStruct.samplingFrequency/1000000, decimals=2))
             self.analysisParamsGUI.setFilenameDisplays(self.imagePathInput.text().split('/')[-1], self.phantomPathInput.text().split('/')[-1])
+            self.analysisParamsGUI.plotRoiPreview()
             self.analysisParamsGUI.show()
             self.analysisParamsGUI.lastGui = self
             self.hide()
