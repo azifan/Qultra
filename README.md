@@ -93,4 +93,4 @@ The main branch of this repository is read-only for all users. To contribute to 
 
 ### Branch Naming
 
-When working on any feature of the software, use the NAME-FEATURE branch naming convention. When finished, submit a pull request to merge with the main branch.
+When working on any feature of the software, use the `NAME-FEATURE` branch naming convention. When finished, submit a pull request to merge with the main branch.
