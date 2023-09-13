@@ -174,9 +174,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.yCur = event.y()
         if self.drawRoiButton.isChecked():
             # Plot ROI points
-            if self.xCur < 1121 and self.xCur > 400 and self.yCur < 671 and self.yCur > 170:
-                self.actualX = int((self.xCur - 401)*(self.imData.shape[1])/721)
-                self.actualY = int((self.yCur - 171)*(self.imData.shape[0])/501)
+            if self.xCur < self.xMax and self.xCur > self.xMin and self.yCur < self.yMax and self.yCur > self.yMin:
                 plotY = self.xCur - 401
                 plotX = self.yCur - 171
             else:
@@ -193,8 +191,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 spline = [(int(xSpline[i]), int(ySpline[i])) for i in range(len(xSpline))]
                 spline = np.array([*set(spline)])
                 xSpline, ySpline = np.transpose(spline)
-                xSpline = np.clip(xSpline, a_min=0, a_max=500)
-                ySpline = np.clip(ySpline, a_min=0, a_max=720)
+                xSpline = np.clip(xSpline, a_min=round(self.yMin - 170)+1, a_max=500 + round(self.yMax - 671))
+                ySpline = np.clip(ySpline, a_min=round(self.xMin - 400)+1, a_max=720 + round(self.xMax - 1121))
                 for i in range(len(xSpline)):
                     self.maskCoverImg[xSpline[i]-1:xSpline[i]+2, ySpline[i]-1:ySpline[i]+2] = [255, 255, 0, 255]
 
@@ -203,28 +201,28 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                                     self.curPointsPlottedY[i]-2:self.curPointsPlottedY[i]+3] = [0,0,255, 255]
 
         self.plotOnCanvas()
-        self.updateCrosshair()
+        # self.updateCrosshair()
 
     def mouseMoveEvent(self, event):
         self.xCur = event.x()
         self.yCur = event.y()
-        self.updateCrosshair()
+        # self.updateCrosshair()
 
-    def updateCrosshair(self):
-        if self.xCur < 1121 and self.xCur > 400 and self.yCur < 671 and self.yCur > 170:
-            plotX = self.xCur - 401
-        else:
-            return
+    # def updateCrosshair(self):
+    #     if self.xCur < 1121 and self.xCur > 400 and self.yCur < 671 and self.yCur > 170:
+    #         plotX = self.xCur - 401
+    #     else:
+    #         return
         
-        plotY = self.yCur - 171
-        self.imCoverFrame.pixmap().fill(Qt.transparent)
-        painter = QPainter(self.imCoverFrame.pixmap())
-        painter.setPen(Qt.yellow)
-        bmodeVertLine = QLine(plotX, 0, plotX, 501)
-        bmodeLatLine = QLine(0, plotY, 721, plotY)
-        painter.drawLines([bmodeVertLine, bmodeLatLine])
-        painter.end()
-        self.update()
+    #     plotY = self.yCur - 171
+    #     self.imCoverFrame.pixmap().fill(Qt.transparent)
+    #     painter = QPainter(self.imCoverFrame.pixmap())
+    #     painter.setPen(Qt.yellow)
+    #     bmodeVertLine = QLine(plotX, 0, plotX, 501)
+    #     bmodeLatLine = QLine(0, plotY, 721, plotY)
+    #     painter.drawLines([bmodeVertLine, bmodeLatLine])
+    #     painter.end()
+    #     self.update()
 
     def setFilenameDisplays(self, imageName, phantomName):
         self.imagePathInput.setHidden(False)
@@ -247,7 +245,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.imMaskFrame.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(721, 501))
 
         self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8)
-        self.imDisplayFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(721, 501))
+        self.imDisplayFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
 
     def openPhilipsImage(self, imageFilePath, phantomFilePath):
         tmpLocation = imageFilePath.split("/")
@@ -292,9 +290,22 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.imData = np.require(self.imData,np.uint8,'C')
         self.maskCoverImg = np.zeros([501, 721, 4]) # Hard-coded values match size of frame on GUI
         self.bytesLine = self.imData.strides[0]
-        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8).scaled(721, 501)
 
-        self.imDisplayFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(721, 501))
+        quotient = self.imgInfoStruct.width / self.imgInfoStruct.depth
+        if quotient > (721/501):
+            self.widthScale = 721
+            self.depthScale = self.widthScale / (self.imgInfoStruct.width/self.imgInfoStruct.depth)
+        else:
+            self.widthScale = 501 * quotient
+            self.depthScale = 501
+        self.yMin = 170 + ((501 - self.depthScale)/2)
+        self.yMax = 671 - ((501 - self.depthScale)/2)
+        self.xMin = 400 + ((721 - self.widthScale)/2)
+        self.xMax = 1121 - ((721 - self.widthScale)/2)
+
+        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8).scaled(self.widthScale, self.depthScale)
+
+        self.imDisplayFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
 
         self.pixSizeAx = self.imgDataStruct.bMode.shape[0] #were both scBmode
         self.pixSizeLat = self.imgDataStruct.bMode.shape[1]
@@ -328,7 +339,19 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.arWidth = self.imData.shape[1]
         self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8)
 
-        self.imDisplayFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(721, 501))
+        quotient = self.imgInfoStruct.width / self.imgInfoStruct.depth
+        if quotient > (721/501):
+            self.widthScale = 721
+            self.depthScale = self.widthScale / (self.imgInfoStruct.width/self.imgInfoStruct.depth)
+        else:
+            self.widthScale = 501 * quotient
+            self.depthScale = 501
+        self.yMin = 170 + ((501 - self.depthScale)/2)
+        self.yMax = 671 - ((501 - self.depthScale)/2)
+        self.xMin = 400 + ((721 - self.widthScale)/2)
+        self.xMax = 1121 - ((721 - self.widthScale)/2)
+
+        self.imDisplayFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
 
         self.pixSizeAx = self.imgDataStruct.bMode.shape[1] #were both scBmode
         self.pixSizeLat = self.imgDataStruct.bMode.shape[2]
@@ -355,15 +378,29 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
     def openTerasonImage(self, imageFilePath, phantomFilePath):
         self.imArray, self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = tera.getImage(imageFilePath, phantomFilePath)
+
+        quotient = self.imgInfoStruct.width / self.imgInfoStruct.depth
+        if quotient > (721/501):
+            self.widthScale = 721
+            self.depthScale = self.widthScale / (self.imgInfoStruct.width/self.imgInfoStruct.depth)
+        else:
+            self.widthScale = 501 * quotient
+            self.depthScale = 501
+        self.maskCoverImg = np.zeros([501, 721, 4]) # Hard-coded values match size of frame on GUI
+        self.yMin = 170 + ((501 - self.depthScale)/2)
+        self.yMax = 671 - ((501 - self.depthScale)/2)
+        self.xMin = 400 + ((721 - self.widthScale)/2)
+        self.xMax = 1121 - ((721 - self.widthScale)/2)
+            
+
         self.arHeight = self.imArray.shape[0]
         self.arWidth = self.imArray.shape[1]
         self.imData = np.array(self.imArray)
         self.imData = np.require(self.imData,np.uint8,'C')
-        self.maskCoverImg = np.zeros([501, 721, 4]) # Hard-coded values match size of frame on GUI
         self.bytesLine = self.imData.strides[0]
-        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8).scaled(721, 501)
+        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8).scaled(self.widthScale, self.depthScale)
 
-        self.imDisplayFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(721, 501))
+        self.imDisplayFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
 
         self.pixSizeAx = self.imArray.shape[0]
         self.pixSizeLat = self.imArray.shape[1]
@@ -405,8 +442,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             spline = [(int(xSpline[i]), int(ySpline[i])) for i in range(len(xSpline))]
             spline = np.array([*set(spline)])
             xSpline, ySpline = np.transpose(spline)
-            xSpline = np.clip(xSpline, a_min=0, a_max=500)
-            ySpline = np.clip(ySpline, a_min=0, a_max=720)
+            xSpline = np.clip(xSpline, a_min=round(self.yMin - 170)+1, a_max=500 + round(self.yMax - 671))
+            ySpline = np.clip(ySpline, a_min=round(self.xMin - 400)+1, a_max=720 + round(self.xMax - 1121))
             for i in range(len(xSpline)):
                 self.maskCoverImg[xSpline[i]-1:xSpline[i]+2, ySpline[i]-1:ySpline[i]+2] = [0, 0, 255, 255]
             self.drawRoiButton.setChecked(False)
@@ -445,7 +482,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             bytesLine = imData.strides[0]
             arHeight = imData.shape[0]
             arWidth = imData.shape[1]
-            savedIm = QImage(imData, arWidth, arHeight, bytesLine, QImage.Format_Grayscale8).scaled(721, 501)
+            savedIm = QImage(imData, arWidth, arHeight, bytesLine, QImage.Format_Grayscale8).scaled(self.widthScale, self.depthScale)
 
             savedIm.mirrored().save(os.path.join("Junk", "bModeImRaw.png"))
             savedIm.mirrored().save(os.path.join("Junk", "bModeIm.png"))

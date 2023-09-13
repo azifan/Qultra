@@ -694,6 +694,9 @@ QPushButton:checked {
    <property name="text">
     <string/>
    </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
   </widget>
   <widget class="QLabel" name="imMaskFrame">
    <property name="geometry">
@@ -712,6 +715,9 @@ QPushButton:checked {
    <property name="text">
     <string/>
    </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
   </widget>
   <widget class="QLabel" name="imCoverFrame">
    <property name="geometry">
@@ -729,6 +735,9 @@ QPushButton:checked {
    </property>
    <property name="text">
     <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QPushButton" name="loadRoiButton">

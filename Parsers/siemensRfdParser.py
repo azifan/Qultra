@@ -395,9 +395,11 @@ def readFileImg(Info, focus):
             bmode[frame,:,i] = 20*np.log10(abs(hilbert(echoData[frame,:,i])))
 
     modeIM = echoData
+    Info.axialRes = (1/Info.samplingFrequency)*1540 # speed of sound in tissue
+    Info.axialRes *= 1000 # m -> mm
     Info.lateralRes = 10/Info.lineDensity
-    Info.width = Info.lateralRes*bmode.shape[2] #mm
-    Info.axialRes = Info.depth/bmode.shape[1]
+    Info.width = Info.lateralRes*bmode.shape[2] # mm
+    Info.depth = Info.axialRes*bmode.shape[1] # mm
     Info.maxval = np.amax(bmode)
 
     Data = DataStruct()
