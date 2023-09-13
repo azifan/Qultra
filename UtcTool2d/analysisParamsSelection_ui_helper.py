@@ -2,6 +2,7 @@ from UtcTool2d.analysisParamsSelection_ui import *
 from UtcTool2d.rfAnalysis_ui_helper import *
 import os
 from Utils.roiFuncs import *
+from Utils.roiFuncs import roiWindowsGenerator
 
 from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtGui import QImage, QPixmap
@@ -161,45 +162,101 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
 
         self.continueButton.clicked.connect(self.continueToRfAnalysis)
         self.backButton.clicked.connect(self.backToLastScreen)
+        
+
+    def updateRoiSize(self):
+
+        if self.axWinSizeVal.value() > 0 and self.latWinSizeVal.value() > 0:
+
+            self.axWavelengthRatioVal.setText(str(np.round(self.axWinSizeVal.value()/self.waveLength, decimals=2)))
+            self.latWavelengthRatioVal.setText(str(np.round(self.latWinSizeVal.value()/self.waveLength, decimals=2)))
+
+            self.maskCoverMesh.fill(0)
+            axialRSize = self.axWinSizeVal.value()
+            lateralRSize = self.latWinSizeVal.value()
+            axialRes = self.lastGui.imgInfoStruct.axialRes
+            lateralRes = self.lastGui.imgInfoStruct.lateralRes
+            axialNum = self.lastGui.imgDataStruct.depthPixels
+            lateralNum = self.lastGui.imgDataStruct.widthPixels
+            axialSize = round(axialRSize/axialRes) # in pixels :: mm/(mm/pixel)
+            lateralSize = round(lateralRSize/lateralRes)
+            axialOverlap = self.axOverlapVal.value()/100
+            lateralOverlap = self.latOverlapVal.value()/100
+
+            xScale = 721/(self.lastGui.imgDataStruct.widthPixels)
+            yScale = 501/(self.lastGui.imgDataStruct.depthPixels)
+            x = self.finalSplineX/xScale
+            y = self.finalSplineY/yScale
+
+            # Some axial/lateral dims
+            axialSize = round(axialRSize/axialRes) # in pixels :: mm/(mm/pixel)
+            lateralSize = round(lateralRSize/lateralRes)
+
+            # Overlap fraction determines the incremental distance between ROIs
+            axialIncrement = axialSize * (1-axialOverlap)
+            lateralIncrement = lateralSize * (1-lateralOverlap)
+
+            for x in np.arange(self.padding/self.xScale, self.maskCoverMesh.shape[0], axialIncrement):
+                ind = round(x)
+                if ind < self.maskCoverMesh.shape[0]:
+                    self.maskCoverMesh[ind-1:ind+1, 0:] = [0, 255, 255, 255]
+
+            for y in np.arange(self.padding/self.yScale, self.maskCoverMesh.shape[1], lateralIncrement):
+                ind = round(y)
+                if ind < self.maskCoverMesh.shape[1]:
+                    self.maskCoverMesh[0:, ind] = [0, 255, 255, 255]
+
+            self.maskCoverMesh = np.require(self.maskCoverMesh, np.uint8, 'C')
+            self.bytesLineMesh, _ = self.maskCoverMesh[:,:,0].strides
+            self.qImgMesh = QImage(self.maskCoverMesh, self.maskCoverMesh.shape[1], self.maskCoverMesh.shape[0], self.bytesLineMesh, QImage.Format_ARGB32)
+
+            self.previewFrameMesh.setPixmap(QPixmap.fromImage(self.qImgMesh).scaled(341, 231))
 
     def plotRoiPreview(self):
-        padding = 10 # can vary
+        self.padding = 0 # can vary
+        self.waveLength = self.axWinSizeVal.value()/10
         # 720 and 500 vals come from frame dims in ROI Selection page
 
-        minX = max(min(self.finalSplineX) - padding, 0)
-        maxX = min(max(self.finalSplineX) + padding, 720)
-        minY = max(min(self.finalSplineY) - padding, 0)
-        maxY = min(max(self.finalSplineY) + padding, 500)
+        self.minX = max(min(self.finalSplineX) - self.padding, 0)
+        self.maxX = min(max(self.finalSplineX) + self.padding, 720)
+        self.minY = max(min(self.finalSplineY) - self.padding, 0)
+        self.maxY = min(max(self.finalSplineY) + self.padding, 500)
 
-        xLen = round(maxX - minX)
-        yLen = round(maxY - minY)
+        self.xLen = round(self.maxX - self.minX)
+        self.yLen = round(self.maxY - self.minY)
 
         if self.frame is not None:
-            xLenBmode = round(xLen/721*self.imArray.shape[2])
-            yLenBmode = round(yLen/501*self.imArray.shape[1])
-            minXBmode = round(minX/721*self.imArray.shape[2])
-            minYBmode = round(minY/501*self.imArray.shape[1])
-            self.imData = np.array(self.imArray[self.frame, minYBmode:min(minYBmode+yLenBmode, self.imArray.shape[1] - 1), \
-                                                minXBmode:min(minXBmode+xLenBmode, self.imArray.shape[2] - 1)]).reshape(self.arHeight, self.arWidth)
+            self.xScale = self.imArray.shape[2]/721
+            self.yScale = self.imArray.shape[1]/501
+            self.xLenBmode = round(self.xLen*self.xScale)
+            self.yLenBmode = round(self.yLen/501*self.yScale)
+            self.minXBmode = round(self.minX/721*self.xScale)
+            self.minYBmode = round(self.minY/501*self.yScale)
+            self.imData = np.array(self.imArray[self.frame, self.minYBmode:min(self.minYBmode+self.yLenBmode, self.imArray.shape[1] - 1), \
+                                                self.minXBmode:min(self.minXBmode+self.xLenBmode, self.imArray.shape[2] - 1)]).reshape(self.arHeight, self.arWidth)
             self.imData = np.require(self.imData, np.uint8, 'C')
         else:
-            xLenBmode = round(xLen/721*self.imArray.shape[1])
-            yLenBmode = round(yLen/501*self.imArray.shape[0])
-            minXBmode = round(minX/721*self.imArray.shape[1])
-            minYBmode = round(minY/501*self.imArray.shape[0])
-            endXBmode = min(minXBmode+xLenBmode, self.imArray.shape[1] - 1)
-            endYBmode = min(minYBmode+yLenBmode, self.imArray.shape[0] - 1)
-            self.imData = np.require(self.imArray[minYBmode:endYBmode, \
-                                                  minXBmode:endXBmode],np.uint8,'C')
+            self.xScale = self.imArray.shape[1]/721
+            self.yScale = self.imArray.shape[0]/501
+            self.xLenBmode = round(self.xLen*self.xScale)
+            self.yLenBmode = round(self.yLen*self.yScale)
+            self.minXBmode = round(self.minX*self.xScale)
+            self.minYBmode = round(self.minY*self.yScale)
+            endXBmode = min(self.minXBmode+self.xLenBmode, self.imArray.shape[1] - 1)
+            endYBmode = min(self.minYBmode+self.yLenBmode, self.imArray.shape[0] - 1)
+            self.imData = np.require(self.imArray[self.minYBmode:endYBmode, \
+                                                  self.minXBmode:endXBmode],np.uint8,'C')
 
         self.bytesLine = self.imData.strides[0]
         self.arHeight = self.imData.shape[0]
         self.arWidth = self.imData.shape[1]
 
-        self.maskCoverImg = np.zeros((yLen, xLen, 4))
+        self.maskCoverImg = np.zeros((self.yLen, self.xLen, 4))
+        self.maskCoverMesh = np.zeros((self.yLenBmode, self.xLenBmode, 4))
+
         for i in range(len(self.finalSplineX)):
-            self.maskCoverImg[max(round(self.finalSplineY[i] - minY - 1), 0):max(round(self.finalSplineY[i] - minY - 1), 0)+2, \
-                              max(round(self.finalSplineX[i] - minX - 1), 0):max(round(self.finalSplineX[i] - minX - 1), 0)+2] = [255, 255, 0, 255]
+            self.maskCoverImg[max(round(self.finalSplineY[i] - self.minY - 1), 0):max(round(self.finalSplineY[i] - self.minY - 1), 0)+2, \
+                              max(round(self.finalSplineX[i] - self.minX - 1), 0):max(round(self.finalSplineX[i] - self.minX - 1), 0)+2] = [255, 255, 0, 255]
 
         self.maskCoverImg = np.require(self.maskCoverImg, np.uint8, 'C')
         self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
@@ -209,6 +266,12 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
 
         self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8)
         self.previewFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(341, 231))
+
+        self.updateRoiSize()
+        self.axWinSizeVal.valueChanged.connect(self.updateRoiSize)
+        self.latWinSizeVal.valueChanged.connect(self.updateRoiSize)
+        self.axOverlapVal.valueChanged.connect(self.updateRoiSize)
+        self.latOverlapVal.valueChanged.connect(self.updateRoiSize)
 
 
     def backToLastScreen(self):

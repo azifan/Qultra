@@ -11,7 +11,7 @@ class RoiPositionsStruct():
 
 def roiWindowsGenerator(
     xspline, yspline, # The spline parameters
-    axialNum, lateralNum, # Number of piels along the axial and lateral sides of the image
+    axialNum, lateralNum, # Number of pixels along the axial and lateral sides of the image
     axialRSize, lateralRSize, # Window size in mm - user inputted via GUI
     axialRes, lateralRes, # Axial and lateral image resolution in mm/pixel - width/lines, height/samples
     axialOverlap, lateralOverlap, # Percent overlap - user inputted via GUI

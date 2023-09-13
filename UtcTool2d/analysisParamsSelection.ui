@@ -1093,7 +1093,7 @@
    </property>
    <property name="text">
     <string>NOTE: Window dimensions are recommended to be at least
-10 times signal wavelength. Must be at least 2 times signal wavelength</string>
+10 times signal wavelength.  Must be at least 2 times signal wavelength</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -1186,6 +1186,38 @@
    </property>
   </widget>
   <widget class="QLabel" name="previewFrameMask">
+   <property name="geometry">
+    <rect>
+     <x>810</x>
+     <y>470</y>
+     <width>341</width>
+     <height>231</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 29px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="previewFrameMesh">
    <property name="geometry">
     <rect>
      <x>810</x>
