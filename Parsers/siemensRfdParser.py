@@ -1147,4 +1147,4 @@ def findStartSubstring(shortString, longString):
 
 
 if __name__ == "__main__":
-    getImage('uri_SpV776_VpF512_FpA83_20190816155902.rfd', '/Users/davidspector/Home/Stanford/Project_Data/Thyroid_Data_RFD/', 'uri_SpV776_VpF512_FpA83_20190816155902.rfd','/Users/davidspector/Home/Stanford/Project_Data/Thyroid_Data_RFD/')
+    getImage('uri_SpV2232_VpF512_FpA90_20210129103529.rfd', '/Volumes/CREST Data/David_S_Data/Thyroid_Data_RFD/Phantom/Preset_2/', 'uri_SpV2232_VpF512_FpA90_20210129103529.rfd', '/Volumes/CREST Data/David_S_Data/Thyroid_Data_RFD/Phantom/Preset_2/')

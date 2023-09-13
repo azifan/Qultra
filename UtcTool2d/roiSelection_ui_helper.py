@@ -121,8 +121,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
         self.lastGui = None
         self.imArray = None
-        self.axWinSizeVal = None
-        self.latWinSizeVal = None
         self.axOverlapVal = None
         self.latOverlapVal = None
         self.minFreqVal = None
@@ -286,7 +284,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 phantFileName = str(phantFileName[:-3]+'.mat')
 
         # Display Philips image and assign relevant default analysis params
-        self.frame = 0
+        self.frame = None
         self.imArray, self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = matParser.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation, self.frame)
         self.arHeight = self.imArray.shape[0]
         self.arWidth = self.imArray.shape[1]
@@ -301,8 +299,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.pixSizeAx = self.imgDataStruct.bMode.shape[0] #were both scBmode
         self.pixSizeLat = self.imgDataStruct.bMode.shape[1]
 
-        self.axWinSizeVal = 10#7#1#1480/20000000*10000 # must be at least 10 times wavelength
-        self.latWinSizeVal = 10#7#1#1480/20000000*10000 # must be at least 10 times wavelength
         self.axOverlapVal = 50
         self.latOverlapVal = 50
         self.minFreqVal = 3
@@ -352,8 +348,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.clipFactorVal = 95
         self.minFreqVal = 7
         self.maxFreqVal = 17
-        self.axWinSizeVal = 3.5#1480/40000000*5000 # must be at least 10 times wavelength
-        self.latWinSizeVal = 3.5#self.axialWinSize * 6 # must be at least 10 times wavelength
         self.samplingFreqVal = 40
         self.multipleFrames = True
 
@@ -373,8 +367,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
         self.pixSizeAx = self.imArray.shape[0]
         self.pixSizeLat = self.imArray.shape[1]
-        self.axWinSizeVal = 10#7#1#1480/20000000*10000 # must be at least 10 times wavelength
-        self.latWinSizeVal = 10#7#1#1480/20000000*10000 # must be at least 10 times wavelength
         self.axOverlapVal = 50
         self.latOverlapVal = 50
         self.minFreqVal = 3
@@ -383,7 +375,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.endDepthVal = 0.16
         self.clipFactorVal = 95
         self.samplingFreqVal = 20
-        self.frame = 0
+        self.frame = None
 
         self.plotOnCanvas()
         
@@ -467,13 +459,11 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.analysisParamsGUI.dataFrame = self.dataFrame
             self.analysisParamsGUI.imageDepthVal.setText(str(np.round(self.imgInfoStruct.depth, decimals=1)))
             self.analysisParamsGUI.imageWidthVal.setText(str(np.round(self.imgInfoStruct.width, decimals=1)))
-            self.analysisParamsGUI.axWinSizeVal.setValue(self.imgInfoStruct.depth/100)
-            self.analysisParamsGUI.latWinSizeVal.setValue(self.imgInfoStruct.width/100)
 
             speedOfSoundInTissue = 1540 #m/s
-            waveLength = (speedOfSoundInTissue/self.imgInfoStruct.centerFrequency)*1000 #mm
-            self.analysisParamsGUI.axWinSizeVal.setMinimum(10*waveLength) # must be at least 10 times wavelength
-            self.analysisParamsGUI.latWinSizeVal.setMinimum(10*waveLength) # must be at least 10 times wavelength
+            self.waveLength = (speedOfSoundInTissue/self.imgInfoStruct.centerFrequency)*1000 #mm
+            self.analysisParamsGUI.axWinSizeVal.setValue(self.waveLength*10)
+            self.analysisParamsGUI.latWinSizeVal.setValue(self.waveLength*10)
 
             self.analysisParamsGUI.axOverlapVal.setValue(self.axOverlapVal)
             self.analysisParamsGUI.latOverlapVal.setValue(self.latOverlapVal)
@@ -484,8 +474,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.analysisParamsGUI.upBandFreqVal.setValue(np.round(self.imgInfoStruct.upBandFreq/1000000, decimals=2))
             self.analysisParamsGUI.samplingFreqVal.setValue(np.round(self.imgInfoStruct.samplingFrequency/1000000, decimals=2))
             self.analysisParamsGUI.setFilenameDisplays(self.imagePathInput.text().split('/')[-1], self.phantomPathInput.text().split('/')[-1])
-            self.analysisParamsGUI.show()
             self.analysisParamsGUI.lastGui = self
+            self.analysisParamsGUI.plotRoiPreview()
+            self.analysisParamsGUI.show()
             self.hide()
 
 def calculateSpline(xpts, ypts): # 2D spline interpolation
