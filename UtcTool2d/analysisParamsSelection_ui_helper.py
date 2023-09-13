@@ -199,7 +199,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             for x in np.arange(self.padding/self.xScale, self.maskCoverMesh.shape[0], axialIncrement):
                 ind = round(x)
                 if ind < self.maskCoverMesh.shape[0]:
-                    self.maskCoverMesh[ind-1:ind+1, 0:] = [0, 255, 255, 255]
+                    self.maskCoverMesh[ind-2:ind+2, 0:] = [0, 255, 255, 255]
 
             for y in np.arange(self.padding/self.yScale, self.maskCoverMesh.shape[1], lateralIncrement):
                 ind = round(y)
@@ -229,9 +229,11 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             self.xScale = self.imArray.shape[2]/721
             self.yScale = self.imArray.shape[1]/501
             self.xLenBmode = round(self.xLen*self.xScale)
-            self.yLenBmode = round(self.yLen/501*self.yScale)
-            self.minXBmode = round(self.minX/721*self.xScale)
-            self.minYBmode = round(self.minY/501*self.yScale)
+            self.yLenBmode = round(self.yLen*self.yScale)
+            self.minXBmode = round(self.minX*self.xScale)
+            self.minYBmode = round(self.minY*self.yScale)
+            self.arHeight = min(self.minYBmode+self.yLenBmode, self.imArray.shape[1] - 1) - self.minYBmode
+            self.arWidth = min(self.minXBmode+self.xLenBmode, self.imArray.shape[2] - 1) - self.minXBmode
             self.imData = np.array(self.imArray[self.frame, self.minYBmode:min(self.minYBmode+self.yLenBmode, self.imArray.shape[1] - 1), \
                                                 self.minXBmode:min(self.minXBmode+self.xLenBmode, self.imArray.shape[2] - 1)]).reshape(self.arHeight, self.arWidth)
             self.imData = np.require(self.imData, np.uint8, 'C')
@@ -246,10 +248,10 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             endYBmode = min(self.minYBmode+self.yLenBmode, self.imArray.shape[0] - 1)
             self.imData = np.require(self.imArray[self.minYBmode:endYBmode, \
                                                   self.minXBmode:endXBmode],np.uint8,'C')
+            self.arHeight = self.imData.shape[0]
+            self.arWidth = self.imData.shape[1]
 
         self.bytesLine = self.imData.strides[0]
-        self.arHeight = self.imData.shape[0]
-        self.arWidth = self.imData.shape[1]
 
         self.maskCoverImg = np.zeros((self.yLen, self.xLen, 4))
         self.maskCoverMesh = np.zeros((self.yLenBmode, self.xLenBmode, 4))
