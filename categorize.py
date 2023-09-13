@@ -48,6 +48,8 @@ def categorize():
                         header.rfsd[0].txApodization, header.rfsd[0].pulseAmplitude, header.rfsd[0].analogGain, header.strf.tagName, header.strf.dataSize, header.strf.headerVersion, header.strf.samplingRate, \
                         header.strf.bitCountPerSample, header.strf.sampleMask, header.strf.vectorHeaderLengthBytes, header.strf.compression, len(header.frh0), header.frh0[0].tagName, header.frh0[0].dataSize, header.frh0[0].headerVersion, \
                         header.frh0[0].isTriggeredFrame]
+                    
+                    header = []
              
 
 
