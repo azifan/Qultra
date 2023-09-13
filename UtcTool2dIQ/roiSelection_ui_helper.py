@@ -513,8 +513,10 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.analysisParamsGUI.curPointsPlottedX = self.pointsPlottedX[:-1]
             self.analysisParamsGUI.curPointsPlottedY = self.pointsPlottedY[:-1]
             self.analysisParamsGUI.lastGui = self
+            self.analysisParamsGUI.imArray = self.imData
             self.analysisParamsGUI.dataFrame = self.dataFrame
             self.analysisParamsGUI.setFilenameDisplays(self.imagePathInput.text().split('/')[-1], self.phantomPathInput.text().split('/')[-1])
+            self.analysisParamsGUI.plotRoiPreview()
             self.analysisParamsGUI.show()
             self.editImageDisplayGUI.hide()
             self.hide()
