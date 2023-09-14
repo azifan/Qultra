@@ -159,6 +159,10 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.dataFrame = None
         self.curPointsPlottedX = None
         self.curPointsPlottedY = None
+        self.yBorderMin = None
+        self.xBorderMin = None
+        self.imWidthScale = None
+        self.imDepthScale = None
 
         self.continueButton.clicked.connect(self.continueToRfAnalysis)
         self.backButton.clicked.connect(self.backToLastScreen)
@@ -176,15 +180,13 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             lateralRSize = self.latWinSizeVal.value()
             axialRes = self.lastGui.imgInfoStruct.axialRes
             lateralRes = self.lastGui.imgInfoStruct.lateralRes
-            axialNum = self.lastGui.imgDataStruct.depthPixels
-            lateralNum = self.lastGui.imgDataStruct.widthPixels
             axialSize = round(axialRSize/axialRes) # in pixels :: mm/(mm/pixel)
             lateralSize = round(lateralRSize/lateralRes)
             axialOverlap = self.axOverlapVal.value()/100
             lateralOverlap = self.latOverlapVal.value()/100
 
-            xScale = 721/(self.lastGui.imgDataStruct.widthPixels)
-            yScale = 501/(self.lastGui.imgDataStruct.depthPixels)
+            xScale = self.imWidthScale/(self.lastGui.imgDataStruct.widthPixels)
+            yScale = self.imDepthScale/(self.lastGui.imgDataStruct.depthPixels)
             x = self.finalSplineX/xScale
             y = self.finalSplineY/yScale
 
@@ -196,12 +198,12 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             axialIncrement = axialSize * (1-axialOverlap)
             lateralIncrement = lateralSize * (1-lateralOverlap)
 
-            for x in np.arange(self.padding/self.xScale, self.maskCoverMesh.shape[0], axialIncrement):
+            for x in np.arange(0, self.maskCoverMesh.shape[0], axialIncrement):
                 ind = round(x)
                 if ind < self.maskCoverMesh.shape[0]:
                     self.maskCoverMesh[ind-2:ind+2, 0:] = [0, 255, 255, 255]
 
-            for y in np.arange(self.padding/self.yScale, self.maskCoverMesh.shape[1], lateralIncrement):
+            for y in np.arange(0, self.maskCoverMesh.shape[1], lateralIncrement):
                 ind = round(y)
                 if ind < self.maskCoverMesh.shape[1]:
                     self.maskCoverMesh[0:, ind] = [0, 255, 255, 255]
@@ -213,14 +215,12 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             self.previewFrameMesh.setPixmap(QPixmap.fromImage(self.qImgMesh).scaled(self.widthScale, self.depthScale))
 
     def plotRoiPreview(self):
-        self.padding = 0 # can vary
         self.waveLength = self.axWinSizeVal.value()/10
-        # 720 and 500 vals come from frame dims in ROI Selection page
 
-        self.minX = max(min(self.finalSplineX) - self.padding, 0)
-        self.maxX = min(max(self.finalSplineX) + self.padding, 720)
-        self.minY = max(min(self.finalSplineY) - self.padding, 0)
-        self.maxY = min(max(self.finalSplineY) + self.padding, 500)
+        self.minX = min(self.finalSplineX)
+        self.maxX = max(self.finalSplineX)
+        self.minY = min(self.finalSplineY)
+        self.maxY = max(self.finalSplineY)
 
         quotient = (self.maxX - self.minX) / (self.maxY - self.minY)
         if quotient > (341/231):
@@ -234,8 +234,8 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.yLen = round(self.maxY - self.minY)
 
         if self.frame is not None:
-            self.xScale = self.imArray.shape[2]/721
-            self.yScale = self.imArray.shape[1]/501
+            self.xScale = self.imArray.shape[2]/self.imWidthScale
+            self.yScale = self.imArray.shape[1]/self.imDepthScale
             self.xLenBmode = round(self.xLen*self.xScale)
             self.yLenBmode = round(self.yLen*self.yScale)
             self.minXBmode = round(self.minX*self.xScale)
@@ -246,16 +246,16 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
                                                 self.minXBmode:min(self.minXBmode+self.xLenBmode, self.imArray.shape[2] - 1)]).reshape(self.arHeight, self.arWidth)
             self.imData = np.require(self.imData, np.uint8, 'C')
         else:
-            self.xScale = self.imArray.shape[1]/721
-            self.yScale = self.imArray.shape[0]/501
+            self.xScale = self.imArray.shape[1]/self.imWidthScale
+            self.yScale = self.imArray.shape[0]/self.imDepthScale
             self.xLenBmode = round(self.xLen*self.xScale)
             self.yLenBmode = round(self.yLen*self.yScale)
             self.minXBmode = round(self.minX*self.xScale)
             self.minYBmode = round(self.minY*self.yScale)
             endXBmode = min(self.minXBmode+self.xLenBmode, self.imArray.shape[1] - 1)
             endYBmode = min(self.minYBmode+self.yLenBmode, self.imArray.shape[0] - 1)
-            self.imData = np.require(self.imArray[self.minYBmode:endYBmode, \
-                                                  self.minXBmode:endXBmode],np.uint8,'C')
+            self.imData = np.array(self.imArray[self.minYBmode:endYBmode, self.minXBmode:endXBmode])
+            self.imData = np.require(self.imData,np.uint8,'C')
             self.arHeight = self.imData.shape[0]
             self.arWidth = self.imData.shape[1]
 
@@ -306,6 +306,8 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.rfAnalysisGUI.curPointsPlottedY = self.curPointsPlottedY
         self.rfAnalysisGUI.dataFrame = self.dataFrame
         self.rfAnalysisGUI.frame = self.frame
+        self.rfAnalysisGUI.widthScale = self.imWidthScale
+        self.rfAnalysisGUI.depthScale = self.imDepthScale
         self.rfAnalysisGUI.axialWinSize = self.axWinSizeVal.value()
         self.rfAnalysisGUI.lateralWinSize = self.latWinSizeVal.value()
         self.rfAnalysisGUI.axialOverlap = self.axOverlapVal.value()/100

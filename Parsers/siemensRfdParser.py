@@ -322,7 +322,6 @@ class InfoStruct():
         self.maxFrequency = 13000000
         self.lowBandFreq = 4500000
         self.upBandFreq = 9500000
-        self.depth = 50 # mm. Hard-coded value for Thyroid study
         self.centerFrequency = 8000000
 
         # For B-Mode image rendering
@@ -395,7 +394,7 @@ def readFileImg(Info, focus):
             bmode[frame,:,i] = 20*np.log10(abs(hilbert(echoData[frame,:,i])))
 
     modeIM = echoData
-    Info.axialRes = (1/Info.samplingFrequency)*1540 # speed of sound in tissue
+    Info.axialRes = (1/(Info.samplingFrequency*2))*1540 # speed of sound in tissue
     Info.axialRes *= 1000 # m -> mm
     Info.lateralRes = 10/Info.lineDensity
     Info.width = Info.lateralRes*bmode.shape[2] # mm

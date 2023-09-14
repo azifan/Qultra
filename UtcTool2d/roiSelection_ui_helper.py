@@ -174,9 +174,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.yCur = event.y()
         if self.drawRoiButton.isChecked():
             # Plot ROI points
-            if self.xCur < self.xMax and self.xCur > self.xMin and self.yCur < self.yMax and self.yCur > self.yMin:
-                plotY = self.xCur - 401
-                plotX = self.yCur - 171
+            if self.xCur < self.xBorderMax and self.xCur > self.xBorderMin and self.yCur < self.yBorderMax and self.yCur > self.yBorderMin:
+                plotX = self.xCur - 401
+                plotY = self.yCur - 171
             else:
                 return
             self.curPointsPlottedX.append(plotX)
@@ -191,14 +191,14 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 spline = [(int(xSpline[i]), int(ySpline[i])) for i in range(len(xSpline))]
                 spline = np.array([*set(spline)])
                 xSpline, ySpline = np.transpose(spline)
-                xSpline = np.clip(xSpline, a_min=round(self.yMin - 170)+1, a_max=500 + round(self.yMax - 671))
-                ySpline = np.clip(ySpline, a_min=round(self.xMin - 400)+1, a_max=720 + round(self.xMax - 1121))
+                xSpline = np.clip(xSpline, a_min=round(self.xBorderMin - 400)+1, a_max=720 + round(self.xBorderMax - 1121))
+                ySpline = np.clip(ySpline, a_min=round(self.yBorderMin - 170)+1, a_max=500 + round(self.yBorderMax - 671))
                 for i in range(len(xSpline)):
-                    self.maskCoverImg[xSpline[i]-1:xSpline[i]+2, ySpline[i]-1:ySpline[i]+2] = [255, 255, 0, 255]
+                    self.maskCoverImg[ySpline[i]-1:ySpline[i]+2, xSpline[i]-1:xSpline[i]+2] = [255, 255, 0, 255]
 
             for i in range(len(self.curPointsPlottedX)):
-                self.maskCoverImg[self.curPointsPlottedX[i]-2:self.curPointsPlottedX[i]+3, \
-                                    self.curPointsPlottedY[i]-2:self.curPointsPlottedY[i]+3] = [0,0,255, 255]
+                self.maskCoverImg[self.curPointsPlottedY[i]-2:self.curPointsPlottedY[i]+3, \
+                                    self.curPointsPlottedX[i]-2:self.curPointsPlottedX[i]+3] = [0,0,255, 255]
 
         self.plotOnCanvas()
         # self.updateCrosshair()
@@ -298,10 +298,10 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         else:
             self.widthScale = 501 * quotient
             self.depthScale = 501
-        self.yMin = 170 + ((501 - self.depthScale)/2)
-        self.yMax = 671 - ((501 - self.depthScale)/2)
-        self.xMin = 400 + ((721 - self.widthScale)/2)
-        self.xMax = 1121 - ((721 - self.widthScale)/2)
+        self.yBorderMin = 170 + ((501 - self.depthScale)/2)
+        self.yBorderMax = 671 - ((501 - self.depthScale)/2)
+        self.xBorderMin = 400 + ((721 - self.widthScale)/2)
+        self.xBorderMax = 1121 - ((721 - self.widthScale)/2)
 
         self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8).scaled(self.widthScale, self.depthScale)
 
@@ -346,10 +346,10 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         else:
             self.widthScale = 501 * quotient
             self.depthScale = 501
-        self.yMin = 170 + ((501 - self.depthScale)/2)
-        self.yMax = 671 - ((501 - self.depthScale)/2)
-        self.xMin = 400 + ((721 - self.widthScale)/2)
-        self.xMax = 1121 - ((721 - self.widthScale)/2)
+        self.yBorderMin = 170 + ((501 - self.depthScale)/2)
+        self.yBorderMax = 671 - ((501 - self.depthScale)/2)
+        self.xBorderMin = 400 + ((721 - self.widthScale)/2)
+        self.xBorderMax = 1121 - ((721 - self.widthScale)/2)
 
         self.imDisplayFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
 
@@ -387,10 +387,10 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.widthScale = 501 * quotient
             self.depthScale = 501
         self.maskCoverImg = np.zeros([501, 721, 4]) # Hard-coded values match size of frame on GUI
-        self.yMin = 170 + ((501 - self.depthScale)/2)
-        self.yMax = 671 - ((501 - self.depthScale)/2)
-        self.xMin = 400 + ((721 - self.widthScale)/2)
-        self.xMax = 1121 - ((721 - self.widthScale)/2)
+        self.yBorderMin = 170 + ((501 - self.depthScale)/2)
+        self.yBorderMax = 671 - ((501 - self.depthScale)/2)
+        self.xBorderMin = 400 + ((721 - self.widthScale)/2)
+        self.xBorderMax = 1121 - ((721 - self.widthScale)/2)
             
 
         self.arHeight = self.imArray.shape[0]
@@ -437,15 +437,15 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.maskCoverImg.fill(0)
 
             xSpline, ySpline = calculateSpline(self.curPointsPlottedX, self.curPointsPlottedY)
+            xSpline = np.clip(xSpline, a_min=round(self.xBorderMin - 400)+1, a_max=720 + round(self.xBorderMax - 1121))
+            ySpline = np.clip(ySpline, a_min=round(self.yBorderMin - 170)+1, a_max=500 + round(self.yBorderMax - 671))
             self.xSpline = xSpline
             self.ySpline = ySpline
             spline = [(int(xSpline[i]), int(ySpline[i])) for i in range(len(xSpline))]
             spline = np.array([*set(spline)])
             xSpline, ySpline = np.transpose(spline)
-            xSpline = np.clip(xSpline, a_min=round(self.yMin - 170)+1, a_max=500 + round(self.yMax - 671))
-            ySpline = np.clip(ySpline, a_min=round(self.xMin - 400)+1, a_max=720 + round(self.xMax - 1121))
             for i in range(len(xSpline)):
-                self.maskCoverImg[xSpline[i]-1:xSpline[i]+2, ySpline[i]-1:ySpline[i]+2] = [0, 0, 255, 255]
+                self.maskCoverImg[ySpline[i]-1:ySpline[i]+2, xSpline[i]-1:xSpline[i]+2] = [0, 0, 255, 255]
             self.drawRoiButton.setChecked(False)
             self.drawRoiButton.setCheckable(False)
             self.redrawRoiButton.setHidden(False)
@@ -477,7 +477,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
             if self.multipleFrames:
                 imData = np.array(self.imArray[self.frame]).reshape(self.arHeight, self.arWidth)
-            imData = np.flipud(self.imData)
+            else:
+                imData = self.imArray
+            imData = np.flipud(imData)
             imData = np.require(imData, np.uint8, 'C')
             bytesLine = imData.strides[0]
             arHeight = imData.shape[0]
@@ -487,8 +489,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             savedIm.mirrored().save(os.path.join("Junk", "bModeImRaw.png"))
             savedIm.mirrored().save(os.path.join("Junk", "bModeIm.png"))
             self.analysisParamsGUI = AnalysisParamsGUI()
-            self.analysisParamsGUI.finalSplineX = self.ySpline
-            self.analysisParamsGUI.finalSplineY = self.xSpline
+            self.analysisParamsGUI.finalSplineX = self.xSpline - ((721 - self.widthScale)/2)
+            self.analysisParamsGUI.finalSplineY = self.ySpline - ((501 - self.depthScale)/2)
             self.analysisParamsGUI.curPointsPlottedX = self.curPointsPlottedX
             self.analysisParamsGUI.curPointsPlottedY = self.curPointsPlottedY
             self.analysisParamsGUI.frame = self.frame
@@ -501,6 +503,10 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.waveLength = (speedOfSoundInTissue/self.imgInfoStruct.centerFrequency)*1000 #mm
             self.analysisParamsGUI.axWinSizeVal.setValue(self.waveLength*10)
             self.analysisParamsGUI.latWinSizeVal.setValue(self.waveLength*10)
+            # self.analysisParamsGUI.yBorderMin = (721 - self.widthScale)/2
+            # self.analysisParamsGUI.xBorderMin = (501 - self.depthScale)/2
+            self.analysisParamsGUI.imWidthScale = self.widthScale
+            self.analysisParamsGUI.imDepthScale = self.depthScale
 
             self.analysisParamsGUI.axOverlapVal.setValue(self.axOverlapVal)
             self.analysisParamsGUI.latOverlapVal.setValue(self.latOverlapVal)
