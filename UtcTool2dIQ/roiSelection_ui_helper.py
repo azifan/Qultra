@@ -318,6 +318,10 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.analysisParamsGUI.samplingFreqVal.setValue(np.round(self.imgInfoStruct.samplingFrequency/1000000, decimals=2))
         self.analysisParamsGUI.imageDepthVal.setText(str(np.round(self.imgInfoStruct.depth, decimals=1)))
         self.analysisParamsGUI.imageWidthVal.setText(str(np.round(self.imgInfoStruct.width, decimals=1)))
+        self.physicalDepthVal.setText(str(np.round(self.imgInfoStruct.depth, decimals=2)))
+        self.physicalWidthVal.setText(str(np.round(self.imgInfoStruct.width, decimals=2)))
+        self.pixelWidthVal.setText(str(self.arWidth))
+        self.pixelDepthVal.setText(str(self.arHeight))
 
         # Hough transform
         # import cv2

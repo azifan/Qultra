@@ -373,6 +373,10 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.maxFreqVal = 17
         self.samplingFreqVal = 40
         self.multipleFrames = True
+        self.physicalDepthVal.setText(str(np.round(self.imgInfoStruct.depth, decimals=2)))
+        self.physicalWidthVal.setText(str(np.round(self.imgInfoStruct.width, decimals=2)))
+        self.pixelWidthVal.setText(str(self.imArray.shape[2]))
+        self.pixelDepthVal.setText(str(self.imArray.shape[1]))
 
         self.plotOnCanvas()
 
@@ -413,6 +417,11 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.clipFactorVal = 95
         self.samplingFreqVal = 20
         self.frame = None
+        self.physicalDepthVal.setText(str(np.round(self.imgInfoStruct.depth, decimals=2)))
+        self.physicalWidthVal.setText(str(np.round(self.imgInfoStruct.width, decimals=2)))
+        self.pixelWidthVal.setText(str(self.imArray.shape[1]))
+        self.pixelDepthVal.setText(str(self.imArray.shape[0]))
+
 
         self.plotOnCanvas()
         

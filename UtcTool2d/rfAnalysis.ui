@@ -954,17 +954,11 @@ QPushButton:checked {
      <height>501</height>
     </rect>
    </property>
-   <property name="styleSheet">
-    <string notr="true"/>
-   </property>
    <property name="frameShape">
-    <enum>QFrame::NoFrame</enum>
+    <enum>QFrame::StyledPanel</enum>
    </property>
    <property name="frameShadow">
-    <enum>QFrame::Plain</enum>
-   </property>
-   <property name="lineWidth">
-    <number>0</number>
+    <enum>QFrame::Raised</enum>
    </property>
   </widget>
   <widget class="QPushButton" name="saveDataButton">
