@@ -29,7 +29,7 @@
    </property>
    <property name="styleSheet">
     <string notr="true">QLabel {
-	font-size: 29px;
+	font-size: 26px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 }</string>
@@ -685,7 +685,7 @@ QPushButton:checked {
   <widget class="QLabel" name="imDisplayFrame">
    <property name="geometry">
     <rect>
-     <x>400</x>
+     <x>420</x>
      <y>170</y>
      <width>721</width>
      <height>501</height>
@@ -693,12 +693,15 @@ QPushButton:checked {
    </property>
    <property name="text">
     <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="imMaskFrame">
    <property name="geometry">
     <rect>
-     <x>400</x>
+     <x>420</x>
      <y>170</y>
      <width>721</width>
      <height>501</height>
@@ -711,12 +714,15 @@ QPushButton:checked {
    </property>
    <property name="text">
     <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="imCoverFrame">
    <property name="geometry">
     <rect>
-     <x>400</x>
+     <x>420</x>
      <y>170</y>
      <width>721</width>
      <height>501</height>
@@ -729,6 +735,9 @@ QPushButton:checked {
    </property>
    <property name="text">
     <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QPushButton" name="loadRoiButton">
@@ -841,6 +850,326 @@ QPushButton:checked {
    </property>
    <property name="checked">
     <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="physicalDimsLabel">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>0</y>
+     <width>271</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 18px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Physical Dims (cm):</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="physicalWidthLabel">
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>40</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 14px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Width:</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="physicalDepthLabel">
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>70</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 14px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Depth:</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="physicalWidthVal">
+   <property name="geometry">
+    <rect>
+     <x>430</x>
+     <y>40</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 14px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="physicalDepthVal">
+   <property name="geometry">
+    <rect>
+     <x>430</x>
+     <y>70</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 14px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="pixelDepthLabel">
+   <property name="geometry">
+    <rect>
+     <x>1000</x>
+     <y>70</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 14px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Depth:</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="pixelWidthLabel">
+   <property name="geometry">
+    <rect>
+     <x>1000</x>
+     <y>40</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 14px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Width:</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="pixelDepthVal">
+   <property name="geometry">
+    <rect>
+     <x>1060</x>
+     <y>70</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 14px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="pixelDimsLabel">
+   <property name="geometry">
+    <rect>
+     <x>940</x>
+     <y>0</y>
+     <width>271</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 18px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Pixel Dims:</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="pixelWidthVal">
+   <property name="geometry">
+    <rect>
+     <x>1060</x>
+     <y>40</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 14px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

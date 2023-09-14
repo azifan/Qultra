@@ -186,6 +186,8 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.newData = None
         self.curPointsPlottedX = None
         self.curPointsPlottedY = None
+        self.widthScale = None
+        self.depthScale = None
 
         self.axialWinSize = None
         self.lateralWinSize = None
@@ -212,6 +214,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.horizontalLayout = QHBoxLayout(self.imDisplayFrame)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.figure = plt.figure()
+        self.figure.patch.set_alpha(0)
         self.canvas = FigureCanvas(self.figure)
         self.horizontalLayout.addWidget(self.canvas)
 
@@ -352,6 +355,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.ax = self.figure.add_subplot(111)
         im = plt.imread(os.path.join("Junk", "bModeIm.png"))
         self.ax.imshow(im, cmap='Greys_r')
+        self.ax.axis('off')
 
         self.ax.plot(self.splineX, self.splineY, color = "cyan", zorder=1, linewidth=0.75)
         self.figure.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)

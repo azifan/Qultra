@@ -194,12 +194,12 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             axialIncrement = axialSize * (1-axialOverlap)
             lateralIncrement = lateralSize * (1-lateralOverlap)
 
-            for x in np.arange(self.padding/self.xScale, self.maskCoverMesh.shape[0], axialIncrement):
+            for x in np.arange(0, self.maskCoverMesh.shape[0], axialIncrement):
                 ind = round(x)
                 if ind < self.maskCoverMesh.shape[0]:
                     self.maskCoverMesh[ind-2:ind+2, 0:] = [0, 255, 255, 255]
 
-            for y in np.arange(self.padding/self.yScale, self.maskCoverMesh.shape[1], lateralIncrement):
+            for y in np.arange(0, self.maskCoverMesh.shape[1], lateralIncrement):
                 ind = round(y)
                 if ind < self.maskCoverMesh.shape[1]:
                     self.maskCoverMesh[0:, ind] = [0, 255, 255, 255]
@@ -208,17 +208,23 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             self.bytesLineMesh, _ = self.maskCoverMesh[:,:,0].strides
             self.qImgMesh = QImage(self.maskCoverMesh, self.maskCoverMesh.shape[1], self.maskCoverMesh.shape[0], self.bytesLineMesh, QImage.Format_ARGB32)
 
-            self.previewFrameMesh.setPixmap(QPixmap.fromImage(self.qImgMesh).scaled(341, 231))
+            self.previewFrameMesh.setPixmap(QPixmap.fromImage(self.qImgMesh).scaled(self.widthScale, self.depthScale))
 
     def plotRoiPreview(self):
-        self.padding = 0 # can vary
         self.waveLength = self.axWinSizeVal.value()/10
-        # 720 and 500 vals come from frame dims in ROI Selection page
 
-        self.minX = max(min(self.finalSplineX) - self.padding, 0)
-        self.maxX = min(max(self.finalSplineX) + self.padding, 720)
-        self.minY = max(min(self.finalSplineY) - self.padding, 0)
-        self.maxY = min(max(self.finalSplineY) + self.padding, 500)
+        self.minX = min(self.finalSplineX)
+        self.maxX = max(self.finalSplineX)
+        self.minY = min(self.finalSplineY)
+        self.maxY = max(self.finalSplineY)
+
+        quotient = (self.maxX - self.minX) / (self.maxY - self.minY)
+        if quotient > (341/231):
+            self.widthScale = 341
+            self.depthScale = self.widthScale / ((self.maxX - self.minX)/(self.maxY - self.minY))
+        else:
+            self.widthScale = 231 * quotient
+            self.depthScale = 231
 
         self.xLen = round(self.maxX - self.minX)
         self.yLen = round(self.maxY - self.minY)
@@ -250,10 +256,10 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
         self.qImgMask = QImage(self.maskCoverImg, self.maskCoverImg.shape[1], self.maskCoverImg.shape[0], self.bytesLineMask, QImage.Format_ARGB32)
 
-        self.previewFrameMask.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(341, 231))
+        self.previewFrameMask.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(self.widthScale, self.depthScale))
 
         self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8)
-        self.previewFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(341, 231))
+        self.previewFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
 
         self.updateRoiSize()
         self.axWinSizeVal.valueChanged.connect(self.updateRoiSize)
