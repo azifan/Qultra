@@ -141,7 +141,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         segMask = binary_fill_holes(segMask)
 
         affine = np.eye(4)
-        niiarray = nib.Nifti1Image(segMask.astype('uint8'), affine)
+        niiarray = nib.Nifti1Image(np.transpose(segMask).astype('uint8'), affine)
         niiarray.header['descrip'] = self.imagePathInput.text()
         outputPath = os.path.join(fileDestination, name)
         nib.save(niiarray, outputPath)
@@ -170,10 +170,10 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         except:
             return
         mask = nib.load(os.path.join(self.xcel_dir, self.niftiSegPath), mmap=False).get_fdata().astype(np.uint8)
-        mask = np.transpose(mask)
         self.loadRoi(mask)
         
     def loadRoi(self, mask):
+        mask = np.transpose(mask)
         maskPoints = np.where(mask > 0)
         maskPoints = np.transpose(maskPoints)
         # self.maskCoverImg[maskPoints] = [0,0,255,255]
