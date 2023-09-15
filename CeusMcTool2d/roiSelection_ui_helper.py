@@ -1,5 +1,6 @@
 from CeusMcTool2d.roiSelection_ui import *
 from CeusMcTool2d.ticAnalysis_ui_helper import *
+from CeusMcTool2d.saveRoi_ui_helper import *
 
 
 import nibabel as nib
@@ -88,6 +89,10 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.fitToRoiButton.setHidden(True)
         self.roiFitNoteLabel.setHidden(True)
         self.closeRoiButton.setHidden(True)
+        self.preLoadedRoiButton.setHidden(True)
+        self.chooseRoiButton.setHidden(True)
+        self.backFromLoadButton.setHidden(True)
+        self.saveRoiButton.setHidden(True)
         self.df = None
         self.dataFrame = None
         self.niftiSegPath = None
@@ -104,6 +109,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.oldSpline = []
         self.mcResultsArray = []
         self.ticAnalysisGui = TicAnalysisGUI()
+        self.saveRoiGUI = SaveRoiGUI()
         self.index = None
         self.bboxes = None
         self.ref_frames = None
@@ -120,11 +126,53 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         self.backButton.clicked.connect(self.backToLastScreen)
         self.newRoiButton.clicked.connect(self.drawNewRoi)
-        self.loadRoiButton.clicked.connect(self.loadRoi)
+        self.loadRoiButton.clicked.connect(self.startLoadRoi)
+        self.saveRoiButton.clicked.connect(self.startSaveRoi)
 
-    def loadRoi(self):
-        self.niftiSegPath = self.df.loc[self.index, 'nifti_segmentation_path']
+    def startSaveRoi(self):
+        self.saveRoiGUI.roiSelectionGUI = self
+        self.saveRoiGUI.show()
+
+    def saveRoi(self, fileDestination, name, frame):
+        segMask = np.zeros([self.numSlices, self.y, self.x])
+        self.pointsPlotted = [*set(self.pointsPlotted)]
+        for point in self.pointsPlotted:
+            segMask[frame, point[0]+self.y0_bmode, point[1]+self.x0_bmode] = 1
+        segMask = binary_fill_holes(segMask)
+
+        affine = np.eye(4)
+        niiarray = nib.Nifti1Image(np.transpose(segMask).astype('uint8'), affine)
+        niiarray.header['descrip'] = self.imagePathInput.text()
+        outputPath = os.path.join(fileDestination, name)
+        nib.save(niiarray, outputPath)
+
+    def startLoadRoi(self):
+        self.newRoiButton.setHidden(True)
+        self.loadRoiButton.setHidden(True)
+        self.preLoadedRoiButton.setHidden(False)
+        self.chooseRoiButton.setHidden(False)
+        self.backFromLoadButton.setHidden(False)
+
+        self.backFromLoadButton.clicked.connect(self.restartRoi)
+        self.preLoadedRoiButton.clicked.connect(self.loadPreloadedRoi)
+        self.chooseRoiButton.clicked.connect(self.loadChosenRoi)
+
+    def loadChosenRoi(self):
+        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.nii.gz')
+        if fileName != '':
+            nibIm = nib.load(fileName)
+            if self.imagePathInput.text().replace("'", '"') == str(nibIm.header['descrip'])[2:-1]:
+                self.loadRoi(nibIm.get_fdata().astype(np.uint8))
+
+    def loadPreloadedRoi(self):  
+        try:      
+            self.niftiSegPath = self.df.loc[self.index, 'nifti_segmentation_path']
+        except:
+            return
         mask = nib.load(os.path.join(self.xcel_dir, self.niftiSegPath), mmap=False).get_fdata().astype(np.uint8)
+        self.loadRoi(mask)
+        
+    def loadRoi(self, mask):
         mask = np.transpose(mask)
         maskPoints = np.where(mask > 0)
         maskPoints = np.transpose(maskPoints)
@@ -138,19 +186,23 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.curSliceSpinBox.setValue(self.curFrameIndex)
         self.perform_MC()
 
-        self.newRoiButton.setHidden(True)
-        self.loadRoiButton.setHidden(True)
+        self.backFromLoadButton.setHidden(True)
+        self.preLoadedRoiButton.setHidden(True)
+        self.chooseRoiButton.setHidden(True)
         self.undoRoiButton.setHidden(False)
         self.acceptGeneratedRoiButton.setHidden(False)
 
     def drawNewRoi(self):
         self.newRoiButton.setHidden(True)
         self.loadRoiButton.setHidden(True)
+        self.undoLastPtButton.setHidden(True)
+        self.saveRoiButton.setHidden(True)
         self.drawRoiButton.setHidden(False)
         self.undoLastPtButton.setHidden(False)
         self.redrawRoiButton.setHidden(False)
         self.fitToRoiButton.setHidden(False)
         self.closeRoiButton.setHidden(False)
+        self.saveRoiButton.setHidden(True)
 
     def backToLastScreen(self):
         self.lastGui.dataFrame = self.dataFrame
@@ -751,6 +803,8 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.curPointsPlottedY = []
             self.redrawRoiButton.setHidden(False)
             self.closeRoiButton.setHidden(True)
+            self.undoLastPtButton.setHidden(True)
+            self.saveRoiButton.setHidden(False)
             self.roiFitNoteLabel.setHidden(False)
             self.drawRoiButton.setChecked(False)
             self.drawRoiButton.setCheckable(False)
@@ -786,6 +840,8 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.closeRoiButton.setHidden(False)
             self.roiFitNoteLabel.setHidden(True)
             self.drawRoiButton.setCheckable(True)
+            self.saveRoiButton.setHidden(True)
+            self.undoLastPtButton.setHidden(False)
             self.fitToRoiButton.clicked.disconnect()
             self.updateBmode()
             self.updateCE()
