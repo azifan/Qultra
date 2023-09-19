@@ -16,6 +16,7 @@ from scipy.spatial import ConvexHull
 import pyvista as pv
 import Utils.motionCorrection as mc
 import cv2
+import pydicom as dicom
 
 from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtGui import QPixmap, QPainter, QImage
@@ -113,6 +114,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.index = None
         self.bboxes = None
         self.ref_frames = None
+        self.xcelIndices = None
 
         self.bmodeCoverPixmap = QPixmap(381, 351)
         self.bmodeCoverPixmap.fill(Qt.transparent)
@@ -232,7 +234,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         threshold_decrease_per_step = 0.02
 
         # get ref frame
-        search_margin = int((0.5/15)*self.full_array.shape[1])
+        search_margin = int((0.5/15)*self.fullArray.shape[1])
         ref_frames = [self.curFrameIndex]
         mask = self.segMask[self.curFrameIndex]
         pos_coor = np.argwhere(mask > 0)
@@ -253,10 +255,10 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         max_x1 = max([e[0]+e[2] for e in bboxes]) + search_margin
         min_y0 = min([e[1] for e in bboxes]) - search_margin
         max_y1 = max([e[1]+e[3] for e in bboxes])
-        bmode = self.full_array[:, min_y0:max_y1, min_x0:max_x1]
+        bmode = self.fullArray[:, min_y0:max_y1, min_x0:max_x1]
         ref_f = ref_frames[0]
         ref_b = bboxes[0]
-        ref_bmodes = [self.full_array[ref_f, \
+        ref_bmodes = [self.fullArray[ref_f, \
                                       ref_b[1]:ref_b[1]+ref_b[3], \
                                       ref_b[0]:ref_b[0]+ref_b[2]]]
         
@@ -265,16 +267,16 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         ref_patches = ref_bmodes[:]
 
-        previous_all_lesion_bboxes = [None]*self.full_array.shape[0]
+        previous_all_lesion_bboxes = [None]*self.fullArray.shape[0]
         iteration = 1
 
         while True:
 
-            out_array = np.zeros(list(self.full_array.shape) + [3], dtype=np.uint8)
+            out_array = np.zeros(list(self.fullArray.shape) + [3], dtype=np.uint8)
 
-            all_search_bboxes = [None]*self.full_array.shape[0]
-            all_lesion_bboxes = [None]*self.full_array.shape[0]
-            corr_with_ref = [None]*self.full_array.shape[0]
+            all_search_bboxes = [None]*self.fullArray.shape[0]
+            all_lesion_bboxes = [None]*self.fullArray.shape[0]
+            corr_with_ref = [None]*self.fullArray.shape[0]
 
             for ref_idx in range(len(ref_frames)):
                 ref_frame = ref_frames[ref_idx]
@@ -284,7 +286,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
                     if ref_idx == len(ref_frames) - 1:
                         #There is only 1 ref_frame
                         ref_begin = 0
-                        ref_end = self.full_array.shape[0]
+                        ref_end = self.fullArray.shape[0]
                     else:
                         #This is the first ref_frame. There are >1 ref frames.
                         ref_begin = 0
@@ -293,7 +295,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
                     if ref_idx == len(ref_frames) - 1:
                         #This is the last ref frame. There are >1 ref frames.
                         ref_begin = int((ref_frames[ref_idx-1]+ref_frames[ref_idx])/2)
-                        ref_end = self.full_array.shape[0]
+                        ref_end = self.fullArray.shape[0]
                     else:
                         #These are ref frames in the middle. There are >1 ref frames.
                         ref_begin = int((ref_frames[ref_idx-1]+ref_frames[ref_idx])/2)
@@ -312,7 +314,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
                     for frame in range(ref_frame, ref_end, step):
 
-                        full_frame = self.full_array[frame]
+                        full_frame = self.fullArray[frame]
 
                         if valid:
                             search_w = int(previous_bbox[2]+(2*search_margin))
@@ -408,7 +410,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
                         for frame in range(ref_frame-1, ref_begin-1, -step):
 
-                            full_frame = self.full_array[frame]
+                            full_frame = self.fullArray[frame]
 
                             if valid:
                                 search_w = int(previous_bbox[2]+(2*search_margin))
@@ -507,11 +509,11 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         self.mcResultsArray = previous_out_array
         self.mcResultsBmode = self.mcResultsArray[:, \
-                                                  self.y0_bmode:self.y0_bmode+self.h_bmode,\
-                                                  self.x0_bmode:self.x0_bmode+self.w_bmode]
+                                                  self.y0_bmode:self.y0_bmode+self.y,\
+                                                  self.x0_bmode:self.x0_bmode+self.x]
         self.mcResultsCE = self.mcResultsArray[:, \
-                                               self.y0_CE:self.y0_CE+self.h_CE, \
-                                               self.x0_CE:self.x0_CE+self.w_CE]
+                                               self.y0_CE:self.y0_CE+self.y, \
+                                               self.x0_CE:self.x0_CE+self.x]
         
         self.bboxes = previous_all_lesion_bboxes
         self.ref_frames = ref_frames
@@ -525,6 +527,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.redrawRoiButton.setHidden(True)
         self.fitToRoiButton.setHidden(True)
         self.roiFitNoteLabel.setHidden(True)
+        self.saveRoiButton.setHidden(True)
         self.acceptGeneratedRoiButton.setCheckable(False)
         self.undoRoiButton.setCheckable(False)
         self.acceptGeneratedRoiButton.clicked.connect(self.moveToTic)
@@ -571,37 +574,68 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.updateCE()
         self.update()
 
-    def openImage(self, index, xcel_dir):  
+    def openNiftiImage(self, bmodePath, cePath):
+        bmodeFile = nib.load(bmodePath)
+        ceFile = nib.load(cePath)
+
+        bmodePixDims = bmodeFile.header['pixdim']
+        cePixDims = ceFile.header['pixdim']
+        self.pixelScale = bmodePixDims[0]*bmodePixDims[1]*bmodePixDims[2] # mm^3
+
+        self.bmode = bmodeFile.get_fdata(caching='unchanged')
+        self.contrastEnhanced = ceFile.get_fdata(caching='unchanged')
+        print(self.bmode.shape)
+        print(self.contrastEnhanced.shape)
+        self.bmode = self.bmode.reshape((self.bmode.shape[0], self.bmode.shape[1], self.bmode.shape[2], self.bmode.shape[4]))
+        self.contrastEnhanced = self.contrastEnhnaced.reshape((self.contrastEnhanced.shape[0], self.contrastEnhanced.shape[1], self.contrastEnhanced.shape[2], self.contrastEnhanced.shape[4]))
+
+        self.bmode = np.mean(self.bmode, axis=3)
+        self.contrastEnhanced = np.mean(self.contrastEnhanced, axis=3)
+
+    def openDicomImage(self, index, xcel_dir):  
 
         self.x0_bmode = int(self.df.loc[index, 'x0_bmode'])     
         self.y0_bmode = int(self.df.loc[index, 'y0_bmode']) 
-        self.w_bmode = int(self.df.loc[index, 'w_bmode'])
-        self.h_bmode = int(self.df.loc[index, 'h_bmode'])
+        self.x = int(self.df.loc[index, 'x'])
+        self.y = int(self.df.loc[index, 'y'])
         self.x0_CE = int(self.df.loc[index, 'x0_CE'])
         self.y0_CE = int(self.df.loc[index, 'y0_CE'])
-        self.w_CE = int(self.df.loc[index, 'w_CE'])
-        self.h_CE = int(self.df.loc[index, 'h_CE'])
+        self.x = int(self.df.loc[index, 'x'])
+        self.y = int(self.df.loc[index, 'y'])
         self.CE_side = self.df.loc[index, 'CE_window_left(l)_or_right(r)']
-        self.cineRate = self.df.loc[index, 'CineRate']
+        self.cineRate = self.df.loc[self.xcelIndices[index], 'CineRate']
         self.index = index
         self.xcel_dir = xcel_dir
         
-        pickle_full_path = os.path.join(xcel_dir, self.df.loc[index, 'pickle_bmode_CE_gray_path'])
-
-        self.full_array = mc.load_pickle(pickle_full_path).astype(np.uint8)
+        # pickle_full_path = os.path.join(xcel_dir, self.df.loc[index, 'pickle_bmode_CE_gray_path'])
+        fullPath = os.path.join(xcel_dir, self.df.loc[self.xcelIndices[index], 'cleaned_path'])
+        self.fullArray = dicom.dcmread(fullPath).pixel_array[:,:,:,0]
 
         self.bmode = self.full_array[:,self.y0_bmode:self.y0_bmode+self.h_bmode, \
                                      self.x0_bmode:self.x0_bmode+self.w_bmode]
         
         self.contrastEnhanced = self.full_array[:, self.y0_CE:self.y0_CE+self.h_CE, \
                                                 self.x0_CE:self.x0_CE+self.w_CE]
-        
 
-        self.numSlices = self.bmode.shape[0]
-        self.x = self.w_bmode
-        self.y = self.h_bmode
+        # ceSide = self.df.loc[self.xcelIndices[index], 'CE_window_left(l)_or_right(r)']
+        # if ceSide == 'r':
+        #     self.bmode = self.fullArray[:,:,:int(self.fullArray.shape[2]/2)]
+        #     self.contrastEnhanced = self.fullArray[:,:,int(self.fullArray.shape[2]/2):]
+        #     self.x0_bmode = 0
+        #     self.x0_CE = int(self.fullArray.shape[2]/2)
+        # else:
+        #     self.bmode = self.fullArray[:,:,int(self.fullArray.shape[2]/2):]
+        #     self.contrastEnhanced = self.fullArray[:,:,:int(self.fullArray.shape[2]/2)]
+        #     self.x0_bmode = int(self.fullArray.shape[2]/2)
+        #     self.x0_CE = 0
+        # self.numSlices = self.bmode.shape[0]
+        # self.x = self.bmode.shape[2]
+        # self.y = self.bmode.shape[1]
+        # self.y0_bmode = 0
+        # self.y0_CE = 0
 
         self.maskCoverImg = np.zeros([self.y, self.x, 4])
+        self.pixelScale = (self.df.loc[self.xcelIndices[self.index], "height"]/self.y)*(self.df.loc[self.xcelIndices[self.index], "width"]/self.x)
 
         self.curSliceSlider.setMaximum(self.numSlices - 1)
         self.curSliceSpinBox.setMaximum(self.numSlices - 1)
@@ -629,8 +663,8 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.bytesLineBmode, _ = self.dataBmode.strides #in order to create proper QImage, need to know bytes/line
         self.bytesLineCE, _ = self.dataCE.strides
 
-        self.qImgBmode = QImage(self.dataBmode, self.w_bmode, self.h_bmode, self.bytesLineBmode, QImage.Format_Grayscale8) #creating QImage
-        self.qImgCE = QImage(self.dataCE, self.w_CE, self.h_CE, self.bytesLineCE, QImage.Format_Grayscale8)
+        self.qImgBmode = QImage(self.dataBmode, self.x, self.y, self.bytesLineBmode, QImage.Format_Grayscale8) #creating QImage
+        self.qImgCE = QImage(self.dataCE, self.x, self.y, self.bytesLineCE, QImage.Format_Grayscale8)
         self.qImgMask = QImage(self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32)
         self.qImgMask.mirrored().save(os.path.join("Junk", "bModeImRaw.png")) # Save as .png file
 
@@ -658,7 +692,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
             self.bytesLineBmode, _ = self.dataBmode.strides
             self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
-            self.qImgBmode = QImage(self.dataBmode, self.w_bmode, self.h_bmode, self.bytesLineBmode, QImage.Format_Grayscale8)
+            self.qImgBmode = QImage(self.dataBmode, self.x, self.y, self.bytesLineBmode, QImage.Format_Grayscale8)
             self.qImgMask = QImage(self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32)
 
             self.bmodePlane.setPixmap(QPixmap.fromImage(self.qImgBmode).scaled(381, 351))
@@ -677,7 +711,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
             self.bytesLineCE, _ = self.dataCE.strides
             self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
-            self.qImgCE = QImage(self.dataCE, self.w_CE, self.h_CE, self.bytesLineCE, QImage.Format_Grayscale8)
+            self.qImgCE = QImage(self.dataCE, self.x, self.y, self.bytesLineCE, QImage.Format_Grayscale8)
             self.qImgMask = QImage(self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32)
 
 
@@ -686,12 +720,12 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
     def updateCrosshair(self):
         if self.xCur < 741 and self.xCur > 360 and self.yCur < 501 and self.yCur > 150:
-            self.actualX = int((self.xCur - 361)*(self.h_bmode-1)/381)
-            self.actualY = int((self.yCur - 151)*(self.w_bmode-1)/351)
+            self.actualX = int((self.xCur - 361)*(self.y-1)/381)
+            self.actualY = int((self.yCur - 151)*(self.x-1)/351)
             plotX = self.xCur - 361
         elif self.xCur < 1151 and self.xCur > 770 and self.yCur < 501 and self.yCur > 150:
-            self.actualX = int((self.xCur-771)*(self.h_CE-1)/381)
-            self.actualY = int((self.yCur-151)*(self.w_CE-1)/351)
+            self.actualX = int((self.xCur-771)*(self.y-1)/381)
+            self.actualY = int((self.yCur-151)*(self.x-1)/351)
             plotX = self.xCur - 771
         else:
             return
@@ -754,11 +788,11 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         if self.drawRoiButton.isChecked():
             # Plot ROI points
             if self.xCur < 741 and self.xCur > 360 and self.yCur < 501 and self.yCur > 150:
-                self.actualY = int((self.xCur - 361)*(self.w_bmode-1)/381)
-                self.actualX = int((self.yCur - 151)*(self.h_bmode-1)/351)
+                self.actualY = int((self.xCur - 361)*(self.x-1)/381)
+                self.actualX = int((self.yCur - 151)*(self.y-1)/351)
             elif self.xCur < 1151 and self.xCur > 770 and self.yCur < 501 and self.yCur > 150:
-                self.actualY = int((self.xCur-771)*(self.w_CE-1)/381)
-                self.actualX = int((self.yCur-151)*(self.h_CE-1)/351)
+                self.actualY = int((self.xCur-771)*(self.x-1)/381)
+                self.actualX = int((self.yCur-151)*(self.y-1)/351)
             else:
                 return
             self.curPointsPlottedX.append(self.actualX)
@@ -849,7 +883,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
     def computeTic(self):
         times = np.array([i*(1/self.cineRate) for i in range(self.numSlices)])
-        self.pixelScale = (self.df.loc[self.index, "height"]/self.h_CE)*(self.df.loc[self.index, "width"]/self.w_CE)
         TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC(self.mcResultsCE, self.bboxes, times, 24.09, self.pixelScale, self.ref_frames[0])
         # # Compute TICs
 
@@ -861,7 +894,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         # self.ceMcBboxes = mc.create_ce_mc_bboxes(self.bboxes, self.x0_bmode, self.x0_CE, self.CE_side)
 
-        # self.ceMcRoi = mc.cut_ROI200(self.full_array, self.ceMcBboxes, (self.x0_CE, self.y0_CE, self.w_CE, self.h_CE))
+        # self.ceMcRoi = mc.cut_ROI200(self.fullArray, self.ceMcBboxes, (self.x0_CE, self.y0_CE, self.x, self.y))
 
         # self.ticArray = mc.getAllTICs(self.ceMcRoi, self.pixelScale, times)
         
@@ -905,12 +938,12 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.ticAnalysisGui.lastGui = self
         self.ticAnalysisGui.x0_bmode = self.x0_bmode
         self.ticAnalysisGui.y0_bmode = self.y0_bmode
-        self.ticAnalysisGui.w_bmode = self.w_bmode
-        self.ticAnalysisGui.h_bmode = self.h_bmode
+        self.ticAnalysisGui.x = self.x
+        self.ticAnalysisGui.y = self.y
         self.ticAnalysisGui.x0_CE = self.x0_CE
         self.ticAnalysisGui.y0_CE = self.y0_CE
-        self.ticAnalysisGui.w_CE = self.w_CE
-        self.ticAnalysisGui.h_CE = self.h_CE
+        self.ticAnalysisGui.x = self.x
+        self.ticAnalysisGui.y = self.y
         self.ticAnalysisGui.setFilenameDisplays(self.imagePathInput.text())
         self.ticAnalysisGui.deSelectLastPointButton.setHidden(True)
         self.ticAnalysisGui.removeSelectedPointsButton.setHidden(True)
@@ -954,10 +987,10 @@ if __name__ == "__main__":
     x0_CE = 721
     y0_bmode = 40
     y0_CE = 40
-    w_bmode = 721
-    h_bmode = 697
-    w_CE = 721
-    h_CE = 697
+    x = 721
+    y = 697
+    x = 721
+    y = 697
 
     import sys
     app = QApplication(sys.argv)
