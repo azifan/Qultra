@@ -217,8 +217,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
     
     def updateCE(self):
         self.mcDataCE = np.require(self.mcResultsCE[self.curFrameIndex], np.uint8, 'C')
-        self.bytesLineMc, _ = self.mcDataCE[:,:,0].strides
-        self.qImgMcCE = QImage(self.mcDataCE, self.x, self.y, self.bytesLineMc, QImage.Format_RGB888)
+        self.bytesLineMc, _ = self.mcDataCE.strides
+        self.qImgMcCE = QImage(self.mcDataCE, self.x, self.y, self.bytesLineMc, QImage.Format_Grayscale8)
         self.mcCeDisplayLabel.setPixmap(QPixmap.fromImage(self.qImgMcCE).scaled(381, 351))
 
     def setFilenameDisplays(self, imageName):
