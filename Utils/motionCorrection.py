@@ -276,11 +276,11 @@ def generate_TIC(window, bboxes, times, compression, pixelScale, refFrame):
             bool_mask = np.zeros(tmpwin.shape, dtype=bool)
             x0, y0, x_len, y_len = bboxes[t]
             for x in range(x_len):
-                bool_mask[x,y0] = True
-                bool_mask[x,y0+y_len] = True
+                bool_mask[y0,x] = True
+                bool_mask[y0+y_len, x] = True
             for y in range(y_len):
-                bool_mask[x0,y] = True
-                bool_mask[x0+x_len-1,y] = True
+                bool_mask[y, x0] = True
+                bool_mask[y, x0+x_len-1] = True
             bool_mask = binary_fill_holes(bool_mask)
             numPoints = len(np.where(bool_mask == True)[0])
             TIC.append(np.exp(tmpwin[bool_mask]/compression).mean()*pixelScale)

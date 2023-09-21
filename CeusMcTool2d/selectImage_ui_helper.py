@@ -259,8 +259,8 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
                 xcel_dir = xcel_dir.parent.absolute()
                 self.roiSelectionGui.df = self.df
                 self.roiSelectionGui.xcelIndices = self.xcelIndices
-                self.roiSelectionGui.setFilenameDisplays(self.scans[index])
                 index = self.imagesScrollArea.selectedIndexes()[0].row()
+                self.roiSelectionGui.setFilenameDisplays(self.scans[index])
                 self.roiSelectionGui.openDicomImage(index, xcel_dir)
             else:
                 self.roiSelectionGui.setFilenameDisplays(self.niftiBmodeInput.text())

@@ -166,8 +166,8 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
     
     def updateCE(self):
         self.mcDataCE = np.require(self.mcResultsCE[self.curFrameIndex], np.uint8, 'C')
-        self.bytesLineMc, _ = self.mcDataCE[:,:,0].strides
-        self.qImgMcCE = QImage(self.mcDataCE, self.x, self.y, self.bytesLineMc, QImage.Format_RGB888)
+        self.bytesLineMc, _ = self.mcDataCE.strides
+        self.qImgMcCE = QImage(self.mcDataCE, self.x, self.y, self.bytesLineMc, QImage.Format_Grayscale8)
         self.mcCeDisplayLabel.setPixmap(QPixmap.fromImage(self.qImgMcCE).scaled(231, 211))
 
     def initT0(self):
@@ -237,6 +237,8 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
             self.ticY = np.delete(self.ticY, self.selectedPoints)
             self.ax.clear()
             self.graph(self.ticX,self.ticY)
+            yRange = max(self.ticY) - min(self.ticY)
+            self.ax.set_ylim(ymin=min(self.ticY)-(0.05*yRange), ymax=max(self.ticY)+(0.05*yRange))
             self.removedPointsX.append(curRemovedX)
             self.removedPointsY.append(curRemovedY)
             self.selectedPoints = []
@@ -427,12 +429,15 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         # self.ticX[:,0] -= (min(self.ticX[:,0]) - 1)
         self.ax.clear()
         self.graph(self.ticX, self.ticY)
+        yRange = max(self.ticY) - min(self.ticY)
+        self.ax.set_ylim(ymin=min(self.ticY)-(0.05*yRange), ymax=max(self.ticY)+(0.05*yRange))
 
     def rect_highlight(self, event1, event2):
         self.mask |= self.inside(event1, event2)
         x = self.ticX[:,0][self.mask]
         y = self.ticY[self.mask]
         addedIndices = np.sort(np.array(list(range(len(self.ticY))))[self.mask])
+        self.selectedPoints = []
         for index in addedIndices:
             self.selectedPoints.append(index) 
         self.ax.scatter(x, y, color='orange')
@@ -462,7 +467,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
             self.selectedPoints = []
             j = 0
             i = 0
-            max = self.ticX.shape[0] + len(self.removedPointsX[-1])
+            curMax = self.ticX.shape[0] + len(self.removedPointsX[-1])
             while i < self.ticX.shape[0]-1:
                 if self.ticX[i][0] < self.removedPointsX[-1][j][0] and self.removedPointsX[-1][j][0] < self.ticX[i+1][0]:
                     self.ticX = np.insert(self.ticX, i+1, self.removedPointsX[-1][j], axis=0)
@@ -471,7 +476,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
                     if j == len(self.removedPointsX[-1]):
                         break
                 i += 1
-            if i < max and j < len(self.removedPointsX[-1]):
+            if i < curMax and j < len(self.removedPointsX[-1]):
                 while j < len(self.removedPointsX[-1]):
                     self.ticX = np.insert(self.ticX, i+1, self.removedPointsX[-1][j], axis=0)
                     self.ticY = np.append(self.ticY, self.removedPointsY[-1][j])
@@ -483,6 +488,8 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
             ticX = self.ticX
             ticY = self.ticY
             self.graph(ticX, ticY)
+            yRange = max(self.ticY) - min(self.ticY)
+            self.ax.set_ylim(ymin=min(self.ticY)-(0.05*yRange), ymax=max(self.ticY)+(0.05*yRange))
 
     def selectPoint(self, event):
         if self.t0Slider.isHidden():
