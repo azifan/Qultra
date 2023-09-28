@@ -160,6 +160,8 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         niiarray = nib.Nifti1Image(np.transpose(segMask).astype('uint8'), affine)
         niiarray.header['descrip'] = self.imagePathInput.text()
         outputPath = os.path.join(fileDestination, name)
+        if os.path.exists(outputPath):
+            os.remove(outputPath)
         nib.save(niiarray, outputPath)
 
     def startLoadRoi(self):
@@ -645,22 +647,27 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.index = index
         self.xcel_dir = xcel_dir
 
-        
         self.fullPath = os.path.join(xcel_dir, self.df.loc[self.xcelIndices[index], 'cleaned_path'])
         ds = dicom.dcmread(self.fullPath)
         ar = ds.pixel_array
-
-        self.x0_bmode, self.x0_CE, self.w_bmode, self.w_CE = find_x0_bmode_CE(ds, self.CE_side, ar.shape[2])
-        self.y0_bmode = int(ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0)
-        self.y0_CE = self.y0_bmode
-        self.h_bmode = int(ds.SequenceOfUltrasoundRegions[0].RegionLocationMaxY1 - ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0 + 1)
-        self.h_CE = self.h_bmode
 
         color_channel = ds.PhotometricInterpretation
         self.fullArray, self.fullGrayArray = load_cine(ar, color_channel)
         self.x = self.fullArray.shape[2]
         self.y = self.fullArray.shape[1]
         self.numSlices = self.fullArray.shape[0]
+
+        self.x0_bmode, self.x0_CE, self.w_bmode, self.w_CE = find_x0_bmode_CE(ds, self.CE_side, ar.shape[2])
+        try:
+            self.y0_bmode = int(ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0)
+        except:
+            self.y0_bmode = 0
+        self.y0_CE = self.y0_bmode
+        try:
+            self.h_bmode = int(ds.SequenceOfUltrasoundRegions[0].RegionLocationMaxY1 - ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0 + 1)
+        except:
+            self.h_bmode = self.y
+        self.h_CE = self.h_bmode
 
         self.imX0 = 350
         self.imX1 = 1151
