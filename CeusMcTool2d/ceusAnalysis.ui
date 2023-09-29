@@ -591,7 +591,7 @@ QPushButton:checked {
    <property name="geometry">
     <rect>
      <x>1100</x>
-     <y>650</y>
+     <y>630</y>
      <width>151</width>
      <height>51</height>
     </rect>
@@ -672,7 +672,7 @@ QPushButton:checked {
    <property name="geometry">
     <rect>
      <x>1040</x>
-     <y>640</y>
+     <y>620</y>
      <width>71</width>
      <height>71</height>
     </rect>
@@ -691,33 +691,6 @@ QPushButton:checked {
    <property name="text">
     <string>ROI Area
 (mm^2)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="tmppvLabel">
-   <property name="geometry">
-    <rect>
-     <x>1040</x>
-     <y>620</y>
-     <width>71</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>TMPPV</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -823,33 +796,6 @@ QPushButton:checked {
    </property>
    <property name="wordWrap">
     <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QLabel" name="tmppvVal">
-   <property name="geometry">
-    <rect>
-     <x>1100</x>
-     <y>620</y>
-     <width>71</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>0</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="mttVal">

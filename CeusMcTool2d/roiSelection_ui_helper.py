@@ -25,6 +25,9 @@ from PyQt5.QtCore import QLine, Qt, QRect
 import platform
 system = platform.system()
 
+# Assumes no gap between images
+imDimsHashTable = {("TOSHIBA_MEC_US", "TUS-AI900"): (0.0898, 0.145, 0.410, 0.672)} #stores relative (x0_bmode, y0_bmode, w_bmode, h_bmode)
+
 
 class RoiSelectionGUI(Ui_constructRoi, QWidget):
     def __init__(self):
@@ -628,7 +631,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         bmodePixDims = bmodeFile.header['pixdim']
         cePixDims = ceFile.header['pixdim']
-        self.pixelScale = bmodePixDims[0]*bmodePixDims[1]*bmodePixDims[2] # mm^3
+        # self.pixelScale = bmodePixDims[0]*bmodePixDims[1]*bmodePixDims[2] # mm^3
 
         self.bmode = bmodeFile.get_fdata(caching='unchanged')
         self.contrastEnhanced = ceFile.get_fdata(caching='unchanged')
@@ -660,13 +663,22 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.x0_bmode, self.x0_CE, self.w_bmode, self.w_CE = find_x0_bmode_CE(ds, self.CE_side, ar.shape[2])
         try:
             self.y0_bmode = int(ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0)
-        except:
-            self.y0_bmode = 0
-        self.y0_CE = self.y0_bmode
-        try:
             self.h_bmode = int(ds.SequenceOfUltrasoundRegions[0].RegionLocationMaxY1 - ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0 + 1)
         except:
-            self.h_bmode = self.y
+            manufacturer = ds.Manufacturer
+            model = ds.ManufacturerModelName
+            relativeImDims = imDimsHashTable[(manufacturer, model)]
+            self.y0_bmode = round(relativeImDims[1]*self.y)
+            self.w_bmode = round(relativeImDims[2]*self.x)
+            self.h_bmode = round(relativeImDims[3]*self.y)
+            if self.CE_side == 'r':
+                self.x0_bmode = round(relativeImDims[0]*self.x)
+                self.x0_CE = self.x0_bmode + self.w_bmode
+            else:
+                self.x0_CE = round(relativeImDims[0]*self.x)
+                self.x0_bmode = self.x0_CE + self.w_bmode
+            self.w_CE = self.w_bmode
+        self.y0_CE = self.y0_bmode
         self.h_CE = self.h_bmode
 
         self.imX0 = 350
@@ -750,10 +762,10 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         self.maskCoverImg = np.zeros([self.y, self.x, 4])
         
-        region = ds.SequenceOfUltrasoundRegions[0]
-        self.pixelScale = (region.PhysicalDeltaY/self.y)*(region.PhysicalDeltaX/self.x) # cm assuming region.PhysicalUnitsXDirection == 3
-        self.pixelScale *= 100 # cm^2 -> mm^2
-        print("region.PhysicalUnitsXDirection:", region.PhysicalUnitsXDirection)
+        # imRegion = ds.SequenceOfUltrasoundRegions[0]
+        # self.pixelScale = (imRegion.PhysicalDeltaY/self.y)*(imRegion.PhysicalDeltaX/self.x) # cm assuming imRegion.PhysicalUnitsXDirection == 3
+        # self.pixelScale *= 100 # cm^2 -> mm^2
+        # print("imRegion.PhysicalUnitsXDirection:", imRegion.PhysicalUnitsXDirection)
 
         self.curSliceSlider.setMaximum(self.numSlices - 1)
         self.curSliceSpinBox.setMaximum(self.numSlices - 1)
@@ -1056,10 +1068,15 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
     def computeTic(self):
         times = np.array([i*(1/self.cineRate) for i in range(self.numSlices)])
         mcResultsCE = self.fullGrayArray[:, self.y0_CE:self.y0_CE+self.h_CE, self.x0_CE:self.x0_CE+self.w_CE]
-        for i in range(len(self.bboxes)):
-            if self.bboxes[i] is not None:
-                self.bboxes[i] = (self.bboxes[i][0]-self.x0_bmode, self.bboxes[i][1]-self.y0_bmode, self.bboxes[i][2], self.bboxes[i][3]) # assumes bmode and CEUS images are same size
-        TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC(mcResultsCE, self.bboxes, times, 24.09, self.pixelScale, self.ref_frames[0])
+        bboxes = self.bboxes.copy()
+        for i in range(len(bboxes)):
+            if bboxes[i] is not None:
+                if self.y0_CE == self.y - 1:
+                    bboxes[i] = (self.w_CE - (bboxes[i][0]-self.x0_bmode), bboxes[i][1]-self.y0_bmode, bboxes[i][2], bboxes[i][3]) # assumes bmode and CEUS images are same size
+                else:
+                    bboxes[i] = (bboxes[i][0]-self.x0_bmode, bboxes[i][1]-self.y0_bmode, bboxes[i][2], bboxes[i][3]) # assumes bmode and CEUS images are same size
+        TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV(mcResultsCE, bboxes, times, 24.09, self.ref_frames[0])
+        TIC[:,1] /= np.amax(TIC[:,1])
         # # Compute TICs
 
         # # resize all MC bboxes to same size
@@ -1093,7 +1110,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.ticAnalysisGui.ax.clear()
         self.ticAnalysisGui.ticX = []
         self.ticAnalysisGui.ticY = []
-        self.ticAnalysisGui.pixelScale = self.pixelScale
+        # self.ticAnalysisGui.pixelScale = self.pixelScale
         self.ticAnalysisGui.removedPointsX = []
         self.ticAnalysisGui.removedPointsY = []
         self.ticAnalysisGui.selectedPoints = []
