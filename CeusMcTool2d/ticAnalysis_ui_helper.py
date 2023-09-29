@@ -98,7 +98,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.h_CE = None
         self.dataFrame = None
         self.ticArray = None
-        self.pixelScale = None
+        # self.pixelScale = None
 
         self.fig = plt.figure()
         self.canvas = FigureCanvas(self.fig)
@@ -364,22 +364,23 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
             self.ceusAnalysisGui.ax.set_xlim(xmin=min(self.ticX[:,0])-(0.05*range), xmax=max(self.ticX[:,0])+(0.05*range))
         except RuntimeError:
             print('RunTimeError')
-            params = np.array([np.max(self.ticY)*tmppv, np.trapz(self.ticY*tmppv, x=self.ticX[:,0]), self.ticX[-1,0], np.argmax(self.ticY), np.max(self.ticX[:,0])*2, 0]);
+            params = np.array([np.max(self.ticY), np.trapz(self.ticY, x=self.ticX[:,0]), self.ticX[-1,0], np.argmax(self.ticY), np.max(self.ticX[:,0])*2, 0]);
+            # params = np.array([np.max(self.ticY)*tmppv, np.trapz(self.ticY*tmppv, x=self.ticX[:,0]), self.ticX[-1,0], np.argmax(self.ticY), np.max(self.ticX[:,0])*2, 0]);
         self.fig.subplots_adjust(left=0.1, right=0.97, top=0.85, bottom=0.25)
         self.canvas.draw()
-        self.ticY *= tmppv
+        # self.ticY *= tmppv
 
         self.ceusAnalysisGui.aucVal.setText(str(np.around(params[1], decimals=3)))
         self.ceusAnalysisGui.peVal.setText(str(np.around(params[0], decimals=3)))
         self.ceusAnalysisGui.tpVal.setText(str(np.around(params[2], decimals=2)))
         self.ceusAnalysisGui.mttVal.setText(str(np.around(params[3], decimals=2)))
-        self.ceusAnalysisGui.tmppvVal.setText(str(np.around(tmppv, decimals=1)))
+        # self.ceusAnalysisGui.tmppvVal.setText(str(np.around(tmppv, decimals=1)))
         self.ceusAnalysisGui.voiVolumeVal.setText(str(np.around(self.roiArea, decimals=1)))
         self.ceusAnalysisGui.auc = params[1]
         self.ceusAnalysisGui.pe = params[0]
         self.ceusAnalysisGui.tp = params[2]
         self.ceusAnalysisGui.mtt = params[3]
-        self.ceusAnalysisGui.tmppv = tmppv
+        # self.ceusAnalysisGui.tmppv = tmppv
         self.ceusAnalysisGui.roiArea = self.roiArea
         self.ceusAnalysisGui.curFrameIndex = self.curFrameIndex
         self.ceusAnalysisGui.xCur = self.xCur

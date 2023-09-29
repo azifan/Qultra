@@ -105,17 +105,17 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 color: white;
                 background-color: rgba(0,0,0,0);
                 font-size: 13px;
-            }""")
-            self.tmppvLabel.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
-            self.tmppvVal.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
+            # }""")
+            # self.tmppvLabel.setStyleSheet("""QLabel {
+            #     color: white;
+            #     background-color: rgba(0,0,0,0);
+            #     font-size: 13px;
+            # }""")
+            # self.tmppvVal.setStyleSheet("""QLabel {
+            #     color: white;
+            #     background-color: rgba(0,0,0,0);
+            #     font-size: 13px;
+            # }""")
             self.voiVolumeLabel.setStyleSheet("""QLabel {
                 color: white;
                 background-color: rgba(0,0,0,0);
@@ -149,7 +149,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.pe = None
         self.tp = None
         self.mtt = None
-        self.tmppv = None
+        # self.tmppv = None
         self.roiArea = None
         self.newData = None
         self.fig = plt.figure()
@@ -196,12 +196,13 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         if self.newData is None:
             self.newData = {"Patient": self.imagePathInput.text(), "Area Under Curve (AUC)": self.auc, \
                             "Peak Enhancement (PE)": self.pe, "Time to Peak (TP)": self.tp, \
-                            "Mean Transit Time (MTT)": self.mtt, "TMPPV": self.tmppv, "ROI Area (mm^2)": self.roiArea}
+                            "Mean Transit Time (MTT)": self.mtt, "ROI Area (mm^2)": self.roiArea}
             self.dataFrame = self.dataFrame.append(self.newData, ignore_index=True)
 
 
     def backToLastScreen(self):
         self.lastGui.dataFrame = self.dataFrame
+        self.lastGui.fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.1)
         self.lastGui.show()
         self.hide()
     
