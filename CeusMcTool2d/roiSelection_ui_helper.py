@@ -1088,10 +1088,10 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         bboxes = self.bboxes.copy()
         for i in range(len(bboxes)):
             if bboxes[i] is not None:
-                if self.y0_CE == self.y - 1:
-                    bboxes[i] = (self.w_CE - (bboxes[i][0]-self.x0_bmode), bboxes[i][1]-self.y0_bmode, bboxes[i][2], bboxes[i][3]) # assumes bmode and CEUS images are same size
-                else:
-                    bboxes[i] = (bboxes[i][0]-self.x0_bmode, bboxes[i][1]-self.y0_bmode, bboxes[i][2], bboxes[i][3]) # assumes bmode and CEUS images are same size
+                bboxes[i] = (bboxes[i][0]-self.x0_bmode, bboxes[i][1]-self.y0_bmode, bboxes[i][2], bboxes[i][3]) # assumes bmode and CEUS images are same size
+        #         self.mcResultsArray[i, self.y0_CE + bboxes[i][1]: self.y0_CE + bboxes[i][1] + self.bboxes[i][3], self.x0_CE + bboxes[i][0]: self.x0_CE + bboxes[i][0] + bboxes[i][3]] = [255, 0, 0]
+        # self.updateIm()
+        # return
         TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV(mcResultsCE, bboxes, times, 24.09, self.ref_frames[0])
         TIC[:,1] /= np.amax(TIC[:,1])
         # # Compute TICs

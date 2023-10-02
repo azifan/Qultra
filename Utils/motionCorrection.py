@@ -309,13 +309,14 @@ def generate_TIC_no_TMPPV(window, bboxes, times, compression, refFrame):
                 y_len = bool_mask.shape[0] - y0 - 1
             if x0+x_len >= bool_mask.shape[1]:
                 x_len = bool_mask.shape[0] - x0 - 1
-            for x in range(x_len):
-                bool_mask[y0,x] = True
-                bool_mask[y0+y_len, x] = True
-            for y in range(y_len):
-                bool_mask[y, x0] = True
-                bool_mask[y, x0+x_len] = True
-            bool_mask = binary_fill_holes(bool_mask)
+            bool_mask[y0:y0+y_len, x0:x0+x_len] = True
+            # for x in range(x_len):
+            #     bool_mask[y0,x] = True
+            #     bool_mask[y0+y_len, x] = True
+            # for y in range(y_len):
+            #     bool_mask[y, x0] = True
+            #     bool_mask[y, x0+x_len] = True
+            # bool_mask = binary_fill_holes(bool_mask)
             numPoints = len(np.where(bool_mask == True)[0])
             TIC.append(np.exp(tmpwin[bool_mask]/compression).mean())
             TICtime.append(times[t])
