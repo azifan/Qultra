@@ -17,6 +17,7 @@ import Utils.motionCorrection as mc
 import cv2
 import pydicom as dicom
 from pydicom.pixel_data_handlers import convert_color_space
+import json
 
 from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtGui import QPixmap, QPainter, QImage
@@ -26,7 +27,7 @@ import platform
 system = platform.system()
 
 # Assumes no gap between images
-imDimsHashTable = {("TOSHIBA_MEC_US", "TUS-AI900"): (0.0898, 0.145, 0.410, 0.672)} #stores relative (x0_bmode, y0_bmode, w_bmode, h_bmode)
+# imDimsHashTable = {("TOSHIBA_MEC_US", "TUS-AI900"): (0.0898, 0.145, 0.410, 0.672)} #stores relative (x0_bmode, y0_bmode, w_bmode, h_bmode)
 
 
 class RoiSelectionGUI(Ui_constructRoi, QWidget):
@@ -661,22 +662,38 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.numSlices = self.fullArray.shape[0]
 
         self.x0_bmode, self.x0_CE, self.w_bmode, self.w_CE = find_x0_bmode_CE(ds, self.CE_side, ar.shape[2])
+        manufacturer = ds.Manufacturer
+        model = ds.ManufacturerModelName
+        imBoundariesPath = os.path.join('CeusMcTool2d', 'imBoundaries.json')
+
         try:
             self.y0_bmode = int(ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0)
             self.h_bmode = int(ds.SequenceOfUltrasoundRegions[0].RegionLocationMaxY1 - ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0 + 1)
+            with open(imBoundariesPath, 'r') as fp:
+                imDimsHashTable = json.load(fp)
+            try:
+                relativeImDims = imDimsHashTable[', '.join((manufacturer, model))]
+            except:
+                imDimsHashTable[', '.join((manufacturer, model))] = [self.x0_bmode/self.x, self.y0_bmode/self.y, self.w_bmode/self.x, self.h_bmode/self.y]
+                os.remove(imBoundariesPath)
+                with open(imBoundariesPath, 'w') as fp:
+                    json.dump(imDimsHashTable, fp, sort_keys=True, indent=4)
         except:
-            manufacturer = ds.Manufacturer
-            model = ds.ManufacturerModelName
-            relativeImDims = imDimsHashTable[(manufacturer, model)]
+            with open(imBoundariesPath, 'r') as fp:
+                imDimsHashTable = json.load(fp)
+            try:
+                relativeImDims = imDimsHashTable[', '.join((manufacturer, model))]
+            except:
+                print("Transducer model and data format not supported!")
+                return
             self.y0_bmode = round(relativeImDims[1]*self.y)
             self.w_bmode = round(relativeImDims[2]*self.x)
             self.h_bmode = round(relativeImDims[3]*self.y)
+            self.x0_bmode = round(relativeImDims[0]*self.x)
             if self.CE_side == 'r':
-                self.x0_bmode = round(relativeImDims[0]*self.x)
                 self.x0_CE = self.x0_bmode + self.w_bmode
             else:
-                self.x0_CE = round(relativeImDims[0]*self.x)
-                self.x0_bmode = self.x0_CE + self.w_bmode
+                self.x0_CE = self.x0_bmode - self.w_bmode # assumes CE and bmode have same width
             self.w_CE = self.w_bmode
         self.y0_CE = self.y0_bmode
         self.h_CE = self.h_bmode
