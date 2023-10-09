@@ -54,6 +54,15 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.sliceSpinBoxChanged = False
         self.sliceSliderChanged = False
 
+        self.ticDisplay.setHidden(True)
+        self.aucParamapButton.setHidden(True)
+        self.peParamapButton.setHidden(True)
+        self.mttParamapButton.setHidden(True)
+        self.tpParamapButton.setHidden(True)
+        self.ticBackButton.setHidden(True)
+        self.paramapBackButton.setHidden(True)
+        self.chooseParamapLabel.setHidden(True)
+
         self.setMouseTracking(True)
 
         self.axCoverPixmap = QPixmap(321, 301)
@@ -89,6 +98,20 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.curSliceSlider.valueChanged.connect(self.curSliceSliderValueChanged)
         self.curSliceSpinBox.valueChanged.connect(self.curSliceSpinBoxValueChanged)
         self.voiAlphaSpinBox.valueChanged.connect(self.alphaValueChanged)
+        self.showTicButton.clicked.connect(self.showTic)
+        self.ticBackButton.clicked.connect(self.backFromTic)
+
+    def backFromTic(self):
+        self.ticDisplay.setHidden(True)
+        self.showTicButton.setHidden(False)
+        self.loadParamapsButton.setHidden(False)
+        self.ticBackButton.setHidden(True)
+
+    def showTic(self):
+        self.ticDisplay.setHidden(False)
+        self.showTicButton.setHidden(True)
+        self.loadParamapsButton.setHidden(True)
+        self.ticBackButton.setHidden(False)
 
     def mouseMoveEvent(self, event):
         self.xCur = event.x()

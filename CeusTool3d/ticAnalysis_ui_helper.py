@@ -148,43 +148,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.acceptTicButton.clicked.connect(self.ceusAnalysisGui.acceptTIC)
 
     def backToLastScreen(self):
-        self.lastGui.ticDisplay.setHidden(True)
-        self.lastGui.resultsLabel.setHidden(True)
-        self.lastGui.aucLabel.setHidden(True)
-        self.lastGui.aucVal.setHidden(True)
-        self.lastGui.peLabel.setHidden(True)
-        self.lastGui.peVal.setHidden(True)
-        self.lastGui.mttLabel.setHidden(True)
-        self.lastGui.mttVal.setHidden(True)
-        self.lastGui.tpLabel.setHidden(True)
-        self.lastGui.tpVal.setHidden(True)
-        self.lastGui.tmppvLabel.setHidden(True)
-        self.lastGui.tmppvVal.setHidden(True)
-        self.lastGui.voiVolumeLabel.setHidden(True)
-        self.lastGui.voiVolumeVal.setHidden(True)
-        self.lastGui.exportDataButton.setHidden(True)
-        self.lastGui.saveDataButton.setHidden(True)
-
-        self.lastGui.constructVoiLabel.setHidden(False)
-        self.lastGui.drawRoiButton.setHidden(True)
-        self.lastGui.undoLastPtButton.setHidden(True)
-        self.lastGui.closeRoiButton.setHidden(True)
-        self.lastGui.redrawRoiButton.setHidden(True)
-        self.lastGui.continueButton.setHidden(False)
-        self.lastGui.interpolateVoiButton.setHidden(True)
-        self.lastGui.restartVoiButton.setHidden(False)
-
-        self.analysisParamsSidebar.setStyleSheet(u"QFrame {\n"
-"	background-color: rgb(49, 0, 124);\n"
-"	border: 1px solid black;\n"
-"}")
-
-        self.ticAnalysisSidebar.setStyleSheet(u"QFrame {\n"
-"	background-color: rgb(49, 0, 124);\n"
-"	border: 1px solid black;\n"
-"}")
-
-        self.lastGui.curAlpha = 255
+        self.lastGui.restartVoiButton.clicked.connect(self.lastGui.restartVoi)
         self.lastGui.dataFrame = self.dataFrame
         self.lastGui.show()
         self.hide()

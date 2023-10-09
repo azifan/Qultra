@@ -22,7 +22,7 @@
    <property name="geometry">
     <rect>
      <x>390</x>
-     <y>570</y>
+     <y>550</y>
      <width>361</width>
      <height>51</height>
     </rect>
@@ -54,7 +54,7 @@
    <property name="geometry">
     <rect>
      <x>390</x>
-     <y>630</y>
+     <y>600</y>
      <width>171</width>
      <height>41</height>
     </rect>
@@ -88,7 +88,7 @@ QPushButton:checked {
    <property name="geometry">
     <rect>
      <x>580</x>
-     <y>630</y>
+     <y>600</y>
      <width>171</width>
      <height>41</height>
     </rect>
@@ -112,7 +112,7 @@ QPushButton:checked {
    <property name="geometry">
     <rect>
      <x>580</x>
-     <y>690</y>
+     <y>660</y>
      <width>171</width>
      <height>41</height>
     </rect>
@@ -136,7 +136,7 @@ QPushButton:checked {
    <property name="geometry">
     <rect>
      <x>390</x>
-     <y>690</y>
+     <y>660</y>
      <width>171</width>
      <height>41</height>
     </rect>
@@ -160,7 +160,7 @@ QPushButton:checked {
    <property name="geometry">
     <rect>
      <x>390</x>
-     <y>690</y>
+     <y>660</y>
      <width>171</width>
      <height>41</height>
     </rect>
@@ -1192,7 +1192,7 @@ QPushButton:checked {
    <property name="geometry">
     <rect>
      <x>580</x>
-     <y>650</y>
+     <y>600</y>
      <width>171</width>
      <height>41</height>
     </rect>
@@ -1237,7 +1237,7 @@ QPushButton:checked {
    <property name="geometry">
     <rect>
      <x>390</x>
-     <y>650</y>
+     <y>600</y>
      <width>171</width>
      <height>41</height>
     </rect>
@@ -1330,6 +1330,102 @@ QPushButton:checked {
    </property>
    <property name="text">
     <string>Export Data</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="saveVoiButton">
+   <property name="geometry">
+    <rect>
+     <x>480</x>
+     <y>680</y>
+     <width>181</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Save VOI</string>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="drawNewVoiButton">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>630</y>
+     <width>171</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Draw New VOI</string>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="loadVoiButton">
+   <property name="geometry">
+    <rect>
+     <x>580</x>
+     <y>630</y>
+     <width>171</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Load VOI</string>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="newVoiBackButton">
+   <property name="geometry">
+    <rect>
+     <x>480</x>
+     <y>710</y>
+     <width>181</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Back</string>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
    </property>
   </widget>
  </widget>

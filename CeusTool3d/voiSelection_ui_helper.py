@@ -1,6 +1,7 @@
 from CeusTool3d.voiSelection_ui import *
 from CeusTool3d.ticAnalysis_ui_helper import *
 from CeusTool3d.exportData_ui_helper import *
+from CeusTool3d.saveVoi_ui_helper import *
 
 import nibabel as nib
 import numpy as np
@@ -94,6 +95,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.restartVoiButton.setHidden(True)
         self.exportDataButton.setHidden(True)
         self.saveDataButton.setHidden(True)
+        self.saveVoiButton.setHidden(True)
+        self.drawRoiButton.setHidden(True)
+        self.undoLastPtButton.setHidden(True)
+        self.interpolateVoiButton.setHidden(True)
+        self.closeRoiButton.setHidden(True)
+        self.newVoiBackButton.setHidden(True)
+        self.voiAdviceLabel.setHidden(True)
 
         self.sliceSpinBoxChanged = False
         self.sliceSliderChanged = False
@@ -104,6 +112,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.mtt = None
         self.tmppv = None
         self.dataFrame = None
+        self.fullPath = None
 
         self.voiAlphaSpinBox.setMinimum(0)
         self.voiAlphaSpinBox.setMaximum(255)
@@ -123,6 +132,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.painted = "none"
         self.lastGui = None
         self.exportDataGUI = None
+        self.saveVoiGUI =SaveVoiGUI()
 
         self.setMouseTracking(True)
         
@@ -140,6 +150,111 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.corCoverPixmap.fill(Qt.transparent)
         self.corCoverLabel.setPixmap(self.corCoverPixmap)
         self.backButton.clicked.connect(self.backToLastScreen)
+        self.newVoiBackButton.clicked.connect(self.backFromNewVoi)
+        self.drawNewVoiButton.clicked.connect(self.drawNewVoi)
+        self.saveVoiButton.clicked.connect(self.startSaveVoi)
+        self.loadVoiButton.clicked.connect(self.loadVoi)
+
+    def startSaveVoi(self):
+        self.saveVoiGUI.voiSelectionGUI = self
+        pathPieces = self.fullPath.split('/')
+        fileName = pathPieces[-1]
+        pathPieces[-1] = 'nifti_segmentation_QUANTUS'
+        pathPieces.append(fileName)
+
+        path = pathPieces[0]
+        for i in range(len(pathPieces)-2):
+            path = str(path + '/' + pathPieces[i+1])
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+        self.saveVoiGUI.newFolderPathInput.setText(path)
+        self.saveVoiGUI.newFileNameInput.setText(str(pathPieces[-1][:-7] + '_segmentation.nii.gz'))
+        self.saveVoiGUI.show()
+        
+    def saveVoi(self, fileDestination, name, frame):
+        segMask = np.zeros([self.x, self.y, self.z, self.numSlices])
+        self.pointsPlotted = [*set(self.pointsPlotted)]
+        for point in self.pointsPlotted:
+            segMask[point[0], point[1], point[2], frame] = 1
+
+        affine = np.eye(4)
+        niiarray = nib.Nifti1Image(np.transpose(segMask).astype('uint8'), affine)
+        niiarray.header['descrip'] = self.imagePathInput.text()
+        outputPath = os.path.join(fileDestination, name)
+        if os.path.exists(outputPath):
+            os.remove(outputPath)
+        nib.save(niiarray, outputPath)
+
+    def loadVoi(self):
+        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.nii.gz')
+        if fileName != '':
+            nibIm = nib.load(fileName)
+            if self.imagePathInput.text().replace("'", '"') == str(nibIm.header['descrip'])[2:-1]:
+                mask = nibIm.get_fdata().astype(np.uint8)
+            else:
+                print("Mask is not compatible with this image")
+                return
+        else:
+            return
+        mask = np.transpose(mask)
+        maskPoints = np.where(mask > 0)
+        maskPoints = np.transpose(maskPoints)
+        for point in maskPoints:
+            self.maskCoverImg[point[0], point[1], point[2]] = [0, 0, 255, int(self.curAlpha)]
+            self.pointsPlotted.append((point[0], point[1], point[2]))
+        self.curFrameIndex = maskPoints[0,0]
+        self.curSliceSlider.setValue(self.curFrameIndex)
+        self.curSliceSpinBox.setValue(self.curFrameIndex)
+
+        self.drawNewVoiButton.setHidden(True)
+        self.loadVoiButton.setHidden(True)
+
+        self.restartVoiButton.setHidden(False)
+        self.continueButton.setHidden(False)
+        self.saveVoiButton.setHidden(False)
+        self.voiAlphaLabel.setHidden(False)
+        self.voiAlphaOfLabel.setHidden(False)
+        self.voiAlphaSpinBox.setHidden(False)
+        self.voiAlphaStatus.setHidden(False)
+        self.voiAlphaTotal.setHidden(False)
+
+
+        self.changeAxialSlices()
+        self.changeSagSlices()
+        self.changeCorSlices()
+        self.update()
+
+
+    def backFromNewVoi(self):
+        self.drawRoiButton.setHidden(True)
+        self.closeRoiButton.setHidden(True)
+        self.redrawRoiButton.setHidden(True)
+        self.interpolateVoiButton.setHidden(True)
+        self.newVoiBackButton.setHidden(True)
+        self.loadVoiButton.setHidden(False)
+        self.drawNewVoiButton.setHidden(False)
+        self.voiAdviceLabel.setHidden(True)
+        self.undoLastPtButton.setHidden(True)
+
+        self.pointsPlotted = []
+        self.planesDrawn = []
+        self.maskCoverImg.fill(0)
+        self.changeAxialSlices()
+        self.changeSagSlices()
+        self.changeCorSlices()
+        self.update()
+
+    def drawNewVoi(self):
+        self.drawRoiButton.setHidden(False)
+        self.closeRoiButton.setHidden(False)
+        self.undoLastPtButton.setHidden(False)
+        self.interpolateVoiButton.setHidden(False)
+        self.drawNewVoiButton.setHidden(True)
+        self.loadVoiButton.setHidden(True)
+        self.newVoiBackButton.setHidden(True)
+        self.voiAdviceLabel.setHidden(False)
+        self.newVoiBackButton.setHidden(False)
 
     def backToLastScreen(self):
         self.lastGui.dataFrame = self.dataFrame
@@ -158,12 +273,14 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.voiAlphaTotal.setHidden(True)
         self.restartVoiButton.setHidden(True)
         self.continueButton.setHidden(True)
+        self.saveVoiButton.setHidden(True)
 
         self.drawRoiButton.setHidden(False)
         self.undoLastPtButton.setHidden(False)
         self.redrawRoiButton.setHidden(False)
         self.interpolateVoiButton.setHidden(False)
         self.voiAdviceLabel.setHidden(False)
+        self.newVoiBackButton.setHidden(False)
         
         self.changeAxialSlices()
         self.changeSagSlices()
@@ -204,6 +321,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.imagePathInput.setHidden(False)
         
         imFile = imageName.split('/')[-1]
+        self.fullPath = imageName
 
         self.imagePathInput.setText(imFile)
         self.inputTextPath = imageName
@@ -811,6 +929,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.undoLastPtButton.setHidden(True)
             self.redrawRoiButton.setHidden(True)
             self.voiAdviceLabel.setHidden(True)
+            self.newVoiBackButton.setHidden(True)
 
             self.voiAlphaLabel.setHidden(False)
             self.voiAlphaOfLabel.setHidden(False)
@@ -818,6 +937,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.voiAlphaStatus.setHidden(False)
             self.voiAlphaTotal.setHidden(False)
             self.restartVoiButton.setHidden(False)
+            self.saveVoiButton.setHidden(False)
             self.restartVoiButton.clicked.connect(self.restartVoi)
 
 def calculateSpline(xpts, ypts): # 2D spline interpolation
