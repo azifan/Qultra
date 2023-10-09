@@ -21,6 +21,7 @@ pyuic5 CeusTool3d/voiSelection.ui -o CeusTool3d/voiSelection_ui.py
 pyuic5 CeusTool3d/ticAnalysis.ui -o CeusTool3d/ticAnalysis_ui.py
 pyuic5 CeusTool3d/selectImage.ui -o CeusTool3d/selectImage_ui.py
 pyuic5 CeusTool3d/exportData.ui -o CeusTool3d/exportData_ui.py
+pyuic5 CeusTool3d/ceusAnalysis.ui -o CeusTool3d/ceusAnalysis_ui.py
 
 pyuic5 UtcTool2dIQ/selectImage.ui -o UtcTool2dIQ/selectImage_ui.py
 pyuic5 UtcTool2dIQ/saveRoi.ui -o UtcTool2dIQ/saveRoi_ui.py

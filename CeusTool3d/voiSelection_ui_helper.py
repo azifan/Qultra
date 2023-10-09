@@ -13,7 +13,6 @@ import nibabel as nib
 from scipy.spatial import ConvexHull
 import pyvista as pv
 import Utils.utils as ut
-import Utils.lognormalFunctions as lf
 
 from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtGui import QPixmap, QPainter, QImage
@@ -82,66 +81,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                 background-color: white;
                 font-size: 13px;
             }""")
-            self.aucLabel.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
-            self.aucVal.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
-            self.peLabel.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
-            self.peVal.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
-            self.mttLabel.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
-            self.mttVal.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
-            self.tpLabel.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
-            self.tpVal.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
-            self.tmppvLabel.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
-            self.tmppvVal.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
-            self.voiVolumeLabel.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
-            self.voiVolumeVal.setStyleSheet("""QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }""")
 
         self.redrawRoiButton.setHidden(True)
         self.continueButton.setHidden(True)
@@ -152,21 +91,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.voiAlphaSpinBox.setHidden(True)
         self.voiAlphaStatus.setHidden(True)
         self.voiAlphaTotal.setHidden(True)
-
-        self.ticDisplay.setHidden(True)
-        self.resultsLabel.setHidden(True)
-        self.aucLabel.setHidden(True)
-        self.aucVal.setHidden(True)
-        self.peLabel.setHidden(True)
-        self.peVal.setHidden(True)
-        self.mttLabel.setHidden(True)
-        self.mttVal.setHidden(True)
-        self.tpLabel.setHidden(True)
-        self.tpVal.setHidden(True)
-        self.tmppvLabel.setHidden(True)
-        self.tmppvVal.setHidden(True)
-        self.voiVolumeLabel.setHidden(True)
-        self.voiVolumeVal.setHidden(True)
         self.restartVoiButton.setHidden(True)
         self.exportDataButton.setHidden(True)
         self.saveDataButton.setHidden(True)
@@ -200,19 +124,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.lastGui = None
         self.exportDataGUI = None
 
-        self.horizLayout = QHBoxLayout(self.ticDisplay)
-        self.fig = plt.figure()
-        self.canvas = FigureCanvas(self.fig)
-        self.horizLayout.addWidget(self.canvas)
-        self.canvas.draw()
-        self.ax = self.fig.add_subplot(111)
-        self.ax.set_xlabel("Time (s)", fontsize=4, labelpad=0.5)
-        self.ax.set_ylabel("Signal Amplitude", fontsize=4, labelpad=0.5)
-        self.ax.set_title("Time Intensity Curve (TIC)", fontsize=5, pad=1.5)
-        self.ax.tick_params('both', pad=0.3, labelsize=3.6)
-        plt.xticks(fontsize=3)
-        plt.yticks(fontsize=3)
-
         self.setMouseTracking(True)
         
         self.ticAnalysisGui = TicAnalysisGUI()
@@ -229,33 +140,10 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.corCoverPixmap.fill(Qt.transparent)
         self.corCoverLabel.setPixmap(self.corCoverPixmap)
         self.backButton.clicked.connect(self.backToLastScreen)
-        self.exportDataButton.clicked.connect(self.moveToExport)
-        self.saveDataButton.clicked.connect(self.saveData)
-
-    def moveToExport(self):
-        if len(self.dataFrame):
-            del self.exportDataGUI
-            self.exportDataGUI = ExportDataGUI()
-            self.exportDataGUI.dataFrame = self.dataFrame
-            self.exportDataGUI.lastGui = self
-            self.exportDataGUI.setFilenameDisplays(self.imagePathInput.text())
-            self.exportDataGUI.show()
-            self.hide()
-
-    def saveData(self):
-        if self.newData is None:
-            self.newData = {"Patient": self.imagePathInput.text(), "Area Under Curve (AUC)": self.auc, \
-                            "Peak Enhancement (PE)": self.pe, "Time to Peak (TP)": self.tp, \
-                            "Mean Transit Time (MTT)": self.mtt, "TMPPV": self.tmppv, "VOI Volume (mm^3)": self.voxelScale}
-            self.dataFrame = self.dataFrame.append(self.newData, ignore_index=True)
 
     def backToLastScreen(self):
-        if not self.tpVal.isHidden():
-            self.ticAnalysisGui.dataFrame = self.dataFrame
-            self.ticAnalysisGui.show()
-        else:
-            self.lastGui.dataFrame = self.dataFrame
-            self.lastGui.show()
+        self.lastGui.dataFrame = self.dataFrame
+        self.lastGui.show()
         self.hide()
 
     def restartVoi(self):
@@ -785,6 +673,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
     def moveToTic(self):
         self.ticAnalysisGui.timeLine = None
         self.computeTic()
+        self.ticAnalysisGui.pointsPlotted = self.pointsPlotted
+        self.ticAnalysisGui.voxelScale = self.voxelScale
         self.ticAnalysisGui.dataFrame = self.dataFrame
         self.ticAnalysisGui.data4dImg = self.data4dImg
         self.ticAnalysisGui.curSliceIndex = self.curSliceIndex
@@ -828,8 +718,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.ticAnalysisGui.selectT0Button.setHidden(False)
         self.ticAnalysisGui.show()
         self.ticAnalysisGui.lastGui = self
-        self.ticAnalysisGui.ceusResultsGui = self
-        self.ticAnalysisGui.acceptTicButton.clicked.connect(self.acceptTIC)
         self.ticAnalysisGui.imagePathInput.setText(self.imagePathInput.text())
         self.hide()   
 
@@ -931,100 +819,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.voiAlphaTotal.setHidden(False)
             self.restartVoiButton.setHidden(False)
             self.restartVoiButton.clicked.connect(self.restartVoi)
-
-    def acceptTIC(self):
-        self.ticDisplay.setHidden(False)
-        self.resultsLabel.setHidden(False)
-        self.aucLabel.setHidden(False)
-        self.aucVal.setHidden(False)
-        self.peLabel.setHidden(False)
-        self.peVal.setHidden(False)
-        self.mttLabel.setHidden(False)
-        self.mttVal.setHidden(False)
-        self.tpLabel.setHidden(False)
-        self.tpVal.setHidden(False)
-        self.tmppvLabel.setHidden(False)
-        self.tmppvVal.setHidden(False)
-        self.voiVolumeLabel.setHidden(False)
-        self.voiVolumeVal.setHidden(False)
-        self.exportDataButton.setHidden(False)
-        self.saveDataButton.setHidden(False)
-
-        self.analysisParamsSidebar.setStyleSheet(u"QFrame {\n"
-"	background-color: rgb(99, 0, 174);\n"
-"	border: 1px solid black;\n"
-"}")
-
-        self.ticAnalysisSidebar.setStyleSheet(u"QFrame {\n"
-"	background-color: rgb(99, 0, 174);\n"
-"	border: 1px solid black;\n"
-"}")
-
-        self.constructVoiLabel.setHidden(True)
-        self.drawRoiButton.setHidden(True)
-        self.undoLastPtButton.setHidden(True)
-        self.closeRoiButton.setHidden(True)
-        self.redrawRoiButton.setHidden(True)
-        self.continueButton.setHidden(True)
-        self.interpolateVoiButton.setHidden(True)
-        self.restartVoiButton.setHidden(True)
-        self.voiAdviceLabel.setHidden(True)
-
-        self.ax.clear()
-        self.ax.plot(self.ticAnalysisGui.ticX[:,0], self.ticAnalysisGui.ticY)
-
-        # self.sliceArray = self.ticEditor.ticX[:,1]
-        # if self.curSliceIndex>= len(self.sliceArray):
-        #     self.curSliceSlider.setValue(len(self.sliceArray)-1)
-        #     self.curSliceSliderValueChanged()
-        # self.curSliceSlider.setMaximum(len(self.sliceArray)-1)
-        # self.curSliceSpinBox.setMaximum(len(self.sliceArray)-1)
-
-        tmppv = np.max(self.ticAnalysisGui.ticY)
-        self.ticAnalysisGui.ticY = self.ticAnalysisGui.ticY/tmppv;
-        x = self.ticAnalysisGui.ticX[:,0] - np.min(self.ticAnalysisGui.ticX[:,0])
-
-        # Bunch of checks
-        if np.isnan(np.sum(self.ticAnalysisGui.ticY)):
-            print('STOPPED:NaNs in the VOI')
-            return;
-        if np.isinf(np.sum(self.ticAnalysisGui.ticY)):
-            print('STOPPED:InFs in the VOI')
-            return;
-
-        # Do the fitting
-        try:
-            params, popt, wholecurve = lf.data_fit([x, self.ticAnalysisGui.ticY], tmppv);
-            self.ax.plot(self.ticAnalysisGui.ticX[:,0], wholecurve)
-            range = max(self.ticAnalysisGui.ticX[:,0]) - min(self.ticAnalysisGui.ticX[:,0])
-            self.ax.set_xlim(xmin=min(self.ticAnalysisGui.ticX[:,0])-(0.05*range), xmax=max(self.ticAnalysisGui.ticX[:,0])+(0.05*range))
-        except RuntimeError:
-            print('RunTimeError')
-            params = np.array([np.max(self.ticAnalysisGui.ticY)*tmppv, np.trapz(self.ticAnalysisGui.ticY*tmppv, x=self.ticAnalysisGui.ticX[:,0]), self.ticAnalysisGui.ticX[-1,0], np.argmax(self.ticAnalysisGui.ticY), np.max(self.ticAnalysisGui.ticX[:,0])*2, 0]);
-        self.fig.subplots_adjust(left=0.1, right=0.97, top=0.85, bottom=0.25)
-        self.canvas.draw()
-        self.ticAnalysisGui.ticY *= tmppv
-
-        self.aucVal.setText(str(np.around(params[1], decimals=3)))
-        self.peVal.setText(str(np.around(params[0], decimals=3)))
-        self.tpVal.setText(str(np.around(params[2], decimals=2)))
-        self.mttVal.setText(str(np.around(params[3], decimals=2)))
-        self.tmppvVal.setText(str(np.around(tmppv, decimals=1)))
-        self.voiVolumeVal.setText(str(np.around(self.voxelScale, decimals=1)))
-        self.auc = params[1]
-        self.pe = params[0]
-        self.tp = params[2]
-        self.mtt = params[3]
-        self.tmppv = tmppv
-        self.dataFrame = self.ticAnalysisGui.dataFrame
-
-        self.ticAnalysisGui.hide()
-        self.curSliceSlider.setValue(self.ticAnalysisGui.curSliceIndex)
-        self.curSliceSliderValueChanged()
-        self.show()
-
-
-
 
 def calculateSpline(xpts, ypts): # 2D spline interpolation
     cv = []

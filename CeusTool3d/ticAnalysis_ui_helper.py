@@ -1,4 +1,5 @@
 from CeusTool3d.ticAnalysis_ui import *
+from CeusTool3d.ceusAnalysis_ui_helper import *
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
@@ -96,6 +97,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.bytesLineSag = None
         self.maskSagW = None
         self.maskSagH = None
+        self.pointsPlotted = None
         self.maskBytesLineSag = None
         self.widthCor = None
         self.heightCor = None
@@ -107,6 +109,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.x = None
         self.y = None
         self.z = None
+        self.voxelScale = None
         self.xCur = 0
         self.yCur = 0
 
@@ -135,12 +138,14 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.frontPointsY = []
         self.removedPointsX = []
         self.removedPointsY = []
-        self.ceusResultsGui = None
+        self.ceusAnalysisGui = CeusAnalysisGUI()
+        self.ceusAnalysisGui.lastGui = self
         self.lastGui = None
         self.prevLine = None
         self.timeLine = None
         self.backButton.clicked.connect(self.backToLastScreen)
         self.acceptT0Button.clicked.connect(self.acceptT0)
+        self.acceptTicButton.clicked.connect(self.ceusAnalysisGui.acceptTIC)
 
     def backToLastScreen(self):
         self.lastGui.ticDisplay.setHidden(True)
