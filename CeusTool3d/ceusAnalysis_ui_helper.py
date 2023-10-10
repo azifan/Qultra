@@ -1,10 +1,12 @@
 from CeusTool3d.ceusAnalysis_ui import *
 from CeusTool3d.exportData_ui_helper import *
+from CeusTool3d.legend_ui_helper import *
 import Utils.lognormalFunctions as lf
 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import nibabel as nib
 
 from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog, QHBoxLayout
 from PyQt5.QtGui import QImage, QPixmap, QPainter
@@ -53,6 +55,11 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.voxelScale = None
         self.sliceSpinBoxChanged = False
         self.sliceSliderChanged = False
+        self.masterParamap = None
+        self.paramapPoints = None
+        self.curParamap = None
+        self.cmap = None
+        self.legendDisplay = LegendDisplay()
 
         self.ticDisplay.setHidden(True)
         self.aucParamapButton.setHidden(True)
@@ -62,6 +69,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.ticBackButton.setHidden(True)
         self.paramapBackButton.setHidden(True)
         self.chooseParamapLabel.setHidden(True)
+        self.legendDisplay.legendFrame.setHidden(True)
+        self.showLegendButton.setHidden(True)
 
         self.setMouseTracking(True)
 
@@ -91,6 +100,11 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         plt.yticks(fontsize=3)
 
         self.voiAlphaSpinBox.setValue(100)
+        self.aucParamapButton.setCheckable(True)
+        self.peParamapButton.setCheckable(True)
+        self.mttParamapButton.setCheckable(True)
+        self.tpParamapButton.setCheckable(True)
+        self.showLegendButton.setCheckable(True)
 
         self.backButton.clicked.connect(self.backToLastScreen)
         self.saveDataButton.clicked.connect(self.saveData)
@@ -100,6 +114,279 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.voiAlphaSpinBox.valueChanged.connect(self.alphaValueChanged)
         self.showTicButton.clicked.connect(self.showTic)
         self.ticBackButton.clicked.connect(self.backFromTic)
+        self.loadParamapsButton.clicked.connect(self.loadParamaps)
+        self.aucParamapButton.clicked.connect(self.displayAuc)
+        self.peParamapButton.clicked.connect(self.displayPe)
+        self.tpParamapButton.clicked.connect(self.displayTp)
+        self.mttParamapButton.clicked.connect(self.displayMtt)
+        self.paramapBackButton.clicked.connect(self.backFromParamap)
+        self.showLegendButton.clicked.connect(self.displayLegend)
+
+    def backFromParamap(self):
+        self.aucParamapButton.setHidden(True)
+        self.peParamapButton.setHidden(True)
+        self.mttParamapButton.setHidden(True)
+        self.tpParamapButton.setHidden(True)
+        self.paramapBackButton.setHidden(True)
+        self.showLegendButton.setHidden(True)
+        self.showTicButton.setHidden(False)
+        self.loadParamapsButton.setHidden(False)
+
+        self.aucParamapButton.setChecked(False)
+        self.peParamapButton.setChecked(False)
+        self.tpParamapButton.setChecked(False)
+        self.mttParamapButton.setChecked(False)
+        self.showLegendButton.setChecked(False)
+        self.legendDisplay.hide()
+
+        self.masterParamap = None
+        self.clearParamap()        
+
+    def clearParamap(self):
+        try:
+            self.paramapLayerAx.pixmap().fill(Qt.transparent)
+            self.paramapLayerSag.pixmap().fill(Qt.transparent)
+            self.paramapLayerCor.pixmap().fill(Qt.transparent)
+        except:
+            pass
+
+        self.cmap = None
+        self.maskLayerAx.setHidden(False)
+        self.maskLayerSag.setHidden(False)
+        self.maskLayerCor.setHidden(False)
+        self.legendDisplay.legendFrame.setHidden(True)
+        self.changeAxialSlices()
+        self.changeSagSlices()
+        self.changeCorSlices()
+        self.update()
+
+    def displayLegend(self):
+        if not self.showLegendButton.isChecked():
+            self.legendDisplay.hide()
+        else:
+            self.legendDisplay.show()
+
+    def displayAuc(self):
+        if not self.aucParamapButton.isChecked():
+            self.clearParamap()
+        else:
+            if self.peParamapButton.isChecked():
+                self.peParamapButton.setChecked(False)
+            if self.mttParamapButton.isChecked():
+                self.mttParamapButton.setChecked(False)
+            if self.tpParamapButton.isChecked():
+                self.tpParamapButton.setChecked(False)
+
+            self.maskLayerAx.setHidden(True)
+            self.maskLayerSag.setHidden(True)
+            self.maskLayerCor.setHidden(True)
+
+            self.cmap = plt.get_cmap('viridis').colors
+
+            arr = np.linspace(0, 100, 1000).reshape((1000, 1))
+            self.legendDisplay.ax.clear()
+            new_cmap1 = self.legendDisplay.truncate_colormap(plt.get_cmap('viridis'))
+            self.legendDisplay.ax.imshow(arr,aspect='auto', cmap = new_cmap1, origin='lower')
+            self.legendDisplay.ax.tick_params(axis='y', labelsize=7, pad=0.5)
+            self.legendDisplay.ax.set_xticks([])
+            self.legendDisplay.ax.set_yticks([0, 250, 500, 750, 1000])
+            self.legendDisplay.ax.set_yticklabels([np.round(self.minAuc, decimals=1), np.round(self.minAuc + ((self.maxAuc - self.minAuc)/4), decimals=1), np.round(self.minAuc + ((self.maxAuc - self.minAuc)/4), decimals=1), np.round(self.minAuc + (3*(self.maxAuc - self.minAuc)/4), decimals=1), np.round(self.maxAuc, decimals=1)])
+            self.legendDisplay.figure.subplots_adjust(left=0.4,right=0.95, bottom=0.05,top=0.96)
+            self.legendDisplay.canvas.draw()
+            self.legendDisplay.legendFrame.setHidden(False)
+            
+            for point in self.pointsPlotted:
+                if self.maxAuc == self.minAuc:
+                    color = self.cmap[125]
+                else:
+                    aucVal = self.masterParamap[point[0], point[1], point[2], 0]
+                    if not self.masterParamap[point[0], point[1], point[2], 3]:
+                        color = [1,1,1] # window not able to be fit
+                    else:
+                        color = self.cmap[int((255/(self.maxAuc-self.minAuc))*(aucVal-self.minAuc))]
+                self.paramap[point[0], point[1], point[2]] = [int(color[2]*255), int(color[1]*255), int(color[0]*255),int(self.curAlpha)]   
+
+            self.changeAxialSlices()
+            self.changeSagSlices()
+            self.changeCorSlices()
+            self.update()
+    
+    def displayPe(self):
+        if not self.peParamapButton.isChecked():
+            self.clearParamap()
+        else:
+            if self.aucParamapButton.isChecked():
+                self.aucParamapButton.setChecked(False)
+            if self.mttParamapButton.isChecked():
+                self.mttParamapButton.setChecked(False)
+            if self.tpParamapButton.isChecked():
+                self.tpParamapButton.setChecked(False)
+
+            self.maskLayerAx.setHidden(True)
+            self.maskLayerSag.setHidden(True)
+            self.maskLayerCor.setHidden(True)
+
+            arr = np.linspace(0, 100, 1000).reshape((1000, 1))
+            self.legendDisplay.ax.clear()
+            new_cmap1 = self.legendDisplay.truncate_colormap(plt.get_cmap('magma'))
+            self.legendDisplay.ax.imshow(arr,aspect='auto', cmap = new_cmap1, origin='lower')
+            self.legendDisplay.ax.tick_params(axis='y', labelsize=7, pad=0.5)
+            self.legendDisplay.ax.set_xticks([])
+            self.legendDisplay.ax.set_yticks([0, 250, 500, 750, 1000])
+            self.legendDisplay.ax.set_yticklabels([np.round(self.minPe, decimals=2), np.round(self.minPe + ((self.maxPe - self.minPe)/4), decimals=2), np.round(self.minPe + ((self.maxPe - self.minPe)/4), decimals=2), np.round(self.minPe + (3*(self.maxPe - self.minPe)/4), decimals=2), np.round(self.maxPe, decimals=2)])
+            self.legendDisplay.figure.subplots_adjust(left=0.4,right=0.95, bottom=0.05,top=0.96)
+            self.legendDisplay.canvas.draw()
+            self.legendDisplay.legendFrame.setHidden(False)
+
+            self.cmap = plt.get_cmap('magma').colors
+
+            for point in self.pointsPlotted:
+                if self.maxPe == self.minPe:
+                    color = self.cmap[125]
+                else:
+                    peVal = self.masterParamap[point[0], point[1], point[2], 1]
+                    if not self.masterParamap[point[0], point[1], point[2], 3]:
+                        color = [1,1,1] # window not able to be fit
+                    else:
+                        color = self.cmap[int((255/(self.maxPe-self.minPe))*(peVal-self.minPe))]
+                self.paramap[point[0], point[1], point[2]] = [int(color[2]*255), int(color[1]*255), int(color[0]*255),int(self.curAlpha)]   
+
+            self.changeAxialSlices()
+            self.changeSagSlices()
+            self.changeCorSlices()
+            self.update()
+
+    def displayTp(self):
+        if not self.tpParamapButton.isChecked():
+            self.clearParamap()
+        else:
+            if self.aucParamapButton.isChecked():
+                self.aucParamapButton.setChecked(False)
+            if self.mttParamapButton.isChecked():
+                self.mttParamapButton.setChecked(False)
+            if self.peParamapButton.isChecked():
+                self.peParamapButton.setChecked(False)
+
+            self.maskLayerAx.setHidden(True)
+            self.maskLayerSag.setHidden(True)
+            self.maskLayerCor.setHidden(True)
+
+            self.cmap = plt.get_cmap('plasma').colors
+
+            arr = np.linspace(0, 100, 1000).reshape((1000, 1))
+            self.legendDisplay.ax.clear()
+            new_cmap1 = self.legendDisplay.truncate_colormap(plt.get_cmap('plasma'))
+            self.legendDisplay.ax.imshow(arr,aspect='auto', cmap = new_cmap1, origin='lower')
+            self.legendDisplay.ax.tick_params(axis='y', labelsize=7, pad=0.5)
+            self.legendDisplay.ax.set_xticks([])
+            self.legendDisplay.ax.set_yticks([0, 250, 500, 750, 1000])
+            self.legendDisplay.ax.set_yticklabels([np.round(self.minTp, decimals=1), np.round(self.minTp + ((self.maxTp - self.minTp)/4), decimals=1), np.round(self.minTp + ((self.maxTp - self.minTp)/4), decimals=1), np.round(self.minTp + (3*(self.maxTp - self.minTp)/4), decimals=1), np.round(self.maxTp, decimals=1)])
+            self.legendDisplay.figure.subplots_adjust(left=0.4,right=0.95, bottom=0.05,top=0.96)
+            self.legendDisplay.canvas.draw()
+            self.legendDisplay.legendFrame.setHidden(False)
+
+            for point in self.pointsPlotted:
+                if self.maxTp == self.minTp:
+                    color = self.cmap[125]
+                else:
+                    tpVal = self.masterParamap[point[0], point[1], point[2], 2]
+                    if not self.masterParamap[point[0], point[1], point[2], 3]:
+                        color = [1,1,1] # window not able to be fit
+                    else:
+                        color = self.cmap[int((255/(self.maxTp-self.minTp))*(tpVal-self.minTp))]
+                self.paramap[point[0], point[1], point[2]] = [int(color[2]*255), int(color[1]*255), int(color[0]*255),int(self.curAlpha)]   
+
+            self.changeAxialSlices()
+            self.changeSagSlices()
+            self.changeCorSlices()
+            self.update()
+
+    def displayMtt(self):
+        if not self.mttParamapButton.isChecked():
+            self.clearParamap()
+        else:
+            if self.aucParamapButton.isChecked():
+                self.aucParamapButton.setChecked(False)
+            if self.tpParamapButton.isChecked():
+                self.tpParamapButton.setChecked(False)
+            if self.peParamapButton.isChecked():
+                self.peParamapButton.setChecked(False)
+
+            self.cmap = plt.get_cmap('cividis').colors
+
+            arr = np.linspace(0, 100, 1000).reshape((1000, 1))
+            self.legendDisplay.ax.clear()
+            new_cmap1 = self.legendDisplay.truncate_colormap(plt.get_cmap('cividis'))
+            self.legendDisplay.ax.imshow(arr,aspect='auto', cmap = new_cmap1, origin='lower')
+            self.legendDisplay.ax.tick_params(axis='y', labelsize=7, pad=0.5)
+            self.legendDisplay.ax.set_xticks([])
+            self.legendDisplay.ax.set_yticks([0, 250, 500, 750, 1000])
+            self.legendDisplay.ax.set_yticklabels([np.round(self.minMtt, decimals=1), np.round(self.minMtt + ((self.maxMtt - self.minMtt)/4), decimals=1), np.round(self.minMtt + ((self.maxMtt - self.minMtt)/4), decimals=1), np.round(self.minMtt + (3*(self.maxMtt - self.minMtt)/4), decimals=1), np.round(self.maxMtt, decimals=1)])
+            self.legendDisplay.figure.subplots_adjust(left=0.4,right=0.95, bottom=0.05,top=0.96)
+            self.legendDisplay.canvas.draw()
+            self.legendDisplay.legendFrame.setHidden(False)
+
+            for point in self.pointsPlotted:
+                if self.maxMtt == self.minMtt:
+                    color = self.cmap[125]
+                else:
+                    mttVal = self.masterParamap[point[0], point[1], point[2], 2]
+                    if not self.masterParamap[point[0], point[1], point[2], 3]:
+                        color = [1,1,1] # window not able to be fit
+                    else:
+                        color = self.cmap[int((255/(self.maxMtt-self.minMtt))*(mttVal-self.minMtt))]
+                self.paramap[point[0], point[1], point[2]] = [int(color[2]*255), int(color[1]*255), int(color[0]*255),int(self.curAlpha)]   
+
+            self.changeAxialSlices()
+            self.changeSagSlices()
+            self.changeCorSlices()
+            self.update()
+
+
+    def loadParamaps(self):
+        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.nii.gz *.nii')
+        if fileName != '':
+            nibIm = nib.load(fileName)
+            self.masterParamap = nibIm.get_fdata().astype(np.double)
+        else:
+            return
+        self.paramap = np.zeros((self.data4dImg.shape[0], self.data4dImg.shape[1], self.data4dImg.shape[2], 4))
+
+        self.maxAuc = 0
+        self.minAuc = 9999
+        self.maxPe = 0
+        self.minPe = 9999
+        self.maxTp = 0
+        self.minTp = 9999
+        self.maxMtt = 0
+        self.minMtt = 9999
+        for i in range(len(self.pointsPlotted)):
+            if self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][3] != 0:
+                if self.masterParamap[self.pointsPlotted[i][0], self.pointsPlotted[i][1],self.pointsPlotted[i][2]][0] > self.maxAuc:
+                    self.maxAuc = self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][0]
+                if self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][0] < self.minAuc:
+                    self.minAuc = self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][0]
+                if self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][1] > self.maxPe:
+                    self.maxPe = self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][1]
+                if self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][1] < self.minPe:
+                    self.minPe = self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][1] 
+                if self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][2] > self.maxTp:
+                    self.maxTp = self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][2]
+                if self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][2] < self.minTp:
+                    self.minTp = self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][2]
+                if self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][3] > self.maxMtt:
+                    self.maxMtt = self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][3]
+                if self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][3] < self.minMtt:
+                    self.minMtt = self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][3]
+
+        self.showTicButton.setHidden(True)
+        self.loadParamapsButton.setHidden(True)
+        self.aucParamapButton.setHidden(False)
+        self.peParamapButton.setHidden(False)
+        self.mttParamapButton.setHidden(False)
+        self.tpParamapButton.setHidden(False)
+        self.paramapBackButton.setHidden(False)
+        self.showLegendButton.setHidden(False)
 
     def backFromTic(self):
         self.ticDisplay.setHidden(True)
@@ -227,6 +514,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.voiAlphaStatus.setValue(self.curAlpha)
         for i in range(len(self.pointsPlotted)):
             self.maskCoverImg[self.pointsPlotted[i][0], self.pointsPlotted[i][1], self.pointsPlotted[i][2],3] = self.curAlpha
+            if self.cmap is not None and self.masterParamap is not None:
+                self.paramap[self.pointsPlotted[i][0], self.pointsPlotted[i][1], self.pointsPlotted[i][2],3] = self.curAlpha
         self.changeAxialSlices()
         self.changeSagSlices()
         self.changeCorSlices()
@@ -286,6 +575,11 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.maskBytesLineCor = self.lastGui.maskBytesLineCor
         self.sliceArray = self.lastGui.sliceArray
         self.voxelScale = self.lastGui.voxelScale
+        self.curSliceTotal.setText(str(self.sliceArray[-1]))
+
+        self.axialTotalFrames.setText(str(self.z+1))
+        self.sagittalTotalFrames.setText(str(self.x+1))
+        self.coronalTotalFrames.setText(str(self.y+1))
 
         self.exportDataButton.setHidden(False)
         self.saveDataButton.setHidden(False)
@@ -416,6 +710,16 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
         self.curMaskAxIm = QImage(tempAx, self.maskAxW, self.maskAxH, self.maskBytesLineAx, QImage.Format_ARGB32) #creating QImage
 
+        if self.masterParamap is not None and self.cmap is not None:
+            paramapAx = self.paramap[:,:,self.newZVal,:]
+            paramapAx = np.flipud(paramapAx)
+            paramapAx = np.rot90(paramapAx, 3)
+            paramapAx = np.require(paramapAx, np.uint8, 'C')
+
+            bytesLineAxParamap, _ = paramapAx[:,:,0].strides
+            paramapAxIm = QImage(paramapAx, paramapAx.shape[1], paramapAx.shape[0], bytesLineAxParamap, QImage.Format_ARGB32)
+            self.paramapLayerAx.setPixmap(QPixmap.fromImage(paramapAxIm).scaled(321, 301))
+
         self.maskLayerAx.setPixmap(QPixmap.fromImage(self.curMaskAxIm).scaled(321,301)) #displaying QPixmap in the QLabels
         self.axialPlane.setPixmap(QPixmap.fromImage(self.qImgAx).scaled(321,301)) #otherwise, would just display the normal unmodified q_img
 
@@ -441,6 +745,17 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         
         self.curMaskSagIm = QImage(tempSag, self.maskSagW, self.maskSagH, self.maskBytesLineSag, QImage.Format_ARGB32)
 
+        if self.masterParamap is not None and self.cmap is not None:
+            paramapSag = self.paramap[self.newXVal,:,:,:]
+            paramapSag = np.flipud(paramapSag)
+            paramapSag = np.rot90(paramapSag, 2)
+            paramapSag = np.fliplr(paramapSag)
+            paramapSag = np.require(paramapSag, np.uint8, 'C')
+
+            bytesLineSagParamap, _ = paramapSag[:,:,0].strides
+            paramapSagIm = QImage(paramapSag, paramapSag.shape[1], paramapSag.shape[0], bytesLineSagParamap, QImage.Format_ARGB32)
+            self.paramapLayerSag.setPixmap(QPixmap.fromImage(paramapSagIm).scaled(321, 301))
+
         self.maskLayerSag.setPixmap(QPixmap.fromImage(self.curMaskSagIm).scaled(321,301))
         self.sagPlane.setPixmap(QPixmap.fromImage(self.qImgSag).scaled(321,301))
 
@@ -463,6 +778,16 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         tempCor = np.require(tempCor,np.uint8,'C')
 
         self.curMaskCorIm = QImage(tempCor, self.maskCorW, self.maskCorH, self.maskBytesLineCor, QImage.Format_ARGB32)
+
+        if self.masterParamap is not None and self.cmap is not None:
+            paramapCor = self.paramap[:,self.newYVal,:,:]
+            paramapCor = np.rot90(paramapCor, 1)
+            paramapCor = np.flipud(paramapCor)
+            paramapCor = np.require(paramapCor, np.uint8, 'C')
+
+            bytesLineCorParamap, _ = paramapCor[:,:,0].strides
+            paramapCorIm = QImage(paramapCor, paramapCor.shape[1], paramapCor.shape[0], bytesLineCorParamap, QImage.Format_ARGB32)
+            self.paramapLayerCor.setPixmap(QPixmap.fromImage(paramapCorIm).scaled(321, 301))
 
         self.maskLayerCor.setPixmap(QPixmap.fromImage(self.curMaskCorIm).scaled(321,301))
         self.corPlane.setPixmap(QPixmap.fromImage(self.qImgCor).scaled(321,301))

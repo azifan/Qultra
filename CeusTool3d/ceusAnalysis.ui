@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string> </string>
+   <string/>
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget {
@@ -467,7 +467,7 @@
   <widget class="QSpinBox" name="voiAlphaSpinBox">
    <property name="geometry">
     <rect>
-     <x>640</x>
+     <x>641</x>
      <y>525</y>
      <width>48</width>
      <height>24</height>
@@ -482,6 +482,9 @@
     <string notr="true">QSpinBox{
 	background-color: white,
 }</string>
+   </property>
+   <property name="maximum">
+    <number>255</number>
    </property>
   </widget>
   <widget class="QLabel" name="voiAlphaTotal">
@@ -923,7 +926,7 @@ QPushButton:checked {
     <string/>
    </property>
   </widget>
-  <widget class="QLabel" name="axCoverLabel">
+  <widget class="QLabel" name="paramapLayerAx">
    <property name="geometry">
     <rect>
      <x>400</x>
@@ -977,7 +980,7 @@ QPushButton:checked {
     <string/>
    </property>
   </widget>
-  <widget class="QLabel" name="sagCoverLabel">
+  <widget class="QLabel" name="paramapLayerSag">
    <property name="geometry">
     <rect>
      <x>810</x>
@@ -995,7 +998,7 @@ QPushButton:checked {
     <string/>
    </property>
   </widget>
-  <widget class="QLabel" name="corCoverLabel">
+  <widget class="QLabel" name="paramapLayerCor">
    <property name="geometry">
     <rect>
      <x>810</x>
@@ -1021,6 +1024,9 @@ QPushButton:checked {
      <width>191</width>
      <height>41</height>
     </rect>
+   </property>
+   <property name="maximum">
+    <number>255</number>
    </property>
    <property name="value">
     <number>24</number>
@@ -1702,7 +1708,7 @@ QPushButton:checked {
   <widget class="QPushButton" name="paramapBackButton">
    <property name="geometry">
     <rect>
-     <x>440</x>
+     <x>360</x>
      <y>710</y>
      <width>151</width>
      <height>31</height>
@@ -1724,6 +1730,87 @@ QPushButton:checked {
    </property>
    <property name="text">
     <string>Back</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="axCoverLabel">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>40</y>
+     <width>321</width>
+     <height>301</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	background-color: transparent;
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="sagCoverLabel">
+   <property name="geometry">
+    <rect>
+     <x>810</x>
+     <y>40</y>
+     <width>321</width>
+     <height>301</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	background-color: transparent;
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="corCoverLabel">
+   <property name="geometry">
+    <rect>
+     <x>810</x>
+     <y>410</y>
+     <width>321</width>
+     <height>301</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	background-color: transparent;
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="showLegendButton">
+   <property name="geometry">
+    <rect>
+     <x>520</x>
+     <y>710</y>
+     <width>151</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Show Legend</string>
    </property>
   </widget>
  </widget>
