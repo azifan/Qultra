@@ -132,7 +132,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.painted = "none"
         self.lastGui = None
         self.exportDataGUI = None
-        self.saveVoiGUI =SaveVoiGUI()
+        self.saveVoiGUI = None
 
         self.setMouseTracking(True)
         
@@ -156,6 +156,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.loadVoiButton.clicked.connect(self.loadVoi)
 
     def startSaveVoi(self):
+        del self.saveVoiGUI
+        self.saveVoiGUI = SaveVoiGUI()
         self.saveVoiGUI.voiSelectionGUI = self
         pathPieces = self.fullPath.split('/')
         fileName = pathPieces[-1]
@@ -173,13 +175,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.saveVoiGUI.show()
         
     def saveVoi(self, fileDestination, name, frame):
-        segMask = np.zeros([self.x, self.y, self.z, self.numSlices])
+        segMask = np.zeros([self.x+1, self.y+1, self.z+1, self.numSlices])
         self.pointsPlotted = [*set(self.pointsPlotted)]
         for point in self.pointsPlotted:
             segMask[point[0], point[1], point[2], frame] = 1
 
         affine = np.eye(4)
-        niiarray = nib.Nifti1Image(np.transpose(segMask).astype('uint8'), affine)
+        niiarray = nib.Nifti1Image(segMask.astype('uint8'), affine)
         niiarray.header['descrip'] = self.imagePathInput.text()
         outputPath = os.path.join(fileDestination, name)
         if os.path.exists(outputPath):
@@ -197,15 +199,12 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                 return
         else:
             return
-        mask = np.transpose(mask)
         maskPoints = np.where(mask > 0)
         maskPoints = np.transpose(maskPoints)
         for point in maskPoints:
             self.maskCoverImg[point[0], point[1], point[2]] = [0, 0, 255, int(self.curAlpha)]
             self.pointsPlotted.append((point[0], point[1], point[2]))
         self.curFrameIndex = maskPoints[0,0]
-        self.curSliceSlider.setValue(self.curFrameIndex)
-        self.curSliceSpinBox.setValue(self.curFrameIndex)
 
         self.drawNewVoiButton.setHidden(True)
         self.loadVoiButton.setHidden(True)
