@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>constructVoi</class>
- <widget class="QWidget" name="constructVoi">
+ <class>ceusAnalysis</class>
+ <widget class="QWidget" name="ceusAnalysis">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,175 +11,13 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Select Volume of Interest</string>
+   <string/>
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget {
 	background: rgb(42, 42, 42);
 }</string>
   </property>
-  <widget class="QLabel" name="constructVoiLabel">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>550</y>
-     <width>361</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	font-size: 20px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Construct Volume of Interest (VOI):</string>
-   </property>
-   <property name="textFormat">
-    <enum>Qt::AutoText</enum>
-   </property>
-   <property name="scaledContents">
-    <bool>false</bool>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="drawRoiButton">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>600</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}
-QPushButton:checked {
-	color:white; 
-	font-size: 16px;
-	background: rgb(45, 0, 110);
-	border-radius: 15px;
-}
-</string>
-   </property>
-   <property name="text">
-    <string>Draw ROI</string>
-   </property>
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="undoLastPtButton">
-   <property name="geometry">
-    <rect>
-     <x>580</x>
-     <y>600</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Undo Last Point</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="interpolateVoiButton">
-   <property name="geometry">
-    <rect>
-     <x>580</x>
-     <y>660</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Interpolate VOI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="closeRoiButton">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>660</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Close ROI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="redrawRoiButton">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>660</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Undo Last ROI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
   <widget class="QLabel" name="axialPlaneLabel">
    <property name="geometry">
     <rect>
@@ -629,7 +467,7 @@ QPushButton:checked {
   <widget class="QSpinBox" name="voiAlphaSpinBox">
    <property name="geometry">
     <rect>
-     <x>640</x>
+     <x>641</x>
      <y>525</y>
      <width>48</width>
      <height>24</height>
@@ -644,6 +482,9 @@ QPushButton:checked {
     <string notr="true">QSpinBox{
 	background-color: white,
 }</string>
+   </property>
+   <property name="maximum">
+    <number>255</number>
    </property>
   </widget>
   <widget class="QLabel" name="voiAlphaTotal">
@@ -1085,7 +926,7 @@ QPushButton:checked {
     <string/>
    </property>
   </widget>
-  <widget class="QLabel" name="axCoverLabel">
+  <widget class="QLabel" name="paramapLayerAx">
    <property name="geometry">
     <rect>
      <x>400</x>
@@ -1139,6 +980,776 @@ QPushButton:checked {
     <string/>
    </property>
   </widget>
+  <widget class="QLabel" name="paramapLayerSag">
+   <property name="geometry">
+    <rect>
+     <x>810</x>
+     <y>40</y>
+     <width>321</width>
+     <height>301</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	background-color: transparent;
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="paramapLayerCor">
+   <property name="geometry">
+    <rect>
+     <x>810</x>
+     <y>410</y>
+     <width>321</width>
+     <height>301</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	background-color: transparent;
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QProgressBar" name="voiAlphaStatus">
+   <property name="geometry">
+    <rect>
+     <x>399</x>
+     <y>520</y>
+     <width>191</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="maximum">
+    <number>255</number>
+   </property>
+   <property name="value">
+    <number>24</number>
+   </property>
+  </widget>
+  <widget class="QLabel" name="aucVal">
+   <property name="geometry">
+    <rect>
+     <x>740</x>
+     <y>570</y>
+     <width>51</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="aucLabel">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>570</y>
+     <width>81</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>AUC:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="tpVal">
+   <property name="geometry">
+    <rect>
+     <x>740</x>
+     <y>630</y>
+     <width>51</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="tmppvVal">
+   <property name="geometry">
+    <rect>
+     <x>740</x>
+     <y>650</y>
+     <width>71</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="mttLabel">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>610</y>
+     <width>81</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>MTT:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="peLabel">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>590</y>
+     <width>91</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>PE:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="voiVolumeLabel">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>700</y>
+     <width>141</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>VOI Vol (mm^3):</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="voiVolumeVal">
+   <property name="geometry">
+    <rect>
+     <x>790</x>
+     <y>700</y>
+     <width>181</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="mttVal">
+   <property name="geometry">
+    <rect>
+     <x>740</x>
+     <y>610</y>
+     <width>51</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="resultsLabel">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>540</y>
+     <width>361</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 20px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Results:</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="peVal">
+   <property name="geometry">
+    <rect>
+     <x>740</x>
+     <y>590</y>
+     <width>51</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="tpLabel">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>630</y>
+     <width>91</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>TP:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="tmppvLabel">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>650</y>
+     <width>71</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>TMPPV:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="backButton">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>690</y>
+     <width>131</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Back</string>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="curSliceSpinBox">
+   <property name="geometry">
+    <rect>
+     <x>630</x>
+     <y>430</y>
+     <width>68</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QDoubleSpinBox {
+	background: white;
+	color: black;
+}</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="exportDataButton">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>690</y>
+     <width>181</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Export Data</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="ticBackButton">
+   <property name="geometry">
+    <rect>
+     <x>440</x>
+     <y>710</y>
+     <width>151</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Back</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="chooseParamapLabel">
+   <property name="geometry">
+    <rect>
+     <x>330</x>
+     <y>550</y>
+     <width>361</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 20px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Choose Paramap to Display:</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="ticDisplay">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>590</y>
+     <width>321</width>
+     <height>121</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 20px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="peParamapButton">
+   <property name="geometry">
+    <rect>
+     <x>520</x>
+     <y>610</y>
+     <width>151</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>PE</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="aucParamapButton">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>610</y>
+     <width>151</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>AUC</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="showTicButton">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>610</y>
+     <width>191</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Show TIC</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="loadParamapsButton">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>660</y>
+     <width>191</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Load Parametric Map</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="mttParamapButton">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>660</y>
+     <width>151</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>MTT</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="tpParamapButton">
+   <property name="geometry">
+    <rect>
+     <x>520</x>
+     <y>660</y>
+     <width>151</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>TP</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="paramapBackButton">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>710</y>
+     <width>151</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Back</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="axCoverLabel">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>40</y>
+     <width>321</width>
+     <height>301</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	background-color: transparent;
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
   <widget class="QLabel" name="sagCoverLabel">
    <property name="geometry">
     <rect>
@@ -1175,143 +1786,13 @@ QPushButton:checked {
     <string/>
    </property>
   </widget>
-  <widget class="QProgressBar" name="voiAlphaStatus">
+  <widget class="QPushButton" name="showLegendButton">
    <property name="geometry">
     <rect>
-     <x>399</x>
-     <y>520</y>
-     <width>191</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="value">
-    <number>24</number>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="continueButton">
-   <property name="geometry">
-    <rect>
-     <x>580</x>
-     <y>600</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Continue</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="backButton">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>690</y>
-     <width>131</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Back</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="restartVoiButton">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>600</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Restart VOI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QDoubleSpinBox" name="curSliceSpinBox">
-   <property name="geometry">
-    <rect>
-     <x>630</x>
-     <y>430</y>
-     <width>68</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QDoubleSpinBox {
-	background: white;
-	color: black;
-}</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="voiAdviceLabel">
-   <property name="geometry">
-    <rect>
-     <x>380</x>
-     <y>500</y>
-     <width>361</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	font-size: 20px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-   </property>
-   <property name="text">
-    <string>For best results,  draw 1 ROI in each plane before interpolating</string>
-   </property>
-   <property name="textFormat">
-    <enum>Qt::AutoText</enum>
-   </property>
-   <property name="scaledContents">
-    <bool>false</bool>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="exportDataButton">
-   <property name="geometry">
-    <rect>
-     <x>150</x>
-     <y>690</y>
-     <width>181</width>
-     <height>41</height>
+     <x>520</x>
+     <y>710</y>
+     <width>151</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -1329,103 +1810,7 @@ QPushButton:checked {
 }</string>
    </property>
    <property name="text">
-    <string>Export Data</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="saveVoiButton">
-   <property name="geometry">
-    <rect>
-     <x>480</x>
-     <y>680</y>
-     <width>181</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Save VOI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="drawNewVoiButton">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>630</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Draw New VOI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="loadVoiButton">
-   <property name="geometry">
-    <rect>
-     <x>580</x>
-     <y>630</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Load VOI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="newVoiBackButton">
-   <property name="geometry">
-    <rect>
-     <x>480</x>
-     <y>710</y>
-     <width>181</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Back</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
+    <string>Show Legend</string>
    </property>
   </widget>
  </widget>
