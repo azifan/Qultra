@@ -16,7 +16,7 @@ Additionally, it supports 2D and 3D contrast-enhanced ultrasound (CEUS) analysis
 ### Mac
 
 ```shell
-git clone https://github.com/davidspector67/QusTools.git
+git clone https://github.com/TUL-Dev/QusTools.git
 cd QusTools
 pip install --upgrade pip
 python3.9 -m pip install virtualenv
@@ -43,7 +43,7 @@ pip install wheel setuptools pip --upgrade
 ### Windows
 
 ```shell
-git clone https://github.com/davidspector67/QusTools.git
+git clone https://github.com/TUL-Dev/QusTools.git
 cd QusTools
 pip install --upgrade pip
 python3.9 -m pip install virtualenv

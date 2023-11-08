@@ -201,7 +201,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 else:
                     aucVal = self.masterParamap[point[0], point[1], point[2], 0]
                     if not self.masterParamap[point[0], point[1], point[2], 3]:
-                        color = [1,1,1] # window not able to be fit
+                        color = [0,0,0] # window not able to be fit
                     else:
                         color = self.cmap[int((255/(self.maxAuc-self.minAuc))*(aucVal-self.minAuc))]
                 self.paramap[point[0], point[1], point[2]] = [int(color[2]*255), int(color[1]*255), int(color[0]*255),int(self.curAlpha)]   
@@ -246,7 +246,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 else:
                     peVal = self.masterParamap[point[0], point[1], point[2], 1]
                     if not self.masterParamap[point[0], point[1], point[2], 3]:
-                        color = [1,1,1] # window not able to be fit
+                        color = [0,0,0] # window not able to be fit
                     else:
                         color = self.cmap[int((255/(self.maxPe-self.minPe))*(peVal-self.minPe))]
                 self.paramap[point[0], point[1], point[2]] = [int(color[2]*255), int(color[1]*255), int(color[0]*255),int(self.curAlpha)]   
@@ -291,7 +291,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 else:
                     tpVal = self.masterParamap[point[0], point[1], point[2], 2]
                     if not self.masterParamap[point[0], point[1], point[2], 3]:
-                        color = [1,1,1] # window not able to be fit
+                        color = [0,0,0] # window not able to be fit
                     else:
                         color = self.cmap[int((255/(self.maxTp-self.minTp))*(tpVal-self.minTp))]
                 self.paramap[point[0], point[1], point[2]] = [int(color[2]*255), int(color[1]*255), int(color[0]*255),int(self.curAlpha)]   
@@ -332,7 +332,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 else:
                     mttVal = self.masterParamap[point[0], point[1], point[2], 2]
                     if not self.masterParamap[point[0], point[1], point[2], 3]:
-                        color = [1,1,1] # window not able to be fit
+                        color = [0,0,0] # window not able to be fit
                     else:
                         color = self.cmap[int((255/(self.maxMtt-self.minMtt))*(mttVal-self.minMtt))]
                 self.paramap[point[0], point[1], point[2]] = [int(color[2]*255), int(color[1]*255), int(color[0]*255),int(self.curAlpha)]   
@@ -353,13 +353,13 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.paramap = np.zeros((self.data4dImg.shape[0], self.data4dImg.shape[1], self.data4dImg.shape[2], 4))
 
         self.maxAuc = 0
-        self.minAuc = 9999
+        self.minAuc = 99999999
         self.maxPe = 0
-        self.minPe = 9999
+        self.minPe = 99999999
         self.maxTp = 0
-        self.minTp = 9999
+        self.minTp = 99999999
         self.maxMtt = 0
-        self.minMtt = 9999
+        self.minMtt = 99999999
         for i in range(len(self.pointsPlotted)):
             if self.masterParamap[self.pointsPlotted[i][0],self.pointsPlotted[i][1],self.pointsPlotted[i][2]][3] != 0:
                 if self.masterParamap[self.pointsPlotted[i][0], self.pointsPlotted[i][1],self.pointsPlotted[i][2]][0] > self.maxAuc:
