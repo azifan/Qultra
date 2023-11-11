@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib
 import scipy.interpolate as interpolate
+from matplotlib.widgets import RectangleSelector
+import matplotlib.patches as patches
 
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QImage
@@ -99,12 +101,16 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.acceptRoiButton.setHidden(True)
         self.undoLoadedRoiButton.setHidden(True)
         self.acceptLoadedRoiButton.setHidden(True)
+        self.userDrawRectangleButton.setHidden(True)
+        self.drawFreehandButton.setHidden(True)
+        self.redoRectangleButton.setHidden(True)
         self.acceptLoadedRoiButton.clicked.connect(self.acceptROI)
         self.undoLoadedRoiButton.clicked.connect(self.undoRoiLoad)
 
         self.loadRoiGUI = LoadRoiGUI()
         self.pointsPlottedX = []
         self.pointsPlottedY = []
+        self.rectCoords = []
 
         # Prepare B-Mode display plot
         self.horizontalLayout = QHBoxLayout(self.imDisplayFrame)
@@ -124,17 +130,20 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.scatteredPoints = []
         self.dataFrame = None
         self.lastGui = None
+        self.rect = None
 
         self.redrawRoiButton.setHidden(True)
         
         self.editImageDisplayButton.clicked.connect(self.openImageEditor)
-        self.drawRoiButton.clicked.connect(self.recordDrawROIClicked)
+        self.drawRoiButton.clicked.connect(self.recordDrawRoiClicked)
+        self.drawRectangleButton.clicked.connect(self.recordDrawRectClicked)
         self.undoLastPtButton.clicked.connect(self.undoLastPt)
         self.closeRoiButton.clicked.connect(self.closeInterpolation)
         self.redrawRoiButton.clicked.connect(self.undoLastRoi)
         self.acceptRoiButton.clicked.connect(self.acceptROI)
         self.backButton.clicked.connect(self.backToWelcomeScreen)
         self.newRoiButton.clicked.connect(self.drawNewRoi)
+        self.drawRectangleButton.clicked.connect(self.startDrawRectRoi)
         self.loadRoiButton.clicked.connect(self.openLoadRoiWindow)
     
     def undoRoiLoad(self):
@@ -153,9 +162,18 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def drawNewRoi(self):
         self.newRoiButton.setHidden(True)
         self.loadRoiButton.setHidden(True)
+        self.drawRectangleButton.setHidden(True)
         self.drawRoiButton.setHidden(False)
         self.undoLastPtButton.setHidden(False)
         self.closeRoiButton.setHidden(False)
+        self.acceptRoiButton.setHidden(False)
+
+    def startDrawRectRoi(self):
+        self.newRoiButton.setHidden(True)
+        self.drawRectangleButton.setHidden(True)
+        self.loadRoiButton.setHidden(True)
+        self.userDrawRectangleButton.setHidden(False)
+        self.redoRectangleButton.setHidden(False)
         self.acceptRoiButton.setHidden(False)
 
     def backToWelcomeScreen(self):
@@ -347,7 +365,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
         self.plotOnCanvas()
 
-    def recordDrawROIClicked(self):
+    def recordDrawRoiClicked(self):
         if self.drawRoiButton.isChecked(): # Set up b-mode to be drawn on
             # image, =self.ax.plot([], [], marker="o",markersize=3, markerfacecolor="red")
             # self.cid = image.figure.canvas.mpl_connect('button_press_event', self.interpolatePoints)
@@ -357,6 +375,14 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.cid = self.figure.canvas.mpl_disconnect(self.cid)
             self.cursor.set_active(False)
         self.canvas.draw()
+
+    def recordDrawRectClicked(self):
+        if self.drawRectangleButton.isChecked(): # Set up b-mode to be drawn on
+            self.selector = RectangleSelector(self.ax, self.drawRect, useblit=True, props = dict(linestyle='-', color='cyan', fill=False))
+        else: # No longer let b-mode be drawn on
+            del self.selector
+        self.canvas.draw()
+
 
     def undoLastPt(self): # When drawing ROI, undo last point plotted
         if len(self.pointsPlottedX) > 0:
@@ -439,6 +465,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.finalSplineY = []
         self.pointsPlottedX = []
         self.pointsPlottedY = []
+        self.rectCoords = []
+        self.rect = None 
         self.drawRoiButton.setChecked(False)
         self.drawRoiButton.setCheckable(True)
         self.closeRoiButton.setHidden(False)
@@ -508,6 +536,74 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             plt.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
             plt.tick_params(bottom=False, left=False)
         self.scatteredPoints.append(self.ax.scatter(self.pointsPlottedX[-1], self.pointsPlottedY[-1], marker="o", s=0.5, c="red", zorder=500))
+        self.canvas.draw()
+
+    def drawRect(self, event1, event2):
+        try:
+            if self.imgInfoStruct.numSamplesDrOut == 1400:
+                # Preset 1 boundaries for 20220831121844_IQ.bin
+                leftSlope = (500 - 0)/(154.22 - 148.76)
+                pointSlopeLeft = (event1.ydata - 0) / (event1.xdata - 148.76)
+                if pointSlopeLeft <= 0 or leftSlope < pointSlopeLeft:
+                    return
+                pointSlopeLeft = (event2.ydata - 0) / (event2.xdata - 148.76)
+                if pointSlopeLeft <= 0 or leftSlope < pointSlopeLeft:
+                    return
+                
+                bottomSlope = (386.78 - 358.38) / (716 - 0)
+                pointSlopeBottom = (event1.ydata - 358.38) / (event1.xdata - 0)
+                if pointSlopeBottom > bottomSlope:
+                    return
+                pointSlopeBottom = (event2.ydata - 358.38) / (event2.xdata - 0)
+                if pointSlopeBottom > bottomSlope:
+                    return
+                rightSlope = (500 - 0) / (509.967 - 572.47)
+                pointSlopeRight = (event1.ydata - 0) / (event1.xdata - 572.47)
+                if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
+                    return
+                pointSlopeRight = (event2.ydata - 0) / (event2.xdata - 572.47)
+                if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
+                    return
+
+            elif self.imgInfoStruct.numSamplesDrOut == 1496:
+                # Preset 2 boundaries for 20220831121752_IQ.bin
+                leftSlope = (500 - 0) / (120.79 - 146.9)
+                pointSlopeLeft = (event1.ydata - 0) / (event1.xdata - 146.9)
+                if pointSlopeLeft > leftSlope and pointSlopeLeft <= 0:
+                    return
+                pointSlopeLeft = (event2.ydata - 0) / (event2.xdata - 146.9)
+                if pointSlopeLeft > leftSlope and pointSlopeLeft <= 0:
+                    return
+                
+                bottomSlope = (500 - 462.41) / (644.76 - 0)
+                pointSlopeBottom = (event1.ydata - 462.41) / (event1.xdata - 0)
+                if pointSlopeBottom > bottomSlope:
+                    return
+                pointSlopeBottom = (event2.ydata - 462.41) / (event2.xdata - 0)
+                if pointSlopeBottom > bottomSlope:
+                    return
+                rightSlope = (500 - 0) / (595.84 - 614.48)
+                pointSlopeRight = (event1.ydata - 0) / (event1.xdata - 614.48)
+                if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
+                    return
+                pointSlopeRight = (event2.ydata - 0) / (event2.xdata - 614.48)
+                if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
+                    return
+            
+            else:
+                print("Preset not found!")
+                return
+
+        except:
+            pass
+        
+        self.rectCoords = [int(event1.xdata), int(event1.ydata), int(event2.xdata), int(event2.ydata)]
+        rect = patches.Rectangle((event1.xdata, event1.ydata), (event2.xdata-event1.xdata), (event2.ydata-event1.ydata), linewidth=1, edgecolor='cyan', facecolor='none')
+        if self.rect is not None:
+            self.rect.remove()
+        self.rect = self.ax.add_patch(rect)
+        plt.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
+        plt.tick_params(bottom=False, left=False)
         self.canvas.draw()
 
     def acceptROI(self):
