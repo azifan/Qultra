@@ -160,9 +160,32 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.dataFrame = None
         self.curPointsPlottedX = None
         self.curPointsPlottedY = None
+        self.rectCoords = []
 
         self.continueButton.clicked.connect(self.continueToRfAnalysis)
         self.backButton.clicked.connect(self.backToLastScreen)
+        self.singleRoiWindowButton.clicked.connect(self.singleRoiWindow)
+
+    def singleRoiWindow(self):
+        self.axOverlapVal.setValue(0)
+        self.latOverlapVal.setValue(0)
+        self.windowThresholdVal.setValue(50)
+
+        xScale = 721/(self.imArray.shape[1])
+        mplPixWidth = max(self.finalSplineX) - min(self.finalSplineX)
+        imPixWidth = mplPixWidth / xScale
+        mmWidth = self.lastGui.imgInfoStruct.lateralRes * imPixWidth # (mm/pixel)*pixels
+
+        yScale = 501/(self.imArray.shape[0])
+        mplPixHeight = max(self.finalSplineY) - min(self.finalSplineY)
+        imPixHeight = mplPixHeight / yScale
+        mmHeight = self.lastGui.imgInfoStruct.axialRes * imPixHeight # (mm/pixel)*pixels
+
+        self.axWinSizeVal.setValue(np.round(mmHeight, decimals=2))
+        self.latWinSizeVal.setValue(np.round(mmWidth, decimals=2))
+
+        self.updateRoiSize()
+
 
     def updateRoiSize(self):
 
@@ -281,6 +304,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
     def continueToRfAnalysis(self):
         del self.rfAnalysisGUI
         self.rfAnalysisGUI = RfAnalysisGUI(self.finalSplineX, self.finalSplineY)
+        self.rfAnalysisGUI.rectCoords = self.rectCoords
         self.rfAnalysisGUI.imgDataStruct = self.lastGui.imgDataStruct
         self.rfAnalysisGUI.imgInfoStruct = self.lastGui.imgInfoStruct
         self.rfAnalysisGUI.refDataStruct = self.lastGui.refDataStruct

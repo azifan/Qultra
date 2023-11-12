@@ -436,9 +436,9 @@
   <widget class="QPushButton" name="continueButton">
    <property name="geometry">
     <rect>
-     <x>510</x>
-     <y>650</y>
-     <width>171</width>
+     <x>500</x>
+     <y>600</y>
+     <width>191</width>
      <height>41</height>
     </rect>
    </property>
@@ -675,7 +675,7 @@
    <property name="geometry">
     <rect>
      <x>300</x>
-     <y>450</y>
+     <y>420</y>
      <width>571</width>
      <height>131</height>
     </rect>
@@ -863,7 +863,7 @@
    <property name="geometry">
     <rect>
      <x>340</x>
-     <y>540</y>
+     <y>500</y>
      <width>291</width>
      <height>51</height>
     </rect>
@@ -998,7 +998,7 @@
    <property name="geometry">
     <rect>
      <x>630</x>
-     <y>580</y>
+     <y>540</y>
      <width>171</width>
      <height>51</height>
     </rect>
@@ -1073,7 +1073,7 @@
    <property name="geometry">
     <rect>
      <x>340</x>
-     <y>580</y>
+     <y>540</y>
      <width>291</width>
      <height>51</height>
     </rect>
@@ -1226,7 +1226,7 @@
    <property name="geometry">
     <rect>
      <x>630</x>
-     <y>540</y>
+     <y>500</y>
      <width>171</width>
      <height>51</height>
     </rect>
@@ -1247,6 +1247,27 @@
    </property>
    <property name="alignment">
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="singleRoiWindowButton">
+   <property name="geometry">
+    <rect>
+     <x>510</x>
+     <y>660</y>
+     <width>171</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Single ROI Window</string>
    </property>
   </widget>
   <zorder>previewFrame</zorder>
@@ -1287,6 +1308,7 @@
   <zorder>windowThresholdVal</zorder>
   <zorder>axWavelengthRatioVal</zorder>
   <zorder>previewFrameMesh</zorder>
+  <zorder>singleRoiWindowButton</zorder>
  </widget>
  <resources/>
  <connections/>
