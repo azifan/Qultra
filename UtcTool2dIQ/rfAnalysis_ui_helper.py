@@ -177,6 +177,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.splineY = splineY
         self.curPointsPlottedX = None
         self.curPointsPlottedY = None
+        self.rectCoords = []
         self.imgDataStruct = None
         self.imgInfoStruct = None
         self.refDataStruct = None

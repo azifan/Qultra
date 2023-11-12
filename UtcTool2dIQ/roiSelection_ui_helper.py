@@ -103,8 +103,16 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.acceptLoadedRoiButton.setHidden(True)
         self.userDrawRectangleButton.setHidden(True)
         self.drawFreehandButton.setHidden(True)
-        self.redoRectangleButton.setHidden(True)
+        self.backFromFreehandButton.setHidden(True)
+        self.backFromRectangleButton.setHidden(True)
+        self.acceptRectangleButton.setHidden(True)
+        self.physicalRectDimsLabel.setHidden(True)
+        self.physicalRectHeightLabel.setHidden(True)
+        self.physicalRectWidthLabel.setHidden(True)
+        self.physicalRectHeightVal.setHidden(True)
+        self.physicalRectWidthVal.setHidden(True)
         self.acceptLoadedRoiButton.clicked.connect(self.acceptROI)
+        self.acceptRectangleButton.clicked.connect(self.acceptRect)
         self.undoLoadedRoiButton.clicked.connect(self.undoRoiLoad)
 
         self.loadRoiGUI = LoadRoiGUI()
@@ -130,13 +138,17 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.scatteredPoints = []
         self.dataFrame = None
         self.lastGui = None
-        self.rect = None
+
+        self.crosshairCursor = matplotlib.widgets.Cursor(self.ax, color="gold", linewidth=0.4, useblit=True)
+        self.selector = RectangleSelector(self.ax, self.drawRect, useblit=True, props = dict(linestyle='-', color='cyan', fill=False))
+        self.selector.set_active(False)
+        self.cid = None
 
         self.redrawRoiButton.setHidden(True)
         
         self.editImageDisplayButton.clicked.connect(self.openImageEditor)
         self.drawRoiButton.clicked.connect(self.recordDrawRoiClicked)
-        self.drawRectangleButton.clicked.connect(self.recordDrawRectClicked)
+        self.userDrawRectangleButton.clicked.connect(self.recordDrawRectClicked)
         self.undoLastPtButton.clicked.connect(self.undoLastPt)
         self.closeRoiButton.clicked.connect(self.closeInterpolation)
         self.redrawRoiButton.clicked.connect(self.undoLastRoi)
@@ -145,19 +157,58 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.newRoiButton.clicked.connect(self.drawNewRoi)
         self.drawRectangleButton.clicked.connect(self.startDrawRectRoi)
         self.loadRoiButton.clicked.connect(self.openLoadRoiWindow)
+        self.backFromFreehandButton.clicked.connect(self.backFromFreehand)
+        self.backFromRectangleButton.clicked.connect(self.backFromRect)
     
     def undoRoiLoad(self):
         self.undoLoadedRoiButton.setHidden(True)
         self.acceptLoadedRoiButton.setHidden(True)
         self.loadRoiButton.setHidden(False)
         self.newRoiButton.setHidden(False)
+        self.drawRectangleButton.setHidden(False)
 
         self.undoLastRoi()
 
     def openLoadRoiWindow(self):
         self.loadRoiGUI.chooseRoiGUI = self
-        self.hide()
         self.loadRoiGUI.show()
+
+    def backFromFreehand(self):
+        self.newRoiButton.setHidden(False)
+        self.loadRoiButton.setHidden(False)
+        self.drawRectangleButton.setHidden(False)
+        self.drawRoiButton.setHidden(True)
+        self.undoLastPtButton.setHidden(True)
+        self.closeRoiButton.setHidden(True)
+        self.acceptRoiButton.setHidden(True)
+        self.backFromFreehandButton.setHidden(True)
+        self.undoLastRoi()
+        self.drawRoiButton.setChecked(False)
+        self.crosshairCursor.set_active(False)
+        if self.cid is not None:
+            self.cid = self.figure.canvas.mpl_disconnect(self.cid)
+
+    def backFromRect(self):
+        self.newRoiButton.setHidden(False)
+        self.drawRectangleButton.setHidden(False)
+        self.loadRoiButton.setHidden(False)
+        self.userDrawRectangleButton.setHidden(True)
+        self.backFromRectangleButton.setHidden(True)
+        self.acceptRectangleButton.setHidden(True)
+        self.physicalRectDimsLabel.setHidden(True)
+        self.physicalRectHeightLabel.setHidden(True)
+        self.physicalRectWidthLabel.setHidden(True)
+        self.physicalRectHeightVal.setHidden(True)
+        self.physicalRectWidthVal.setHidden(True)
+        self.physicalRectHeightVal.setText("0")
+        self.physicalRectWidthVal.setText("0")
+        self.userDrawRectangleButton.setChecked(False)
+        self.undoLastRoi()
+        self.rectCoords = []
+        self.selector.set_active(False)
+        if len(self.ax.patches) > 0:
+            self.ax.patches.pop()
+        self.canvas.draw()
 
     def drawNewRoi(self):
         self.newRoiButton.setHidden(True)
@@ -167,14 +218,20 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.undoLastPtButton.setHidden(False)
         self.closeRoiButton.setHidden(False)
         self.acceptRoiButton.setHidden(False)
+        self.backFromFreehandButton.setHidden(False)
 
     def startDrawRectRoi(self):
         self.newRoiButton.setHidden(True)
         self.drawRectangleButton.setHidden(True)
         self.loadRoiButton.setHidden(True)
         self.userDrawRectangleButton.setHidden(False)
-        self.redoRectangleButton.setHidden(False)
-        self.acceptRoiButton.setHidden(False)
+        self.backFromRectangleButton.setHidden(False)
+        self.acceptRectangleButton.setHidden(False)
+        self.physicalRectDimsLabel.setHidden(False)
+        self.physicalRectHeightLabel.setHidden(False)
+        self.physicalRectWidthLabel.setHidden(False)
+        self.physicalRectHeightVal.setHidden(False)
+        self.physicalRectWidthVal.setHidden(False)
 
     def backToWelcomeScreen(self):
         self.lastGui.dataFrame = self.dataFrame
@@ -235,8 +292,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             pass
 
         self.figure.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
-        self.cursor = matplotlib.widgets.Cursor(self.ax, color="gold", linewidth=0.4, useblit=True)
-        self.cursor.set_active(False)
+        self.crosshairCursor.set_active(False)
         plt.tick_params(bottom=False, left=False, labelbottom=False, labelleft=False)
         self.canvas.draw() # Refresh canvas
 
@@ -318,13 +374,15 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.editImageDisplayGUI.brightnessVal.setValue(0.75)
         self.editImageDisplayGUI.sharpnessVal.setValue(3)
 
-        self.analysisParamsGUI.axWinSizeVal.setValue(self.imgInfoStruct.depth/100)#7#1#1480/20000000*10000 # must be at least 10 times wavelength
-        self.analysisParamsGUI.latWinSizeVal.setValue(self.imgInfoStruct.width/100)#7#1#1480/20000000*10000 # must be at least 10 times wavelength
+        # self.analysisParamsGUI.axWinSizeVal.setValue(self.imgInfoStruct.depth/100)#7#1#1480/20000000*10000 # must be at least 10 times wavelength
+        # self.analysisParamsGUI.latWinSizeVal.setValue(self.imgInfoStruct.width/100)#7#1#1480/20000000*10000 # must be at least 10 times wavelength
 
         speedOfSoundInTissue = 1540 #m/s
         waveLength = (speedOfSoundInTissue/self.imgInfoStruct.centerFrequency)*1000 #mm
-        self.analysisParamsGUI.axWinSizeVal.setMinimum(10*waveLength) # must be at least 10 times wavelength
-        self.analysisParamsGUI.latWinSizeVal.setMinimum(10*waveLength) # must be at least 10 times wavelength
+        self.analysisParamsGUI.axWinSizeVal.setMinimum(2*waveLength) # should be at least 10 times wavelength, must be at least 2 times
+        self.analysisParamsGUI.latWinSizeVal.setMinimum(2*waveLength) # should be at least 10 times wavelength, must be at least 2 times
+        self.analysisParamsGUI.axWinSizeVal.setValue(10*waveLength)
+        self.analysisParamsGUI.latWinSizeVal.setValue(10*waveLength)
 
         self.analysisParamsGUI.axOverlapVal.setValue(50)
         self.analysisParamsGUI.latOverlapVal.setValue(50)
@@ -370,17 +428,19 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             # image, =self.ax.plot([], [], marker="o",markersize=3, markerfacecolor="red")
             # self.cid = image.figure.canvas.mpl_connect('button_press_event', self.interpolatePoints)
             self.cid = self.figure.canvas.mpl_connect('button_press_event', self.interpolatePoints)
-            self.cursor.set_active(True)
+            self.crosshairCursor.set_active(True)
         else: # No longer let b-mode be drawn on
             self.cid = self.figure.canvas.mpl_disconnect(self.cid)
-            self.cursor.set_active(False)
+            self.crosshairCursor.set_active(False)
         self.canvas.draw()
 
     def recordDrawRectClicked(self):
-        if self.drawRectangleButton.isChecked(): # Set up b-mode to be drawn on
-            self.selector = RectangleSelector(self.ax, self.drawRect, useblit=True, props = dict(linestyle='-', color='cyan', fill=False))
+        if self.userDrawRectangleButton.isChecked(): # Set up b-mode to be drawn on
+            self.selector.set_active(True)
+            self.cid = self.figure.canvas.mpl_connect('button_press_event', self.clearRect)
         else: # No longer let b-mode be drawn on
-            del self.selector
+            self.cid = self.figure.canvas.mpl_disconnect(self.cid)
+            self.selector.set_active(False)
         self.canvas.draw()
 
 
@@ -456,7 +516,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.drawRoiButton.setCheckable(False)
             self.redrawRoiButton.setHidden(False)
             self.closeRoiButton.setHidden(True)
-            self.cursor.set_active(False)
+            self.crosshairCursor.set_active(False)
             self.undoLastPtButton.clicked.disconnect()
             self.canvas.draw()
 
@@ -465,8 +525,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.finalSplineY = []
         self.pointsPlottedX = []
         self.pointsPlottedY = []
-        self.rectCoords = []
-        self.rect = None 
         self.drawRoiButton.setChecked(False)
         self.drawRoiButton.setCheckable(True)
         self.closeRoiButton.setHidden(False)
@@ -484,6 +542,12 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         imOutput = sharpness.enhance(self.editImageDisplayGUI.sharpnessVal.value())
         imOutput.save(os.path.join("Junk", "bModeIm.png"))
         self.plotOnCanvas()
+
+    def clearRect(self, event):
+        if len(self.ax.patches) > 0:
+            self.ax.patches.pop()
+            self.canvas.draw()
+
     
     def interpolatePoints(self, event): # Update ROI being drawn using spline using 2D interpolation
         try:
@@ -598,13 +662,46 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             pass
         
         self.rectCoords = [int(event1.xdata), int(event1.ydata), int(event2.xdata), int(event2.ydata)]
-        rect = patches.Rectangle((event1.xdata, event1.ydata), (event2.xdata-event1.xdata), (event2.ydata-event1.ydata), linewidth=1, edgecolor='cyan', facecolor='none')
-        if self.rect is not None:
-            self.rect.remove()
-        self.rect = self.ax.add_patch(rect)
-        plt.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
-        plt.tick_params(bottom=False, left=False)
-        self.canvas.draw()
+        self.plotPatch()
+
+    def plotPatch(self):
+        if len(self.rectCoords) > 0:
+            left, bottom, right, top = self.rectCoords
+            rect = patches.Rectangle((left, bottom), (right-left), (top-bottom), linewidth=1, edgecolor='cyan', facecolor='none')
+            if len(self.ax.patches) > 0:
+                self.ax.patches.pop()
+
+            self.ax.add_patch(rect)
+            
+            xScale = 721/(self.imData.shape[1])
+            mplPixWidth = abs(right - left)
+            imPixWidth = mplPixWidth / xScale
+            mmWidth = self.imgInfoStruct.lateralRes * imPixWidth # (mm/pixel)*pixels
+            self.physicalRectWidthVal.setText(str(np.round(mmWidth, decimals=2)))
+
+            yScale = 501/(self.imData.shape[0])
+            mplPixHeight = abs(top - bottom)
+            imPixHeight = mplPixHeight / yScale
+            mmHeight = self.imgInfoStruct.axialRes * imPixHeight # (mm/pixel)*pixels
+            self.physicalRectHeightVal.setText(str(np.round(mmHeight, decimals=2)))
+
+            plt.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
+            plt.tick_params(bottom=False, left=False)
+            self.canvas.draw()
+
+
+    def acceptRect(self):
+        if len(self.ax.patches) == 1:
+            left, bottom = self.ax.patches[0].get_xy()
+            left = int(left)
+            bottom = int(bottom)
+            width = int(self.ax.patches[0].get_width())
+            height = int(self.ax.patches[0].get_height())
+            self.pointsPlottedX = list(range(left, left+width)) + list(np.ones(height).astype(int)*(left+width-1)) + list(range(left+width-1, left-1, -1)) + list(np.ones(height).astype(int)*left)
+            self.pointsPlottedY = list(np.ones(width).astype(int)*bottom) + list(range(bottom, bottom+height)) + list(np.ones(width).astype(int)*(bottom+height-1)) + list(range(bottom+height-1, bottom-1, -1))
+            self.finalSplineX = np.array(self.pointsPlottedX) # Image boundaries already addressed at plotting phase
+            self.finalSplineY = np.array(self.pointsPlottedY) # Image boundaries already addressed at plotting phase
+            self.acceptROI()
 
     def acceptROI(self):
         if len(self.pointsPlottedX) > 1 and self.pointsPlottedX[0] == self.pointsPlottedX[-1]:
@@ -615,6 +712,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.analysisParamsGUI.lastGui = self
             self.analysisParamsGUI.imArray = self.imData
             self.analysisParamsGUI.dataFrame = self.dataFrame
+            self.analysisParamsGUI.rectCoords = self.rectCoords
             self.analysisParamsGUI.setFilenameDisplays(self.imagePathInput.text().split('/')[-1], self.phantomPathInput.text().split('/')[-1])
             self.analysisParamsGUI.plotRoiPreview()
             self.analysisParamsGUI.show()

@@ -69,9 +69,9 @@
   <widget class="QPushButton" name="drawRoiButton">
    <property name="geometry">
     <rect>
-     <x>370</x>
+     <x>350</x>
      <y>110</y>
-     <width>171</width>
+     <width>141</width>
      <height>41</height>
     </rect>
    </property>
@@ -103,9 +103,9 @@ QPushButton:checked {
   <widget class="QPushButton" name="undoLastPtButton">
    <property name="geometry">
     <rect>
-     <x>570</x>
+     <x>520</x>
      <y>110</y>
-     <width>171</width>
+     <width>141</width>
      <height>41</height>
     </rect>
    </property>
@@ -127,9 +127,9 @@ QPushButton:checked {
   <widget class="QPushButton" name="acceptRoiButton">
    <property name="geometry">
     <rect>
-     <x>970</x>
+     <x>1030</x>
      <y>110</y>
-     <width>171</width>
+     <width>141</width>
      <height>41</height>
     </rect>
    </property>
@@ -523,9 +523,9 @@ QPushButton:checked {
   <widget class="QPushButton" name="closeRoiButton">
    <property name="geometry">
     <rect>
-     <x>770</x>
+     <x>690</x>
      <y>110</y>
-     <width>171</width>
+     <width>141</width>
      <height>41</height>
     </rect>
    </property>
@@ -547,9 +547,9 @@ QPushButton:checked {
   <widget class="QPushButton" name="redrawRoiButton">
    <property name="geometry">
     <rect>
-     <x>770</x>
+     <x>690</x>
      <y>110</y>
-     <width>171</width>
+     <width>141</width>
      <height>41</height>
     </rect>
    </property>
@@ -1049,12 +1049,12 @@ QPushButton:checked {
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="redoRectangleButton">
+  <widget class="QPushButton" name="backFromRectangleButton">
    <property name="geometry">
     <rect>
-     <x>670</x>
+     <x>640</x>
      <y>110</y>
-     <width>271</width>
+     <width>241</width>
      <height>41</height>
     </rect>
    </property>
@@ -1068,7 +1068,7 @@ QPushButton:checked {
 </string>
    </property>
    <property name="text">
-    <string>Redo Rectangle</string>
+    <string>Back</string>
    </property>
    <property name="checkable">
     <bool>true</bool>
@@ -1110,7 +1110,7 @@ QPushButton:checked {
     <rect>
      <x>380</x>
      <y>110</y>
-     <width>271</width>
+     <width>241</width>
      <height>41</height>
     </rect>
    </property>
@@ -1137,6 +1137,218 @@ QPushButton:checked {
    </property>
    <property name="checked">
     <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="backFromFreehandButton">
+   <property name="geometry">
+    <rect>
+     <x>860</x>
+     <y>110</y>
+     <width>141</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Back</string>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="acceptRectangleButton">
+   <property name="geometry">
+    <rect>
+     <x>900</x>
+     <y>110</y>
+     <width>241</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+</string>
+   </property>
+   <property name="text">
+    <string>Accept ROI</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="physicalRectDimsLabel">
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>695</y>
+     <width>161</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 18px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Rect. Dims (cm):</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="physicalRectWidthLabel">
+   <property name="geometry">
+    <rect>
+     <x>510</x>
+     <y>705</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 14px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Width:</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="physicalRectWidthVal">
+   <property name="geometry">
+    <rect>
+     <x>570</x>
+     <y>705</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 14px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="physicalRectHeightVal">
+   <property name="geometry">
+    <rect>
+     <x>740</x>
+     <y>705</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 14px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="physicalRectHeightLabel">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>705</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 14px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Height:</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

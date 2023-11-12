@@ -36,10 +36,18 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
                 for row in reader:
                     if line_count == 1:
                         imageName = row[0]
-                        self.chooseRoiGUI.pointsPlottedX = row[1][1:-1].split(',')
-                        self.chooseRoiGUI.pointsPlottedX = [int(num) for num in self.chooseRoiGUI.pointsPlottedX]
-                        self.chooseRoiGUI.pointsPlottedY = row[2][1:-1].split(',')
-                        self.chooseRoiGUI.pointsPlottedY = [int(num) for num in self.chooseRoiGUI.pointsPlottedY]
+                        roiType = row[1]
+                        if roiType == "Freehand":
+                            self.chooseRoiGUI.pointsPlottedX = row[2][1:-1].split(',')
+                            self.chooseRoiGUI.pointsPlottedX = [int(num) for num in self.chooseRoiGUI.pointsPlottedX]
+                            self.chooseRoiGUI.pointsPlottedY = row[3][1:-1].split(',')
+                            self.chooseRoiGUI.pointsPlottedY = [int(num) for num in self.chooseRoiGUI.pointsPlottedY]
+                            self.chooseRoiGUI.acceptLoadedRoiButton.clicked.connect(self.chooseRoiGUI.acceptROI)
+                        else:
+                            self.chooseRoiGUI.rectCoords = row[4][1:-1].split(',')
+                            self.chooseRoiGUI.rectCoords = [int(num) for num in self.chooseRoiGUI.rectCoords]
+                            self.chooseRoiGUI.plotPatch()
+                            self.chooseRoiGUI.acceptLoadedRoiButton.clicked.connect(self.chooseRoiGUI.acceptRect)
                         break
                     line_count += 1
             if imageName != self.chooseRoiGUI.imagePathInput.text():
@@ -55,5 +63,7 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
             self.chooseRoiGUI.drawRoiButton.setChecked(True)
             self.chooseRoiGUI.drawRoiButton.setCheckable(True)
             self.chooseRoiGUI.redrawRoiButton.setHidden(True)
+            self.chooseRoiGUI.drawRectangleButton.setHidden(True)
+            self.chooseRoiGUI.closeRoiButton.setHidden(True)
             self.hide()
             self.chooseRoiGUI.show()
