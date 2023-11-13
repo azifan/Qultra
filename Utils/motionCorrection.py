@@ -296,7 +296,7 @@ def generate_TIC(window, bboxes, times, compression, pixelScale, refFrame):
         TICz[:,1]=TICz[:,1]-np.min(TICz[:,1])
     return TICz, np.round(np.mean(areas), decimals=2)
 
-def generate_TIC_no_TMPPV(window, bboxes, times, compression, refFrame):
+def generate_TIC_no_TMPPV(window, bboxes, times, compression):
     TICtime = []
     TIC = []
     areas = []
@@ -321,6 +321,27 @@ def generate_TIC_no_TMPPV(window, bboxes, times, compression, refFrame):
             TIC.append(np.exp(tmpwin[bool_mask]/compression).mean())
             TICtime.append(times[t])
             areas.append(numPoints)
+
+    TICz = np.array([TICtime, TIC]).astype('float64')
+    TICz = TICz.transpose()
+    TICz[:,1]=TICz[:,1]-np.mean(TICz[0:2,1])#Subtract noise in TIC before contrast
+    if TICz[np.nan_to_num(TICz)<0].any():#make the smallest number in TIC 0
+        TICz[:,1]=TICz[:,1]+np.abs(np.min(TICz[:,1]))
+    else:
+        TICz[:,1]=TICz[:,1]-np.min(TICz[:,1])
+    return TICz, np.round(np.mean(areas), decimals=2)
+
+def generate_TIC_no_TMPPV_no_MC(window, mask, times, compression):
+    TICtime = []
+    TIC = []
+    areas = []
+    for t in range(0, mask.shape[0]):
+        tmpwin = window[t]
+        bool_mask = np.array(mask[t]).astype(bool)
+        numPoints = len(np.where(bool_mask == True)[0])
+        TIC.append(np.exp(tmpwin[bool_mask]/compression).mean())
+        TICtime.append(times[t])
+        areas.append(numPoints)
 
     TICz = np.array([TICtime, TIC]).astype('float64')
     TICz = TICz.transpose()

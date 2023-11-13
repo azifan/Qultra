@@ -625,7 +625,7 @@ QTableWidget::item {
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>310</y>
+     <y>260</y>
      <width>281</width>
      <height>51</height>
     </rect>
@@ -646,7 +646,7 @@ QTableWidget::item {
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>440</y>
+     <y>490</y>
      <width>281</width>
      <height>51</height>
     </rect>
@@ -829,6 +829,111 @@ QTableWidget::item {
    </property>
    <property name="textInteractionFlags">
     <set>Qt::NoTextInteraction</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="aviButton">
+   <property name="geometry">
+    <rect>
+     <x>610</x>
+     <y>380</y>
+     <width>281</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>AVI</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="selectAviLabel">
+   <property name="geometry">
+    <rect>
+     <x>620</x>
+     <y>240</y>
+     <width>271</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 18px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Select AVI File: (.avi)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="textInteractionFlags">
+    <set>Qt::NoTextInteraction</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="clearAviButton">
+   <property name="geometry">
+    <rect>
+     <x>760</x>
+     <y>380</y>
+     <width>131</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Clear Path</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="aviPath">
+   <property name="geometry">
+    <rect>
+     <x>658</x>
+     <y>320</y>
+     <width>201</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {
+	background-color: rgb(249, 249, 249);
+	color: black;
+}</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="chooseAviButton">
+   <property name="geometry">
+    <rect>
+     <x>620</x>
+     <y>380</y>
+     <width>131</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Choose File</string>
    </property>
   </widget>
  </widget>

@@ -99,6 +99,10 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.chooseRoiButton.setHidden(True)
         self.backFromLoadButton.setHidden(True)
         self.saveRoiButton.setHidden(True)
+        self.acceptBoundsButton.setHidden(True)
+        self.horizontalSlider.setHidden(True)
+        self.defImBoundsButton.setHidden(True)
+        self.boundDrawLabel.setHidden(True)
         self.df = None
         self.dataFrame = None
         self.niftiSegPath = None
@@ -250,203 +254,136 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.imagePathInput.setText(imFile)
         self.inputTextPath = imageName
 
+    def acceptRoiNoMc(self, loaded=False):
+        if not self.drawRoiButton.isCheckable():
+            self.segMask = np.zeros([self.numSlices, self.y, self.x])
+            self.pointsPlotted = [*set(self.pointsPlotted)] 
+            points = self.pointsPlotted    
+            if self.imDrawn == 2:
+                xDiff = self.x0_bmode - self.x0_CE
+                yDiff = self.y0_bmode - self.y0_CE
+                points = [[point[0]+xDiff, point[1]+yDiff] for point in self.pointsPlotted]
+            elif self.imDrawn == 0:
+                return
+            
+            self.mcResultsArray = self.fullArray
+            
+            for point in points:
+                self.segMask[self.curFrameIndex,point[1], point[0]] = 1
+                self.mcResultsArray[:, point[1], point[0]] = [255, 0, 0]
+            if not loaded:
+                self.segMask[self.curFrameIndex] = binary_fill_holes(self.segMask[self.curFrameIndex])
+
+            
+            for i in range(self.segMask.shape[0]):
+                if i != self.curFrameIndex:
+                    self.segMask[i] = self.segMask[self.curFrameIndex]
+
+
+            self.moveToTic(False)
+
     def perform_MC(self, loaded=False):
         # Credit Thodsawit Tiyarattanachai, MD. See Utils/motionCorrection.py for full citation
-        self.segMask = np.zeros([self.numSlices, self.y, self.x])
-        self.pointsPlotted = [*set(self.pointsPlotted)] 
-        points = self.pointsPlotted    
-        if self.imDrawn == 2:
-            xDiff = self.x0_bmode - self.x0_CE
-            yDiff = self.y0_bmode - self.y0_CE
-            points = [[point[0]+xDiff, point[1]+yDiff] for point in self.pointsPlotted]
-        elif self.imDrawn == 0:
-            return
-        
-        for point in points:
-            self.segMask[self.curFrameIndex,point[1], point[0]] = 1
-        if not loaded:
-            self.segMask[self.curFrameIndex] = binary_fill_holes(self.segMask[self.curFrameIndex])   
+        if not self.drawRoiButton.isCheckable():
+            self.segMask = np.zeros([self.numSlices, self.y, self.x])
+            self.pointsPlotted = [*set(self.pointsPlotted)] 
+            points = self.pointsPlotted    
+            if self.imDrawn == 2:
+                xDiff = self.x0_bmode - self.x0_CE
+                yDiff = self.y0_bmode - self.y0_CE
+                points = [[point[0]+xDiff, point[1]+yDiff] for point in self.pointsPlotted]
+            elif self.imDrawn == 0:
+                return
+            
+            for point in points:
+                self.segMask[self.curFrameIndex,point[1], point[0]] = 1
+            if not loaded:
+                self.segMask[self.curFrameIndex] = binary_fill_holes(self.segMask[self.curFrameIndex])   
 
-        set_quantile = 0.50
-        step = 1 # fullFrameRate. step=2 for halfFrameRate
-        threshold_decrease_per_step = 0.02
+            set_quantile = 0.50
+            step = 1 # fullFrameRate. step=2 for halfFrameRate
+            threshold_decrease_per_step = 0.02
 
-        # get ref frame
-        search_margin = int((0.5/15)*self.h_bmode)
-        ref_frames = [self.curFrameIndex]
-        mask = self.segMask[self.curFrameIndex]
-        pos_coor = np.argwhere(mask > 0)
-        x_values = pos_coor[:,1]
-        y_values = pos_coor[:,0]
-        x0 = x_values.min()
-        x1 = x_values.max()
-        w = x1 - x0 +1
-        y0 = y_values.min()
-        y1 = y_values.max()
-        h = y1 - y0 + 1
-        bboxes = [(x0, y0, w, h)]
-        masks = [mask]
+            # get ref frame
+            search_margin = int((0.5/15)*self.h_bmode)
+            ref_frames = [self.curFrameIndex]
+            mask = self.segMask[self.curFrameIndex]
+            pos_coor = np.argwhere(mask > 0)
+            x_values = pos_coor[:,1]
+            y_values = pos_coor[:,0]
+            x0 = x_values.min()
+            x1 = x_values.max()
+            w = x1 - x0 +1
+            y0 = y_values.min()
+            y1 = y_values.max()
+            h = y1 - y0 + 1
+            bboxes = [(x0, y0, w, h)]
+            masks = [mask]
 
-        ###################################################
-        # find initial correlation in the first run
-        min_x0 = min([e[0] for e in bboxes]) - search_margin
-        max_x1 = max([e[0]+e[2] for e in bboxes]) + search_margin
-        min_y0 = min([e[1] for e in bboxes]) - search_margin
-        max_y1 = max([e[1]+e[3] for e in bboxes])
-        bmode = self.fullGrayArray[:, min_y0:max_y1, min_x0:max_x1]
-        ref_f = ref_frames[0]
-        ref_b = bboxes[0]
-        ref_bmodes = [self.fullGrayArray[ref_f, \
-                                      ref_b[1]:ref_b[1]+ref_b[3], \
-                                      ref_b[0]:ref_b[0]+ref_b[2]]]
-        
-        corr_initial_run, threshold = mc.find_correlation(bmode, ref_bmodes, set_quantile)
-        ###################################################
+            ###################################################
+            # find initial correlation in the first run
+            min_x0 = min([e[0] for e in bboxes]) - search_margin
+            max_x1 = max([e[0]+e[2] for e in bboxes]) + search_margin
+            min_y0 = min([e[1] for e in bboxes]) - search_margin
+            max_y1 = max([e[1]+e[3] for e in bboxes])
+            bmode = self.fullGrayArray[:, min_y0:max_y1, min_x0:max_x1]
+            ref_f = ref_frames[0]
+            ref_b = bboxes[0]
+            ref_bmodes = [self.fullGrayArray[ref_f, \
+                                        ref_b[1]:ref_b[1]+ref_b[3], \
+                                        ref_b[0]:ref_b[0]+ref_b[2]]]
+            
+            corr_initial_run, threshold = mc.find_correlation(bmode, ref_bmodes, set_quantile)
+            ###################################################
 
-        ref_patches = ref_bmodes[:]
+            ref_patches = ref_bmodes[:]
 
-        previous_all_lesion_bboxes = [None]*self.fullGrayArray.shape[0]
-        iteration = 1
+            previous_all_lesion_bboxes = [None]*self.fullGrayArray.shape[0]
+            iteration = 1
 
-        while True:
+            while True:
 
-            out_array = np.zeros(list(self.fullGrayArray.shape) + [3], dtype=np.uint8)
+                out_array = np.zeros(list(self.fullGrayArray.shape) + [3], dtype=np.uint8)
 
-            all_search_bboxes = [None]*self.fullGrayArray.shape[0]
-            all_lesion_bboxes = [None]*self.fullGrayArray.shape[0]
-            corr_with_ref = [None]*self.fullGrayArray.shape[0]
+                all_search_bboxes = [None]*self.fullGrayArray.shape[0]
+                all_lesion_bboxes = [None]*self.fullGrayArray.shape[0]
+                corr_with_ref = [None]*self.fullGrayArray.shape[0]
 
-            for ref_idx in range(len(ref_frames)):
-                ref_frame = ref_frames[ref_idx]
-                ref_bbox = bboxes[ref_idx]
+                for ref_idx in range(len(ref_frames)):
+                    ref_frame = ref_frames[ref_idx]
+                    ref_bbox = bboxes[ref_idx]
 
-                if ref_idx == 0:
-                    if ref_idx == len(ref_frames) - 1:
-                        #There is only 1 ref_frame
-                        ref_begin = 0
-                        ref_end = self.fullGrayArray.shape[0]
-                    else:
-                        #This is the first ref_frame. There are >1 ref frames.
-                        ref_begin = 0
-                        ref_end = int((ref_frames[ref_idx]+ref_frames[ref_idx+1])/2)
-                else:
-                    if ref_idx == len(ref_frames) - 1:
-                        #This is the last ref frame. There are >1 ref frames.
-                        ref_begin = int((ref_frames[ref_idx-1]+ref_frames[ref_idx])/2)
-                        ref_end = self.fullGrayArray.shape[0]
-                    else:
-                        #These are ref frames in the middle. There are >1 ref frames.
-                        ref_begin = int((ref_frames[ref_idx-1]+ref_frames[ref_idx])/2)
-                        ref_end = int((ref_frames[ref_idx]+ref_frames[ref_idx+1])/2)
-
-                #######################
-
-                #forward tracking
-                ##############################################################
-                if ref_frame < ref_end-1:  #can forward track only if there are frames after the ref_frame
-                    #print('forward tracking')
-
-                    previous_bbox = ref_bbox
-
-                    valid = True
-
-                    for frame in range(ref_frame, ref_end, step):
-
-                        full_frame = self.fullGrayArray[frame]
-
-                        if valid:
-                            search_w = int(previous_bbox[2]+(2*search_margin))
-                            search_h = int(previous_bbox[3]+(2*search_margin))
-                            search_x0 = int(previous_bbox[0] - ((search_w - previous_bbox[2])/2))
-                            search_y0 = int(previous_bbox[1] - ((search_h - previous_bbox[3])/2))
-                            search_bbox = (search_x0, search_y0, search_w, search_h)
-                            search_region = full_frame[search_y0:search_y0+search_h,
-                                                    search_x0:search_x0+search_w]
-
-                            all_search_bboxes[frame] = search_bbox
-
+                    if ref_idx == 0:
+                        if ref_idx == len(ref_frames) - 1:
+                            #There is only 1 ref_frame
+                            ref_begin = 0
+                            ref_end = self.fullGrayArray.shape[0]
                         else:
-
-                            all_search_x0 = [b[0] for b in all_search_bboxes[ref_frame+1:ref_end] if not(b is None)]
-                            median_x0 = np.median(all_search_x0)
-                            IQR_x0 = np.quantile(all_search_x0, 0.75) - np.quantile(all_search_x0, 0.25)
-                            all_search_x0 = [x for x in all_search_x0 if (x>=median_x0-(1.5*IQR_x0)) and (x<=median_x0+(1.5*IQR_x0))]
-                            min_search_x0 = min(all_search_x0)
-                            max_search_x0 = max(all_search_x0)
-
-                            all_search_y0 = [b[1] for b in all_search_bboxes[ref_frame+1:ref_end] if not(b is None)]
-                            median_y0 = np.median(all_search_y0)
-                            IQR_y0 = np.quantile(all_search_y0, 0.75) - np.quantile(all_search_y0, 0.25)
-                            all_search_y0 = [y for y in all_search_y0 if (y>=median_y0-(1.5*IQR_y0)) and (y<=median_y0+(1.5*IQR_y0))]
-                            min_search_y0 = min(all_search_y0)
-                            max_search_y0 = max(all_search_y0)
-
-                            search_x0 = min_search_x0
-                            search_y0 = min_search_y0
-                            search_w = (max_search_x0-min_search_x0) + int(ref_bbox[2]+(2*search_margin))
-                            search_h = (max_search_y0-min_search_y0) + int(previous_bbox[3]+(2*search_margin))
-                            search_bbox = (search_x0, search_y0, search_w, search_h)
-                            search_region = full_frame[search_y0:search_y0+search_h,
-                                                        search_x0:search_x0+search_w]    
-
-                            
-                        mean_corr, max_loc = mc.compute_similarity_map(search_region, ref_patches, ref_idx)
-                        corr_with_ref[frame] = mean_corr
-                        
-
-                        if mean_corr >= threshold:
-                            valid = True
-                            current_w = ref_bbox[2]
-                            current_h = ref_bbox[3]
-                            current_x0 = search_x0 + max_loc[0]
-                            current_y0 = search_y0 + max_loc[1]
-                            current_bbox = (current_x0, current_y0, current_w, current_h)
-
-                            img_bbox = cv2.rectangle(cv2.cvtColor(full_frame, cv2.COLOR_GRAY2BGR),
-                                                        (search_x0, search_y0),
-                                                        (search_x0+search_w, search_y0+search_h),
-                                                        (255, 255, 255), 2)
-                            img_bbox = cv2.rectangle(img_bbox,
-                                                        (current_bbox[0], current_bbox[1]),
-                                                        (current_bbox[0] + current_bbox[2], current_bbox[1] + current_bbox[3]),
-                                                        (0, 255, 0), 2)
-                            # img_bbox = cv2.putText(img_bbox, 'frame: '+str(frame), (25,25), cv2.FONT_HERSHEY_SIMPLEX,  
-                            #             1, (0,255,0), 2, cv2.LINE_AA) 
-                            # img_bbox = cv2.putText(img_bbox, 'corr: '+str(mean_corr), (25,50), cv2.FONT_HERSHEY_SIMPLEX,  
-                            #             1, (0,255,0), 2, cv2.LINE_AA) 
-
-                            out_array[frame] = img_bbox
-
-                            #####################################
-                            all_lesion_bboxes[frame] = current_bbox[:]
-                            previous_bbox = current_bbox[:]
-                            
-
+                            #This is the first ref_frame. There are >1 ref frames.
+                            ref_begin = 0
+                            ref_end = int((ref_frames[ref_idx]+ref_frames[ref_idx+1])/2)
+                    else:
+                        if ref_idx == len(ref_frames) - 1:
+                            #This is the last ref frame. There are >1 ref frames.
+                            ref_begin = int((ref_frames[ref_idx-1]+ref_frames[ref_idx])/2)
+                            ref_end = self.fullGrayArray.shape[0]
                         else:
-                            valid = False
-                            img_bbox = cv2.rectangle(cv2.cvtColor(full_frame, cv2.COLOR_GRAY2BGR),
-                                                        (search_x0, search_y0),
-                                                        (search_x0+search_w, search_y0+search_h),
-                                                        (255, 0, 0), 2)
-                            # img_bbox = cv2.putText(img_bbox, 'frame: '+str(frame), (25,25), cv2.FONT_HERSHEY_SIMPLEX,  
-                            #             1, (255,0,0), 2, cv2.LINE_AA) 
-                            # img_bbox = cv2.putText(img_bbox, 'corr: '+str(mean_corr), (25,50), cv2.FONT_HERSHEY_SIMPLEX,  
-                            #             1, (255,0,0), 2, cv2.LINE_AA) 
+                            #These are ref frames in the middle. There are >1 ref frames.
+                            ref_begin = int((ref_frames[ref_idx-1]+ref_frames[ref_idx])/2)
+                            ref_end = int((ref_frames[ref_idx]+ref_frames[ref_idx+1])/2)
 
-                            out_array[frame] = img_bbox
-                    #########################################################
-                    
-                    
-                    #backward tracking
+                    #######################
+
+                    #forward tracking
                     ##############################################################
-                    if ref_frame > ref_begin:  
-                        #print('backward tracking')
+                    if ref_frame < ref_end-1:  #can forward track only if there are frames after the ref_frame
+                        #print('forward tracking')
 
                         previous_bbox = ref_bbox
 
                         valid = True
 
-                        for frame in range(ref_frame-1, ref_begin-1, -step):
+                        for frame in range(ref_frame, ref_end, step):
 
                             full_frame = self.fullGrayArray[frame]
 
@@ -463,14 +400,14 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
                             else:
 
-                                all_search_x0 = [b[0] for b in all_search_bboxes[ref_begin:ref_frame] if not(b is None)]
+                                all_search_x0 = [b[0] for b in all_search_bboxes[ref_frame+1:ref_end] if not(b is None)]
                                 median_x0 = np.median(all_search_x0)
                                 IQR_x0 = np.quantile(all_search_x0, 0.75) - np.quantile(all_search_x0, 0.25)
                                 all_search_x0 = [x for x in all_search_x0 if (x>=median_x0-(1.5*IQR_x0)) and (x<=median_x0+(1.5*IQR_x0))]
                                 min_search_x0 = min(all_search_x0)
                                 max_search_x0 = max(all_search_x0)
 
-                                all_search_y0 = [b[1] for b in all_search_bboxes[ref_begin:ref_frame] if not(b is None)]
+                                all_search_y0 = [b[1] for b in all_search_bboxes[ref_frame+1:ref_end] if not(b is None)]
                                 median_y0 = np.median(all_search_y0)
                                 IQR_y0 = np.quantile(all_search_y0, 0.75) - np.quantile(all_search_y0, 0.25)
                                 all_search_y0 = [y for y in all_search_y0 if (y>=median_y0-(1.5*IQR_y0)) and (y<=median_y0+(1.5*IQR_y0))]
@@ -491,7 +428,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
                             
 
                             if mean_corr >= threshold:
-                                valid = True 
+                                valid = True
                                 current_w = ref_bbox[2]
                                 current_h = ref_bbox[3]
                                 current_x0 = search_x0 + max_loc[0]
@@ -530,43 +467,139 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
                                 #             1, (255,0,0), 2, cv2.LINE_AA) 
 
                                 out_array[frame] = img_bbox
-                    #########################################################
-                    
+                        #########################################################
+                        
+                        
+                        #backward tracking
+                        ##############################################################
+                        if ref_frame > ref_begin:  
+                            #print('backward tracking')
 
-            #check if lesion bbox in any frame move in this iteration
-            #####################
-            bbox_move = mc.check_bbox_move(previous_all_lesion_bboxes, all_lesion_bboxes)
-            if bbox_move or (threshold < min([e for e in corr_with_ref if not(e is None)])):
-                break
-            #####################
+                            previous_bbox = ref_bbox
 
-            previous_all_lesion_bboxes = all_lesion_bboxes[:]
-            previous_out_array = out_array.copy()
-            threshold -= threshold_decrease_per_step
-            iteration += 1
+                            valid = True
 
-        try:
-            self.mcResultsArray = previous_out_array        
-        except:
-            print("MC not possible. Must choose a better ROI")
-        self.bboxes = previous_all_lesion_bboxes
-        self.ref_frames = ref_frames
+                            for frame in range(ref_frame-1, ref_begin-1, -step):
 
-        self.updateIm()
-        self.acceptGeneratedRoiButton.setHidden(False)
-        self.drawRoiButton.setHidden(True)
-        self.backFromDrawButton.setHidden(True)
-        self.undoRoiButton.setHidden(False)
-        self.undoLastPtButton.setHidden(True)
-        self.redrawRoiButton.setHidden(True)
-        self.fitToRoiButton.setHidden(True)
-        self.roiFitNoteLabel.setHidden(True)
-        self.saveRoiButton.setHidden(True)
-        self.acceptGeneratedRoiButton.setCheckable(False)
-        self.undoRoiButton.setCheckable(False)
-        self.acceptGeneratedRoiButton.clicked.connect(self.moveToTic)
-        self.undoRoiButton.clicked.connect(self.restartRoi)
-        self.update()
+                                full_frame = self.fullGrayArray[frame]
+
+                                if valid:
+                                    search_w = int(previous_bbox[2]+(2*search_margin))
+                                    search_h = int(previous_bbox[3]+(2*search_margin))
+                                    search_x0 = int(previous_bbox[0] - ((search_w - previous_bbox[2])/2))
+                                    search_y0 = int(previous_bbox[1] - ((search_h - previous_bbox[3])/2))
+                                    search_bbox = (search_x0, search_y0, search_w, search_h)
+                                    search_region = full_frame[search_y0:search_y0+search_h,
+                                                            search_x0:search_x0+search_w]
+
+                                    all_search_bboxes[frame] = search_bbox
+
+                                else:
+
+                                    all_search_x0 = [b[0] for b in all_search_bboxes[ref_begin:ref_frame] if not(b is None)]
+                                    median_x0 = np.median(all_search_x0)
+                                    IQR_x0 = np.quantile(all_search_x0, 0.75) - np.quantile(all_search_x0, 0.25)
+                                    all_search_x0 = [x for x in all_search_x0 if (x>=median_x0-(1.5*IQR_x0)) and (x<=median_x0+(1.5*IQR_x0))]
+                                    min_search_x0 = min(all_search_x0)
+                                    max_search_x0 = max(all_search_x0)
+
+                                    all_search_y0 = [b[1] for b in all_search_bboxes[ref_begin:ref_frame] if not(b is None)]
+                                    median_y0 = np.median(all_search_y0)
+                                    IQR_y0 = np.quantile(all_search_y0, 0.75) - np.quantile(all_search_y0, 0.25)
+                                    all_search_y0 = [y for y in all_search_y0 if (y>=median_y0-(1.5*IQR_y0)) and (y<=median_y0+(1.5*IQR_y0))]
+                                    min_search_y0 = min(all_search_y0)
+                                    max_search_y0 = max(all_search_y0)
+
+                                    search_x0 = min_search_x0
+                                    search_y0 = min_search_y0
+                                    search_w = (max_search_x0-min_search_x0) + int(ref_bbox[2]+(2*search_margin))
+                                    search_h = (max_search_y0-min_search_y0) + int(previous_bbox[3]+(2*search_margin))
+                                    search_bbox = (search_x0, search_y0, search_w, search_h)
+                                    search_region = full_frame[search_y0:search_y0+search_h,
+                                                                search_x0:search_x0+search_w]    
+
+                                    
+                                mean_corr, max_loc = mc.compute_similarity_map(search_region, ref_patches, ref_idx)
+                                corr_with_ref[frame] = mean_corr
+                                
+
+                                if mean_corr >= threshold:
+                                    valid = True 
+                                    current_w = ref_bbox[2]
+                                    current_h = ref_bbox[3]
+                                    current_x0 = search_x0 + max_loc[0]
+                                    current_y0 = search_y0 + max_loc[1]
+                                    current_bbox = (current_x0, current_y0, current_w, current_h)
+
+                                    img_bbox = cv2.rectangle(cv2.cvtColor(full_frame, cv2.COLOR_GRAY2BGR),
+                                                                (search_x0, search_y0),
+                                                                (search_x0+search_w, search_y0+search_h),
+                                                                (255, 255, 255), 2)
+                                    img_bbox = cv2.rectangle(img_bbox,
+                                                                (current_bbox[0], current_bbox[1]),
+                                                                (current_bbox[0] + current_bbox[2], current_bbox[1] + current_bbox[3]),
+                                                                (0, 255, 0), 2)
+                                    # img_bbox = cv2.putText(img_bbox, 'frame: '+str(frame), (25,25), cv2.FONT_HERSHEY_SIMPLEX,  
+                                    #             1, (0,255,0), 2, cv2.LINE_AA) 
+                                    # img_bbox = cv2.putText(img_bbox, 'corr: '+str(mean_corr), (25,50), cv2.FONT_HERSHEY_SIMPLEX,  
+                                    #             1, (0,255,0), 2, cv2.LINE_AA) 
+
+                                    out_array[frame] = img_bbox
+
+                                    #####################################
+                                    all_lesion_bboxes[frame] = current_bbox[:]
+                                    previous_bbox = current_bbox[:]
+                                    
+
+                                else:
+                                    valid = False
+                                    img_bbox = cv2.rectangle(cv2.cvtColor(full_frame, cv2.COLOR_GRAY2BGR),
+                                                                (search_x0, search_y0),
+                                                                (search_x0+search_w, search_y0+search_h),
+                                                                (255, 0, 0), 2)
+                                    # img_bbox = cv2.putText(img_bbox, 'frame: '+str(frame), (25,25), cv2.FONT_HERSHEY_SIMPLEX,  
+                                    #             1, (255,0,0), 2, cv2.LINE_AA) 
+                                    # img_bbox = cv2.putText(img_bbox, 'corr: '+str(mean_corr), (25,50), cv2.FONT_HERSHEY_SIMPLEX,  
+                                    #             1, (255,0,0), 2, cv2.LINE_AA) 
+
+                                    out_array[frame] = img_bbox
+                        #########################################################
+                        
+
+                #check if lesion bbox in any frame move in this iteration
+                #####################
+                bbox_move = mc.check_bbox_move(previous_all_lesion_bboxes, all_lesion_bboxes)
+                if bbox_move or (threshold < min([e for e in corr_with_ref if not(e is None)])):
+                    break
+                #####################
+
+                previous_all_lesion_bboxes = all_lesion_bboxes[:]
+                previous_out_array = out_array.copy()
+                threshold -= threshold_decrease_per_step
+                iteration += 1
+
+            try:
+                self.mcResultsArray = previous_out_array        
+            except:
+                print("MC not possible. Must choose a better ROI")
+            self.bboxes = previous_all_lesion_bboxes
+            self.ref_frames = ref_frames
+
+            self.updateIm()
+            self.acceptGeneratedRoiButton.setHidden(False)
+            self.drawRoiButton.setHidden(True)
+            self.backFromDrawButton.setHidden(True)
+            self.undoRoiButton.setHidden(False)
+            self.undoLastPtButton.setHidden(True)
+            self.redrawRoiButton.setHidden(True)
+            self.fitToRoiButton.setHidden(True)
+            self.roiFitNoteLabel.setHidden(True)
+            self.saveRoiButton.setHidden(True)
+            self.acceptGeneratedRoiButton.setCheckable(False)
+            self.undoRoiButton.setCheckable(False)
+            self.acceptGeneratedRoiButton.clicked.connect(self.moveToTic)
+            self.undoRoiButton.clicked.connect(self.restartRoi)
+            self.update()
 
     def backFromLoad(self):
         self.preLoadedRoiButton.setHidden(True)
@@ -626,7 +659,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.curSliceSpinBox.setValue(self.curFrameIndex)
         self.updateIm()
 
-    def openNiftiImage(self, bmodePath, cePath):
+    def openNiftiImage(self, bmodePath, cePath): # NOT FUNCTIONAL
         bmodeFile = nib.load(bmodePath)
         ceFile = nib.load(cePath)
 
@@ -643,6 +676,102 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         self.bmode = np.mean(self.bmode, axis=3)
         self.contrastEnhanced = np.mean(self.contrastEnhanced, axis=3)
+
+    def openAviImage(self, path):
+        cap = cv2.VideoCapture(path)
+        self.numSlices = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.cineRate = cap.get(cv2.CAP_PROP_FPS) 
+        ret, firstFrame = cap.read()
+        if not ret:
+            print('No data in video file!')
+            return
+        self.fullArray = np.zeros((self.numSlices, firstFrame.shape[0], firstFrame.shape[1], 3)).astype(firstFrame.dtype)
+        self.fullArray[0] = firstFrame
+        for i in range(1, self.numSlices):
+            ret, frame = cap.read()
+            if not ret:
+                print("Video data ended prematurely!")
+                return
+            self.fullArray[i] = frame
+
+        self.x = self.fullArray.shape[2]
+        self.y = self.fullArray.shape[1]
+        self.fullGrayArray = np.mean(self.fullArray, axis=3)
+        self.fitToRoiButton.setText("Accept ROI")
+        self.fitToRoiButton.clicked.connect(self.acceptRoiNoMc)
+
+        self.imX0 = 350
+        self.imX1 = 1151
+        self.imY0 = 80
+        self.imY1 = 561
+        xLen = self.imX1 - self.imX0
+        yLen = self.imY1 - self.imY0
+
+        quotient = self.x / self.y
+        if quotient > (xLen/yLen):
+            self.widthScale = xLen
+            self.depthScale = int(self.widthScale / quotient)
+            emptySpace = yLen - self.depthScale
+            yBuffer = int(emptySpace/2)
+            self.imY0 += yBuffer
+            self.imY1 -= yBuffer
+        else:
+            self.widthScale = int(yLen * quotient)
+            self.depthScale = yLen
+            emptySpace = xLen - self.widthScale
+            xBuffer = int(emptySpace/2)
+            self.imX0 += xBuffer
+            self.imX1 -= xBuffer
+        self.imPlane.move(self.imX0, self.imY0)
+        self.imPlane.resize(self.widthScale, self.depthScale)  
+        self.imMaskLayer.move(self.imX0, self.imY0)
+        self.imMaskLayer.resize(self.widthScale, self.depthScale)
+        self.imCoverLabel.move(self.imX0, self.imY0)
+        self.imCoverLabel.resize(self.widthScale, self.depthScale)
+        self.mcImDisplayLabel.move(self.imX0, self.imY0)
+        self.mcImDisplayLabel.resize(self.widthScale, self.depthScale)
+
+        self.imCoverPixmap = QPixmap(self.widthScale, self.depthScale)
+        self.imCoverPixmap.fill(Qt.transparent)
+        self.imCoverLabel.setPixmap(self.imCoverPixmap)
+
+        self.maskCoverImg = np.zeros([self.y, self.x, 4])
+
+        self.curSliceSlider.setMaximum(self.numSlices - 1)
+        self.curSliceSpinBox.setMaximum(self.numSlices - 1)
+
+        self.sliceArray = np.round([i*(1/self.cineRate) for i in range(self.numSlices)], decimals=2)
+
+        self.curSliceTotal.setText(str(self.numSlices-1))
+
+        self.curSliceSpinBox.setValue(self.sliceArray[self.curFrameIndex])
+        self.curSliceSlider.setValue(self.curFrameIndex)
+        self.curSliceSlider.valueChanged.connect(self.curSliceSliderValueChanged)
+        self.curSliceSpinBox.valueChanged.connect(self.curSliceSpinBoxValueChanged)
+
+        self.xScale = self.widthScale/self.x
+        self.yScale = self.depthScale/self.y
+        self.curLeftLineX = 0
+        self.curRightLineX = self.widthScale - 1
+        self.curTopLineY = 0
+        self.curBottomLineY = self.depthScale - 1
+        
+        self.updateBoundLines("Left X")
+
+        self.drawRoiButton.setCheckable(True)
+
+        self.updateIm()
+
+        self.loadRoiButton.setHidden(True)
+        self.newRoiButton.setHidden(True)
+        self.defImBoundsButton.setHidden(False)
+        self.defImBoundsButton.clicked.connect(self.startBoundDef)
+
+        self.closeRoiButton.clicked.connect(self.acceptPolygon) #called to exit the paint function
+        self.undoLastPtButton.clicked.connect(self.undoLastPoint) #deletes last drawn rectangle if on sag or cor slices
+
+        self.redrawRoiButton.clicked.connect(self.undoLastRoi)
+        self.drawRoiButton.clicked.connect(self.startRoiDraw)
 
     def openDicomImage(self, index, xcel_dir):  
 
@@ -751,44 +880,12 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         painter.end()
         self.update()
 
-        # self.bmode = self.fullArray[:,self.y0_bmode:self.y0_bmode+self.h_bmode, \
-        #                              self.x0_bmode:self.x0_bmode+self.w_bmode]
-        
-        # self.contrastEnhanced = self.fullArray[:, self.y0_CE:self.y0_CE+self.h_CE, \
-        #                                         self.x0_CE:self.x0_CE+self.w_CE]
-        
-        # self.x = self.w_bmode
-        # self.y = self.h_bmode
-
-        # ceSide = self.df.loc[self.xcelIndices[index], 'CE_window_left(l)_or_right(r)']
-        # if ceSide == 'r':
-        #     self.bmode = self.fullArray[:,:,:int(self.fullArray.shape[2]/2)]
-        #     self.contrastEnhanced = self.fullArray[:,:,int(self.fullArray.shape[2]/2):]
-        #     self.x0_bmode = 0
-        #     self.x0_CE = int(self.fullArray.shape[2]/2)
-        # else:
-        #     self.bmode = self.fullArray[:,:,int(self.fullArray.shape[2]/2):]
-        #     self.contrastEnhanced = self.fullArray[:,:,:int(self.fullArray.shape[2]/2)]
-        #     self.x0_bmode = int(self.fullArray.shape[2]/2)
-        #     self.x0_CE = 0
-        # self.numSlices = self.bmode.shape[0]
-        # self.x = self.bmode.shape[2]
-        # self.y = self.bmode.shape[1]
-        # self.y0_bmode = 0
-        # self.y0_CE = 0
-
         self.maskCoverImg = np.zeros([self.y, self.x, 4])
-        
-        # imRegion = ds.SequenceOfUltrasoundRegions[0]
-        # self.pixelScale = (imRegion.PhysicalDeltaY/self.y)*(imRegion.PhysicalDeltaX/self.x) # cm assuming imRegion.PhysicalUnitsXDirection == 3
-        # self.pixelScale *= 100 # cm^2 -> mm^2
-        # print("imRegion.PhysicalUnitsXDirection:", imRegion.PhysicalUnitsXDirection)
 
         self.curSliceSlider.setMaximum(self.numSlices - 1)
         self.curSliceSpinBox.setMaximum(self.numSlices - 1)
 
         self.sliceArray = np.round([i*(1/self.cineRate) for i in range(self.numSlices)], decimals=2)
-        # self.totalSecondsLabel.setText(str(self.sliceArray[-1]))
 
         self.curSliceTotal.setText(str(self.numSlices-1))
 
@@ -796,37 +893,230 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.curSliceSlider.setValue(self.curFrameIndex)
         self.curSliceSlider.valueChanged.connect(self.curSliceSliderValueChanged)
         self.curSliceSpinBox.valueChanged.connect(self.curSliceSpinBoxValueChanged)
+        self.fitToRoiButton.clicked.connect(self.perform_MC)
+
 
         self.drawRoiButton.setCheckable(True)
 
         self.updateIm()
-
-        #getting initial image data for bmode and CE
-        # self.dataBmode = self.bmode[self.curFrameIndex]
-        # self.dataBmode = np.require(self.dataBmode, np.uint8, 'C')
-        # self.dataCE = self.contrastEnhanced[self.curFrameIndex]
-        # self.dataCE = np.require(self.dataCE, np.uint8, 'C')
-        # self.maskCoverImg = np.require(self.maskCoverImg, np.uint8, 'C')
-        
-        # self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
-        # self.bytesLineBmode, _ = self.dataBmode.strides #in order to create proper QImage, need to know bytes/line
-        # self.bytesLineCE, _ = self.dataCE.strides
-
-        # self.qImgBmode = QImage(self.dataBmode, self.x, self.y, self.bytesLineBmode, QImage.Format_Grayscale8) #creating QImage
-        # self.qImgCE = QImage(self.dataCE, self.x, self.y, self.bytesLineCE, QImage.Format_Grayscale8)
-        # self.qImgMask = QImage(self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32)
-        # self.qImgMask.mirrored().save(os.path.join("Junk", "bModeImRaw.png")) # Save as .png file
-
-        # self.bmodePlane.setPixmap(QPixmap.fromImage(self.qImgBmode).scaled(381, 351))
-        # self.cePlane.setPixmap(QPixmap.fromImage(self.qImgCE).scaled(381, 351))
-        # self.bmodeMaskLayer.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(381, 351))
-        # self.ceMaskLayer.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(381, 351))
 
         self.closeRoiButton.clicked.connect(self.acceptPolygon) #called to exit the paint function
         self.undoLastPtButton.clicked.connect(self.undoLastPoint) #deletes last drawn rectangle if on sag or cor slices
 
         self.redrawRoiButton.clicked.connect(self.undoLastRoi)
         self.drawRoiButton.clicked.connect(self.startRoiDraw)
+
+    def updateBoundLines(self, line):
+        painter = QPainter(self.imCoverLabel.pixmap())
+        self.imCoverLabel.pixmap().fill(Qt.transparent)
+        painter.setPen(Qt.green)
+        if line == "Bottom Y":
+            painter.drawLine(self.curLeftLineX, self.curBottomLineY, self.curRightLineX, self.curBottomLineY)
+        elif line == "Top Y":
+            painter.drawLine(self.curLeftLineX, self.curTopLineY, self.curRightLineX, self.curTopLineY)
+        elif line == "Left X":
+            painter.drawLine(self.curLeftLineX, self.curBottomLineY, self.curLeftLineX, self.curTopLineY)
+        elif line == "Right X":
+            painter.drawLine(self.curRightLineX, self.curBottomLineY, self.curRightLineX, self.curTopLineY)
+        else:
+            print("Bound line error")
+        self.update()
+
+    def leftChangedX(self):
+        self.imCoverLabel.pixmap().fill(Qt.transparent)
+        painter = QPainter(self.imCoverLabel.pixmap())
+        painter.setPen(Qt.green)
+        self.curLeftLineX = self.horizontalSlider.value()
+        painter.drawLine(self.curLeftLineX, self.curBottomLineY, self.curLeftLineX, self.curTopLineY)
+        painter.end()
+        self.update()
+
+    def horizContrastChanged(self):
+        self.imCoverLabel.pixmap().fill(Qt.transparent)
+        painter = QPainter(self.imCoverLabel.pixmap())
+        painter.setPen(Qt.yellow)
+        painter.drawRect(self.x0_bmode, self.y0_bmode, self.w_bmode, self.h_bmode)
+        painter.setPen(Qt.cyan)
+        self.x0_CE = self.horizontalSlider.value()
+        painter.drawRect(self.x0_CE, self.y0_CE, self.w_CE, self.h_CE)
+        painter.end()
+        self.update()
+
+    def verticalContrastChanged(self):
+        self.imCoverLabel.pixmap().fill(Qt.transparent)
+        painter = QPainter(self.imCoverLabel.pixmap())
+        painter.setPen(Qt.yellow)
+        painter.drawRect(self.x0_bmode, self.y0_bmode, self.w_bmode, self.h_bmode)
+        painter.setPen(Qt.cyan)
+        self.y0_CE = self.horizontalSlider.value()
+        painter.drawRect(self.x0_CE, self.y0_CE, self.w_CE, self.h_CE)
+        painter.end()
+        self.update()
+
+    def rightChangedX(self):
+        self.imCoverLabel.pixmap().fill(Qt.transparent)
+        painter = QPainter(self.imCoverLabel.pixmap())
+        painter.setPen(Qt.cyan)
+        painter.drawLine(self.curLeftLineX, self.curBottomLineY, self.curLeftLineX, self.curTopLineY)
+        painter.setPen(Qt.green)
+        self.curRightLineX = self.horizontalSlider.value()
+        painter.drawLine(self.curRightLineX, self.curBottomLineY, self.curRightLineX, self.curTopLineY)
+        painter.end()
+        self.update()
+
+    def topChangedY(self):
+        self.curTopLineY = self.horizontalSlider.value()
+        self.imCoverLabel.pixmap().fill(Qt.transparent)
+        painter = QPainter(self.imCoverLabel.pixmap())
+        painter.setPen(Qt.cyan)
+        painter.drawLine(self.curLeftLineX, self.curBottomLineY, self.curLeftLineX, self.curTopLineY)
+        painter.drawLine(self.curRightLineX, self.curBottomLineY, self.curRightLineX, self.curTopLineY)
+        painter.setPen(Qt.green)
+        painter.drawLine(self.curLeftLineX, self.curTopLineY, self.curRightLineX, self.curTopLineY)
+        painter.end()
+        self.update()
+
+    def bottomChangedY(self):
+        self.curBottomLineY = self.horizontalSlider.value()
+        self.imCoverLabel.pixmap().fill(Qt.transparent)
+        painter = QPainter(self.imCoverLabel.pixmap())
+        painter.setPen(Qt.cyan)
+        painter.drawLine(self.curLeftLineX, self.curBottomLineY, self.curLeftLineX, self.curTopLineY)
+        painter.drawLine(self.curRightLineX, self.curBottomLineY, self.curRightLineX, self.curTopLineY)
+        painter.drawLine(self.curLeftLineX, self.curTopLineY, self.curRightLineX, self.curTopLineY)
+        painter.setPen(Qt.green)
+        painter.drawLine(self.curLeftLineX, self.curBottomLineY, self.curRightLineX, self.curBottomLineY)
+        painter.end()
+        self.update()
+
+    def startBoundDef(self):
+        self.defImBoundsButton.setHidden(True)
+        self.curSliceLabel.setHidden(True)
+        self.curSliceOfLabel.setHidden(True)
+        self.curSliceSlider.setHidden(True)
+        self.curSliceSpinBox.setHidden(True)
+        self.curSliceTotal.setHidden(True)
+        self.acceptBoundsButton.setHidden(False)
+        self.boundDrawLabel.setHidden(False)
+        self.horizontalSlider.setHidden(False)
+        self.acceptBoundsButton.setText("Accept Left")
+        self.boundDrawLabel.setText("Draw B-mode Left Border:")
+        self.horizontalSlider.setMinimum(0)
+        self.horizontalSlider.setMaximum(self.widthScale-1)
+        self.horizontalSlider.valueChanged.connect(self.leftChangedX)
+        self.acceptBoundsButton.clicked.connect(self.moveToRightBoundDef)
+
+    def moveToRightBoundDef(self):
+        self.boundDrawLabel.setText("Draw B-mode Right Border")
+        self.acceptBoundsButton.setText("Accept Right")
+        self.horizontalSlider.valueChanged.disconnect()
+        self.acceptBoundsButton.clicked.disconnect()
+        self.horizontalSlider.setMinimum(self.curLeftLineX)
+        self.horizontalSlider.setMaximum(self.widthScale-1)
+        self.curRightLineX = self.curLeftLineX
+        self.horizontalSlider.valueChanged.connect(self.rightChangedX)
+        self.horizontalSlider.setValue(self.curRightLineX)
+        self.rightChangedX()
+        self.acceptBoundsButton.clicked.connect(self.moveToTopBoundDef)
+
+    def moveToTopBoundDef(self):
+        self.boundDrawLabel.setText("Draw B-mode Top Border")
+        self.acceptBoundsButton.setText("Accept Top")
+        self.horizontalSlider.valueChanged.disconnect()
+        self.acceptBoundsButton.clicked.disconnect()
+        self.horizontalSlider.setMinimum(0)
+        self.horizontalSlider.setMaximum(self.depthScale-1)
+        self.horizontalSlider.valueChanged.connect(self.topChangedY)
+        self.acceptBoundsButton.clicked.connect(self.moveToBottomBoundDef)
+        self.horizontalSlider.setValue(0)
+        self.topChangedY()
+
+    def moveToBottomBoundDef(self):
+        self.boundDrawLabel.setText("Draw B-mode Bottom Border")
+        self.acceptBoundsButton.setText("Accept Bottom")
+        self.horizontalSlider.valueChanged.disconnect()
+        self.acceptBoundsButton.clicked.disconnect()
+        self.horizontalSlider.setMinimum(self.curTopLineY)
+        self.horizontalSlider.setMaximum(self.depthScale-1)
+        self.horizontalSlider.valueChanged.connect(self.bottomChangedY)
+        self.horizontalSlider.setValue(self.curBottomLineY)
+        self.acceptBoundsButton.clicked.connect(self.acceptBmode)
+        self.bottomChangedY()
+
+    def acceptBmode(self):
+        self.x0_bmode = self.curLeftLineX
+        self.y0_bmode = self.curTopLineY
+        self.w_bmode = self.curRightLineX - self.curLeftLineX
+        self.h_bmode = self.curBottomLineY - self.curTopLineY
+        self.x0_CE = self.x0_bmode
+        self.y0_CE = self.y0_bmode
+        self.w_CE = self.w_bmode
+        self.h_CE = self.h_bmode
+        self.curLeftLineX = 0
+        self.curRightLineX = self.widthScale - 1
+        self.curTopLineY = 0
+        self.curBottomLineY = self.depthScale - 1
+        self.horizontalSlider.valueChanged.disconnect()
+        self.acceptBoundsButton.clicked.disconnect()
+        self.boundDrawLabel.setText("Find Horizontal Position for Contrast Image")
+        self.acceptBoundsButton.setText("Accept Horizontal")
+        self.horizontalSlider.setMinimum(0)
+        self.horizontalSlider.setMaximum(self.widthScale-1)
+        self.horizontalSlider.valueChanged.connect(self.horizContrastChanged)
+        self.acceptBoundsButton.clicked.connect(self.moveToVertical)
+        self.horizontalSlider.setValue(self.x0_CE)
+        self.horizContrastChanged()
+
+    def moveToVertical(self):
+        self.horizontalSlider.valueChanged.disconnect()
+        self.acceptBoundsButton.clicked.disconnect()
+        self.boundDrawLabel.setText("Find Vertical Position for Contrast Image")
+        self.acceptBoundsButton.setText("Accept Vertical")
+        self.horizontalSlider.setMinimum(0)
+        self.horizontalSlider.setMaximum(self.depthScale-1)
+        self.horizontalSlider.valueChanged.connect(self.verticalContrastChanged)
+        self.acceptBoundsButton.clicked.connect(self.moveToAnalysis)
+        self.horizontalSlider.setValue(self.y0_CE)
+        self.verticalContrastChanged()
+
+    def moveToAnalysis(self):
+        self.imCoverLabel.pixmap().fill(Qt.transparent)
+        painter = QPainter(self.imCoverLabel.pixmap())
+        self.imCoverLabel.pixmap().fill(Qt.transparent)
+        painter.setPen(Qt.yellow)
+        xScale = self.widthScale/self.x
+        yScale = self.depthScale/self.y
+        self.x0_bmode = int(self.x0_bmode/xScale)
+        self.y0_bmode = int(self.y0_bmode/yScale)
+        self.x0_CE = int(self.x0_CE/xScale)
+        self.y0_CE = int(self.y0_CE/yScale)
+        self.w_bmode = int(self.w_bmode/xScale)
+        self.h_bmode = int(self.h_bmode/yScale)
+        self.w_CE = int(self.w_CE/xScale)
+        self.h_CE = int(self.h_CE/yScale)
+        self.bmodeStartX = self.imX0 + int(xScale*self.x0_bmode)
+        self.bmodeEndX = self.bmodeStartX + int(xScale*self.w_bmode)
+        self.bmodeStartY = self.imY0 + int(yScale*self.y0_bmode)
+        self.bmodeEndY = self.bmodeStartY + int(yScale*self.h_bmode)
+        self.ceStartX = self.imX0 + int(xScale*self.x0_CE)
+        self.ceEndX = self.ceStartX + int(xScale*self.w_CE)
+        self.ceStartY = self.imY0 + int(yScale*self.y0_CE)
+        self.ceEndY = self.ceStartY + int(yScale*self.h_CE)
+        painter.drawRect(int(self.x0_bmode*xScale), int(self.y0_bmode*yScale), int(self.w_bmode*xScale), int(self.h_bmode*yScale))
+        painter.drawRect(int(self.x0_CE*xScale), int(self.y0_CE*yScale), int(self.w_CE*xScale), int(self.h_CE*yScale))
+        painter.end()
+        self.horizontalSlider.setHidden(True)
+        self.boundDrawLabel.setHidden(True)
+        self.acceptBoundsButton.setHidden(True)
+        self.curSliceLabel.setHidden(False)
+        self.curSliceOfLabel.setHidden(False)
+        self.curSliceSlider.setHidden(False)
+        self.curSliceSpinBox.setHidden(False)
+        self.curSliceTotal.setHidden(False)
+        self.loadRoiButton.setHidden(False)
+        self.newRoiButton.setHidden(False)
+        self.update()
+        self.updateIm()
 
     def updateIm(self):
         if len(self.mcResultsArray):
@@ -846,76 +1136,24 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.imPlane.setPixmap(QPixmap.fromImage(self.qImg).scaled(self.widthScale, self.depthScale))
             self.imMaskLayer.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(self.widthScale, self.depthScale))
 
-    # def updateBmode(self):
-    #     if len(self.mcResultsBmode):
-    #         self.mcDataBmode = np.require(self.mcResultsBmode[self.curFrameIndex], np.uint8, 'C')
-    #         self.bytesLineMc, _ = self.mcDataBmode[:,:,0].strides
-    #         self.qImgMcBmode = QImage(self.mcDataBmode, self.x, self.y, self.bytesLineMc, QImage.Format_RGB888)
-    #         self.mcBmodeDisplayLabel.setPixmap(QPixmap.fromImage(self.qImgMcBmode).scaled(self.widthScale, self.heightScale))
-    #     else:
-    #         self.dataBmode = self.bmode[self.curFrameIndex]
-    #         self.dataBmode = np.require(self.dataBmode, np.uint8, 'C')
-    #         self.maskCoverImg = np.require(self.maskCoverImg, np.uint8, 'C')
-
-    #         self.bytesLineBmode, _ = self.dataBmode.strides
-    #         self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
-    #         self.qImgBmode = QImage(self.dataBmode, self.x, self.y, self.bytesLineBmode, QImage.Format_Grayscale8)
-    #         self.qImgMask = QImage(self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32)
-
-    #         self.bmodePlane.setPixmap(QPixmap.fromImage(self.qImgBmode).scaled(381, 351))
-    #         self.bmodeMaskLayer.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(381, 351))
-
-    # def updateCE(self):
-    #     if len(self.mcResultsCE):
-    #         self.mcDataCE = np.require(self.mcResultsCE[self.curFrameIndex], np.uint8, 'C')
-    #         self.bytesLineMc, _ = self.mcDataCE.strides
-    #         self.qImgMcCE = QImage(self.mcDataCE, self.x, self.y, self.bytesLineMc, QImage.Format_Grayscale8)
-    #         self.mcCeDisplayLabel.setPixmap(QPixmap.fromImage(self.qImgMcCE).scaled(381, 351))
-    #     else:
-    #         self.dataCE = self.contrastEnhanced[self.curFrameIndex]
-    #         self.dataCE = np.require(self.dataCE, np.uint8, 'C')
-    #         self.maskCoverImg = np.require(self.maskCoverImg, np.uint8, 'C')
-
-    #         self.bytesLineCE, _ = self.dataCE.strides
-    #         self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
-    #         self.qImgCE = QImage(self.dataCE, self.x, self.y, self.bytesLineCE, QImage.Format_Grayscale8)
-    #         self.qImgMask = QImage(self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32)
-
-
-    #         self.cePlane.setPixmap(QPixmap.fromImage(self.qImgCE).scaled(381, 351))
-    #         self.ceMaskLayer.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(381, 351))
-
     def updateCrosshair(self):
         if self.xCur < self.imX1 and self.xCur > self.imX0 and self.yCur < self.imY1 and self.yCur > self.imY0:
             self.actualX = int((self.xCur - self.imX0 - 1)*(self.y-1)/self.widthScale)
             self.actualY = int((self.yCur - self.imY0 - 1)*(self.x-1)/self.depthScale)
             plotX = self.xCur - self.imX0 - 1
-        # elif self.xCur < 1151 and self.xCur > 770 and self.yCur < 501 and self.yCur > 150:
-        #     self.actualX = int((self.xCur-771)*(self.y-1)/381)
-        #     self.actualY = int((self.yCur-151)*(self.x-1)/351)
-        #     plotX = self.xCur - 771
         else:
             return
         
         plotY = self.yCur - self.imY0 - 1
 
-        # self.bmodeCoverLabel.pixmap().fill(Qt.transparent)
         self.imCoverLabel.pixmap().fill(Qt.transparent)
-        # painter = QPainter(self.bmodeCoverLabel.pixmap())
         painter = QPainter(self.imCoverLabel.pixmap())
         painter.setPen(Qt.yellow)
         bmodeVertLine = QLine(plotX, 0, plotX, self.depthScale)
         bmodeLatLine = QLine(0, plotY, self.widthScale, plotY)
         painter.drawLines([bmodeVertLine, bmodeLatLine])
         painter.end()
-            
-        # self.ceCoverLabel.pixmap().fill(Qt.transparent)
-        # painter = QPainter(self.ceCoverLabel.pixmap())
-        # painter.setPen(Qt.yellow)
-        # ceVertLine = QLine(plotX, 0, plotX, 351)
-        # ceLatLine = QLine(0, plotY, 381, plotY)
-        # painter.drawLines([ceVertLine, ceLatLine])
-        # painter.end()
+
         self.update()
 
     def updateSpline(self):
@@ -1039,7 +1277,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.roiFitNoteLabel.setHidden(False)
             self.drawRoiButton.setChecked(False)
             self.drawRoiButton.setCheckable(False)
-            self.fitToRoiButton.clicked.connect(self.perform_MC)
             self.updateIm()
             # self.updateCrosshair()
 
@@ -1082,33 +1319,24 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.updateIm()
             self.update()
 
-    def computeTic(self):
+    def computeTic(self, motionCorrection=True):
         times = np.array([i*(1/self.cineRate) for i in range(self.numSlices)])
         mcResultsCE = self.fullGrayArray[:, self.y0_CE:self.y0_CE+self.h_CE, self.x0_CE:self.x0_CE+self.w_CE]
-        bboxes = self.bboxes.copy()
-        for i in range(len(bboxes)):
-            if bboxes[i] is not None:
-                bboxes[i] = (bboxes[i][0]-self.x0_bmode, bboxes[i][1]-self.y0_bmode, bboxes[i][2], bboxes[i][3]) # assumes bmode and CEUS images are same size
-        #         self.mcResultsArray[i, self.y0_CE + bboxes[i][1]: self.y0_CE + bboxes[i][1] + self.bboxes[i][3], self.x0_CE + bboxes[i][0]: self.x0_CE + bboxes[i][0] + bboxes[i][3]] = [255, 0, 0]
-        # self.updateIm()
-        # return
-        TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV(mcResultsCE, bboxes, times, 24.09, self.ref_frames[0])
+
+        if not motionCorrection:
+            TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV_no_MC(self.fullGrayArray, self.segMask, times, 24.09)
+        else:
+            bboxes = self.bboxes.copy()
+            for i in range(len(bboxes)):
+                if bboxes[i] is not None:
+                    bboxes[i] = (bboxes[i][0]-self.x0_bmode, bboxes[i][1]-self.y0_bmode, bboxes[i][2], bboxes[i][3]) # assumes bmode and CEUS images are same size
+            #         self.mcResultsArray[i, self.y0_CE + bboxes[i][1]: self.y0_CE + bboxes[i][1] + self.bboxes[i][3], self.x0_CE + bboxes[i][0]: self.x0_CE + bboxes[i][0] + bboxes[i][3]] = [255, 0, 0]
+            # self.updateIm()
+            # return
+            TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV(mcResultsCE, bboxes, times, 24.09)
+
         TIC[:,1] /= np.amax(TIC[:,1])
-        # # Compute TICs
-
-        # # resize all MC bboxes to same size
-        # self.bboxes = mc.resize_mc_bboxes(self.bboxes)
-
-        # # remove outlier bboxes
-        # self.bboxes = mc.remove_outlier_bboxes(self.bboxes)
-
-        # self.ceMcBboxes = mc.create_ce_mc_bboxes(self.bboxes, self.x0_bmode, self.x0_CE, self.CE_side)
-
-        # self.ceMcRoi = mc.cut_ROI200(self.fullArray, self.ceMcBboxes, (self.x0_CE, self.y0_CE, self.x, self.y))
-
-        # self.ticArray = mc.getAllTICs(self.ceMcRoi, self.pixelScale, times)
         
-
         # Bunch of checks
         if np.isnan(np.sum(TIC[:,1])):
             print("STOPPED: NaNs in the ROI")
@@ -1117,11 +1345,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             print("STOPPED: Infs in the ROI")
             return
         
-        # self.meanTIC = np.mean(self.ticArray.reshape((self.ticArray.shape[0]*self.ticArray.shape[1], \
-        #                                               self.ticArray.shape[2], self.ticArray.shape[3])), axis=0)
-
-        # self.ticX = np.array([[self.meanTIC[i,0],i] for i in range(len(self.meanTIC[:,0]))])
-        # self.ticY = self.meanTIC[:,1]
         self.ticX = np.array([[TIC[i,0],i] for i in range(len(TIC[:,0]))])
         self.ticY = TIC[:,1]
         self.ticAnalysisGui.ax.clear()
@@ -1135,9 +1358,9 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.ticAnalysisGui.graph(self.ticX, self.ticY)
         self.ticAnalysisGui.ticArray = TIC
 
-    def moveToTic(self):
+    def moveToTic(self, mc=True):
         self.ticAnalysisGui.timeLine = None
-        self.computeTic()
+        self.computeTic(mc)
         self.ticAnalysisGui.dataFrame = self.dataFrame
         self.ticAnalysisGui.curFrameIndex = self.curFrameIndex
         self.ticAnalysisGui.mcResultsArray = self.mcResultsArray
