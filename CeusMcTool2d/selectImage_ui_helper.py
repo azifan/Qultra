@@ -87,6 +87,10 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         self.chooseNiftiCeButton.setHidden(True)
         self.clearNiftiBmodeButton.setHidden(True)
         self.clearNiftiCeButton.setHidden(True)
+        self.aviPath.setHidden(True)
+        self.clearAviButton.setHidden(True)
+        self.chooseAviButton.setHidden(True)
+        self.selectAviLabel.setHidden(True)
 
         self.format = None
 
@@ -124,11 +128,14 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         self.undoSpreadsheetButton.clicked.connect(self.undoSpreadsheetEntry)
         self.niftiButton.clicked.connect(self.niftiSelected)
         self.dicomButton.clicked.connect(self.dicomSelected)
+        self.aviButton.clicked.connect(self.aviSelected)
+        self.clearAviButton.clicked.connect(self.aviPath.clear)
     
     def moveToFileChoice(self):
         self.selectFormatLabel.setHidden(True)
         self.niftiButton.setHidden(True)
         self.dicomButton.setHidden(True)
+        self.aviButton.setHidden(True)
 
         self.selectDataLabel.setHidden(False)
         self.findImagesButton.setHidden(False)
@@ -150,6 +157,21 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         self.chooseNiftiCeButton.clicked.connect(self.getNiftiCePath)
         self.clearNiftiBmodeButton.clicked.connect(self.niftiBmodeInput.clear)
         self.clearNiftiCeButton.clicked.connect(self.niftiCeInput.clear)
+        self.findImagesButton.clicked.connect(self.moveToRoiSelection)
+
+
+    def aviSelected(self):
+        self.moveToFileChoice()
+        self.aviPath.setHidden(False)
+        self.clearAviButton.setHidden(False)
+        self.chooseAviButton.setHidden(False)
+        self.selectAviLabel.setHidden(False)
+        self.findImagesButton.setText("Open Image")
+
+        self.format = 'Avi'
+
+        self.chooseAviButton.clicked.connect(self.getAviPath)
+        self.clearNiftiBmodeButton.clicked.connect(self.aviPath.clear)
         self.findImagesButton.clicked.connect(self.moveToRoiSelection)
 
     def dicomSelected(self):
@@ -241,6 +263,11 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         if fileName != '':
             self.niftiCeInput.setText(fileName)
 
+    def getAviPath(self):
+        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.avi')
+        if fileName != '':
+            self.aviPath.setText(fileName)
+
     def getSpreadsheetPath(self):
         fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.xlsx')
         if fileName != '':
@@ -250,7 +277,7 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         self.spreadsheetPath.setText('')
 
     def moveToRoiSelection(self):
-        if (len(self.spreadsheetPath.text()) > 0 and len(self.imagesScrollArea.selectedIndexes()) == 1) or (len(self.niftiBmodeInput.text()) > 0 and len(self.niftiCeInput.text()) > 0):
+        if (len(self.spreadsheetPath.text()) > 0 and len(self.imagesScrollArea.selectedIndexes()) == 1) or (len(self.niftiBmodeInput.text()) > 0 and len(self.niftiCeInput.text()) > 0) or (len(self.aviPath.text())>0):
             del self.roiSelectionGui
             self.roiSelectionGui = RoiSelectionGUI()
             self.roiSelectionGui.dataFrame = self.dataFrame
@@ -262,9 +289,12 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
                 index = self.imagesScrollArea.selectedIndexes()[0].row()
                 self.roiSelectionGui.setFilenameDisplays(self.scans[index])
                 self.roiSelectionGui.openDicomImage(index, xcel_dir)
-            else:
+            elif self.format == 'Nifti':
                 self.roiSelectionGui.setFilenameDisplays(self.niftiBmodeInput.text())
                 self.roiSelectionGui.openNiftiImage(self.niftiBmodeInput.text(), self.niftiCeInput.text())
+            else:
+                self.roiSelectionGui.setFilenameDisplays(self.aviPath.text())
+                self.roiSelectionGui.openAviImage(self.aviPath.text())
             self.roiSelectionGui.lastGui = self
             self.roiSelectionGui.show()
             self.hide()
