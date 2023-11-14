@@ -124,6 +124,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.bboxes = None
         self.ref_frames = None
         self.xcelIndices = None
+        self.curLeftLineX = -1
 
         self.imDrawn = 0
 
@@ -280,7 +281,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
                     self.segMask[i] = self.segMask[self.curFrameIndex]
 
 
-            self.moveToTic(False)
+            self.moveToTic()
 
     def perform_MC(self, loaded=False):
         # Credit Thodsawit Tiyarattanachai, MD. See Utils/motionCorrection.py for full citation
@@ -1319,11 +1320,11 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.updateIm()
             self.update()
 
-    def computeTic(self, motionCorrection=True):
+    def computeTic(self):
         times = np.array([i*(1/self.cineRate) for i in range(self.numSlices)])
         mcResultsCE = self.fullGrayArray[:, self.y0_CE:self.y0_CE+self.h_CE, self.x0_CE:self.x0_CE+self.w_CE]
 
-        if not motionCorrection:
+        if self.curLeftLineX != -1:
             TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV_no_MC(self.fullGrayArray, self.segMask, times, 24.09)
         else:
             bboxes = self.bboxes.copy()
@@ -1358,9 +1359,9 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.ticAnalysisGui.graph(self.ticX, self.ticY)
         self.ticAnalysisGui.ticArray = TIC
 
-    def moveToTic(self, mc=True):
+    def moveToTic(self):
         self.ticAnalysisGui.timeLine = None
-        self.computeTic(mc)
+        self.computeTic()
         self.ticAnalysisGui.dataFrame = self.dataFrame
         self.ticAnalysisGui.curFrameIndex = self.curFrameIndex
         self.ticAnalysisGui.mcResultsArray = self.mcResultsArray
