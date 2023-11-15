@@ -103,6 +103,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.horizontalSlider.setHidden(True)
         self.defImBoundsButton.setHidden(True)
         self.boundDrawLabel.setHidden(True)
+        self.boundBackButton.setHidden(True)
         self.df = None
         self.dataFrame = None
         self.niftiSegPath = None
@@ -260,9 +261,9 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.segMask = np.zeros([self.numSlices, self.y, self.x])
             self.pointsPlotted = [*set(self.pointsPlotted)] 
             points = self.pointsPlotted    
-            if self.imDrawn == 2:
-                xDiff = self.x0_bmode - self.x0_CE
-                yDiff = self.y0_bmode - self.y0_CE
+            if self.imDrawn == 1: # move ROI to CE
+                xDiff = self.x0_CE - self.x0_bmode
+                yDiff = self.y0_CE - self.y0_bmode
                 points = [[point[0]+xDiff, point[1]+yDiff] for point in self.pointsPlotted]
             elif self.imDrawn == 0:
                 return
@@ -1111,6 +1112,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.curSliceSlider.setHidden(True)
         self.curSliceSpinBox.setHidden(True)
         self.curSliceTotal.setHidden(True)
+        self.boundBackButton.setHidden(True)
         self.acceptBoundsButton.setHidden(False)
         self.boundDrawLabel.setHidden(False)
         self.horizontalSlider.setHidden(False)
@@ -1118,37 +1120,54 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.boundDrawLabel.setText("Draw B-mode Left Border:")
         self.horizontalSlider.setMinimum(0)
         self.horizontalSlider.setMaximum(self.widthScale-1)
+        self.imCoverLabel.pixmap().fill(Qt.transparent)
+        self.curRightLineX = self.widthScale - 1
+        try:
+            self.horizontalSlider.valueChanged.disconnect()
+            self.acceptBoundsButton.clicked.disconnect()
+        except:
+            pass
         self.horizontalSlider.valueChanged.connect(self.leftChangedX)
         self.acceptBoundsButton.clicked.connect(self.moveToRightBoundDef)
+        self.horizontalSlider.setValue(self.curLeftLineX)
+        self.leftChangedX()
 
     def moveToRightBoundDef(self):
         self.boundDrawLabel.setText("Draw B-mode Right Border")
         self.acceptBoundsButton.setText("Accept Right")
+        self.boundBackButton.setHidden(False)
+        self.curTopLineY = 0
+        self.imCoverLabel.pixmap().fill(Qt.transparent)
         self.horizontalSlider.valueChanged.disconnect()
         self.acceptBoundsButton.clicked.disconnect()
         self.horizontalSlider.setMinimum(self.curLeftLineX)
         self.horizontalSlider.setMaximum(self.widthScale-1)
-        self.curRightLineX = self.curLeftLineX
+        self.boundBackButton.clicked.connect(self.startBoundDef)
         self.horizontalSlider.valueChanged.connect(self.rightChangedX)
+        self.acceptBoundsButton.clicked.connect(self.moveToTopBoundDef)
         self.horizontalSlider.setValue(self.curRightLineX)
         self.rightChangedX()
-        self.acceptBoundsButton.clicked.connect(self.moveToTopBoundDef)
 
     def moveToTopBoundDef(self):
         self.boundDrawLabel.setText("Draw B-mode Top Border")
         self.acceptBoundsButton.setText("Accept Top")
+        self.curBottomLineY = self.depthScale - 1
+        self.imCoverLabel.pixmap().fill(Qt.transparent)
+        self.boundBackButton.clicked.disconnect()
         self.horizontalSlider.valueChanged.disconnect()
         self.acceptBoundsButton.clicked.disconnect()
         self.horizontalSlider.setMinimum(0)
         self.horizontalSlider.setMaximum(self.depthScale-1)
         self.horizontalSlider.valueChanged.connect(self.topChangedY)
+        self.horizontalSlider.setValue(self.curTopLineY)
         self.acceptBoundsButton.clicked.connect(self.moveToBottomBoundDef)
-        self.horizontalSlider.setValue(0)
+        self.boundBackButton.clicked.connect(self.moveToRightBoundDef)
         self.topChangedY()
 
     def moveToBottomBoundDef(self):
         self.boundDrawLabel.setText("Draw B-mode Bottom Border")
         self.acceptBoundsButton.setText("Accept Bottom")
+        self.boundBackButton.clicked.disconnect()
         self.horizontalSlider.valueChanged.disconnect()
         self.acceptBoundsButton.clicked.disconnect()
         self.horizontalSlider.setMinimum(self.curTopLineY)
@@ -1156,41 +1175,43 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.horizontalSlider.valueChanged.connect(self.bottomChangedY)
         self.horizontalSlider.setValue(self.curBottomLineY)
         self.acceptBoundsButton.clicked.connect(self.acceptBmode)
+        self.boundBackButton.clicked.connect(self.moveToTopBoundDef)
         self.bottomChangedY()
 
     def acceptBmode(self):
-        self.x0_bmode = self.curLeftLineX
         self.y0_bmode = self.curTopLineY
-        self.w_bmode = self.curRightLineX - self.curLeftLineX
-        self.h_bmode = self.curBottomLineY - self.curTopLineY
-        self.x0_CE = self.x0_bmode
         self.y0_CE = self.y0_bmode
-        self.w_CE = self.w_bmode
-        self.h_CE = self.h_bmode
-        self.curLeftLineX = 0
-        self.curRightLineX = self.widthScale - 1
-        self.curTopLineY = 0
-        self.curBottomLineY = self.depthScale - 1
+        if self.boundDrawLabel.text() == "Draw B-mode Bottom Border":
+            self.x0_bmode = self.curLeftLineX
+            self.x0_CE = self.x0_bmode
+            self.w_bmode = self.curRightLineX - self.curLeftLineX
+            self.h_bmode = self.curBottomLineY - self.curTopLineY
+            self.w_CE = self.w_bmode
+            self.h_CE = self.h_bmode
         self.horizontalSlider.valueChanged.disconnect()
         self.acceptBoundsButton.clicked.disconnect()
+        self.boundBackButton.clicked.disconnect()
         self.boundDrawLabel.setText("Find Horizontal Position for Contrast Image")
         self.acceptBoundsButton.setText("Accept Horizontal")
         self.horizontalSlider.setMinimum(0)
         self.horizontalSlider.setMaximum(self.widthScale-1)
         self.horizontalSlider.valueChanged.connect(self.horizContrastChanged)
         self.acceptBoundsButton.clicked.connect(self.moveToVertical)
+        self.boundBackButton.clicked.connect(self.moveToBottomBoundDef)
         self.horizontalSlider.setValue(self.x0_CE)
         self.horizContrastChanged()
 
     def moveToVertical(self):
         self.horizontalSlider.valueChanged.disconnect()
         self.acceptBoundsButton.clicked.disconnect()
+        self.boundBackButton.clicked.disconnect()
         self.boundDrawLabel.setText("Find Vertical Position for Contrast Image")
         self.acceptBoundsButton.setText("Accept Vertical")
         self.horizontalSlider.setMinimum(0)
         self.horizontalSlider.setMaximum(self.depthScale-1)
         self.horizontalSlider.valueChanged.connect(self.verticalContrastChanged)
         self.acceptBoundsButton.clicked.connect(self.moveToAnalysis)
+        self.boundBackButton.clicked.connect(self.acceptBmode)
         self.horizontalSlider.setValue(self.y0_CE)
         self.verticalContrastChanged()
 
@@ -1223,6 +1244,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.horizontalSlider.setHidden(True)
         self.boundDrawLabel.setHidden(True)
         self.acceptBoundsButton.setHidden(True)
+        self.boundBackButton.setHidden(True)
         self.curSliceLabel.setHidden(False)
         self.curSliceOfLabel.setHidden(False)
         self.curSliceSlider.setHidden(False)
@@ -1436,11 +1458,11 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
     def computeTic(self):
         times = np.array([i*(1/self.cineRate) for i in range(self.numSlices)])
-        mcResultsCE = self.fullGrayArray[:, self.y0_CE:self.y0_CE+self.h_CE, self.x0_CE:self.x0_CE+self.w_CE]
 
         if self.curLeftLineX != -1:
             TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV_no_MC(self.fullGrayArray, self.segMask, times, 24.09)
         else:
+            mcResultsCE = self.fullGrayArray[:, self.y0_CE:self.y0_CE+self.h_CE, self.x0_CE:self.x0_CE+self.w_CE]
             bboxes = self.bboxes.copy()
             for i in range(len(bboxes)):
                 if bboxes[i] is not None:

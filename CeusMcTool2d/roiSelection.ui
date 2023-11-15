@@ -1072,6 +1072,34 @@ frame as reference</string>
     <bool>true</bool>
    </property>
   </widget>
+  <widget class="QPushButton" name="boundBackButton">
+   <property name="geometry">
+    <rect>
+     <x>990</x>
+     <y>690</y>
+     <width>171</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+</string>
+   </property>
+   <property name="text">
+    <string>Back</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>
