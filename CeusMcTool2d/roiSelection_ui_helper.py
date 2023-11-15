@@ -661,22 +661,136 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.updateIm()
 
     def openNiftiImage(self, bmodePath, cePath): # NOT FUNCTIONAL
+        # bmodeFile = nib.load(bmodePath)
+        # ceFile = nib.load(cePath)
+
+        # bmodePixDims = bmodeFile.header['pixdim']
+        # cePixDims = ceFile.header['pixdim']
+        # # self.pixelScale = bmodePixDims[0]*bmodePixDims[1]*bmodePixDims[2] # mm^3
+
+        # self.bmode = bmodeFile.get_fdata(caching='unchanged')
+        # self.contrastEnhanced = ceFile.get_fdata(caching='unchanged')
+        # print(self.bmode.shape)
+        # print(self.contrastEnhanced.shape)
+        # self.bmode = self.bmode.reshape((self.bmode.shape[0], self.bmode.shape[1], self.bmode.shape[2], self.bmode.shape[4]))
+        # self.contrastEnhanced = self.contrastEnhnaced.reshape((self.contrastEnhanced.shape[0], self.contrastEnhanced.shape[1], self.contrastEnhanced.shape[2], self.contrastEnhanced.shape[4]))
+
+        # self.bmode = np.mean(self.bmode, axis=3)
+        # self.contrastEnhanced = np.mean(self.contrastEnhanced, axis=3)
         bmodeFile = nib.load(bmodePath)
+        bmode = np.array(bmodeFile.get_fdata(caching='unchanged')).astype(np.uint8)
+        del bmodeFile
         ceFile = nib.load(cePath)
+        contrastEnhanced = np.array(ceFile.get_fdata(caching='unchanged')).astype(np.uint8)
+        del ceFile
 
-        bmodePixDims = bmodeFile.header['pixdim']
-        cePixDims = ceFile.header['pixdim']
-        # self.pixelScale = bmodePixDims[0]*bmodePixDims[1]*bmodePixDims[2] # mm^3
+        bmode = np.transpose(bmode.reshape((bmode.shape[0], bmode.shape[1], bmode.shape[2], bmode.shape[4])), (2,1,0,3))
+        contrastEnhanced = np.transpose( contrastEnhanced.reshape((contrastEnhanced.shape[0], contrastEnhanced.shape[1], contrastEnhanced.shape[2], contrastEnhanced.shape[4])), (2,1,0,3))
+        self.w_CE = contrastEnhanced.shape[2]
+        self.h_CE = contrastEnhanced.shape[1]
+        self.fullArray = np.concatenate((contrastEnhanced, bmode), axis=1)
+        del bmode
+        del contrastEnhanced
 
-        self.bmode = bmodeFile.get_fdata(caching='unchanged')
-        self.contrastEnhanced = ceFile.get_fdata(caching='unchanged')
-        print(self.bmode.shape)
-        print(self.contrastEnhanced.shape)
-        self.bmode = self.bmode.reshape((self.bmode.shape[0], self.bmode.shape[1], self.bmode.shape[2], self.bmode.shape[4]))
-        self.contrastEnhanced = self.contrastEnhnaced.reshape((self.contrastEnhanced.shape[0], self.contrastEnhanced.shape[1], self.contrastEnhanced.shape[2], self.contrastEnhanced.shape[4]))
+        self.x = self.fullArray.shape[2]
+        self.y = self.fullArray.shape[1]
+        self.numSlices = self.fullArray.shape[0]
+        self.fullGrayArray = np.mean(self.fullArray, axis=3)
 
-        self.bmode = np.mean(self.bmode, axis=3)
-        self.contrastEnhanced = np.mean(self.contrastEnhanced, axis=3)
+        # Eli Prostate Specific Vals
+        self.pixelScale = 0.4*0.4*0.4 # mm^3
+        self.cineRate = 30 # frames/sec
+
+        self.maskCoverImg = np.zeros([self.y, self.x, 4])
+        self.mask = np.zeros([self.y, self.x])
+        
+        self.imX0 = 350
+        self.imX1 = 1151
+        self.imY0 = 80
+        self.imY1 = 561
+        xLen = self.imX1 - self.imX0
+        yLen = self.imY1 - self.imY0
+
+        quotient = self.x / self.y
+        if quotient > (xLen/yLen):
+            self.widthScale = xLen
+            self.depthScale = int(self.widthScale / quotient)
+            emptySpace = yLen - self.depthScale
+            yBuffer = int(emptySpace/2)
+            self.imY0 += yBuffer
+            self.imY1 -= yBuffer
+        else:
+            self.widthScale = int(yLen * quotient)
+            self.depthScale = yLen
+            emptySpace = xLen - self.widthScale
+            xBuffer = int(emptySpace/2)
+            self.imX0 += xBuffer
+            self.imX1 -= xBuffer
+        self.imPlane.move(self.imX0, self.imY0)
+        self.imPlane.resize(self.widthScale, self.depthScale)  
+        self.imMaskLayer.move(self.imX0, self.imY0)
+        self.imMaskLayer.resize(self.widthScale, self.depthScale)
+        self.imCoverLabel.move(self.imX0, self.imY0)
+        self.imCoverLabel.resize(self.widthScale, self.depthScale)
+        self.mcImDisplayLabel.move(self.imX0, self.imY0)
+        self.mcImDisplayLabel.resize(self.widthScale, self.depthScale)
+
+        self.imCoverPixmap = QPixmap(self.widthScale, self.depthScale)
+        self.imCoverPixmap.fill(Qt.transparent)
+        self.imCoverLabel.setPixmap(self.imCoverPixmap)
+
+        self.curLeftLineX = 0
+        self.curRightLineX = self.widthScale - 1
+        self.curTopLineY = 0
+        self.curBottomLineY = self.depthScale - 1
+
+        # painter = QPainter(self.imCoverLabel.pixmap())
+        # self.imCoverLabel.pixmap().fill(Qt.transparent)
+        # painter.setPen(Qt.yellow)
+        # xScale = self.widthScale/self.x
+        # yScale = self.depthScale/self.y
+        # self.bmodeStartX = self.imX0 + int(xScale*self.x0_bmode)
+        # self.bmodeEndX = self.bmodeStartX + int(xScale*self.w_bmode)
+        # self.bmodeStartY = self.imY0 + int(yScale*self.y0_bmode)
+        # self.bmodeEndY = self.bmodeStartY + int(yScale*self.h_bmode)
+        # self.ceStartX = self.imX0 + int(xScale*self.x0_CE)
+        # self.ceEndX = self.ceStartX + int(xScale*self.w_CE)
+        # self.ceStartY = self.imY0 + int(yScale*self.y0_CE)
+        # self.ceEndY = self.ceStartY + int(yScale*self.h_CE)
+        # painter.drawRect(int(self.x0_bmode*xScale), int(self.y0_bmode*yScale), int(self.w_bmode*xScale), int(self.h_bmode*yScale))
+        # painter.drawRect(int(self.x0_CE*xScale), int(self.y0_CE*yScale), int(self.w_CE*xScale), int(self.h_CE*yScale))
+        # painter.end()
+        # self.update()
+
+        self.curSliceSlider.setMaximum(self.numSlices - 1)
+        self.curSliceSpinBox.setMaximum(self.numSlices - 1)
+
+        self.sliceArray = np.round([i*(1/self.cineRate) for i in range(self.numSlices)], decimals=2)
+
+        self.curSliceTotal.setText(str(self.numSlices-1))
+
+        self.curSliceSpinBox.setValue(self.sliceArray[self.curFrameIndex])
+        self.curSliceSlider.setValue(self.curFrameIndex)
+        self.curSliceSlider.valueChanged.connect(self.curSliceSliderValueChanged)
+        self.curSliceSpinBox.valueChanged.connect(self.curSliceSpinBoxValueChanged)
+
+        self.drawRoiButton.setCheckable(True)
+
+        self.updateIm()
+
+        self.loadRoiButton.setHidden(True)
+        self.newRoiButton.setHidden(True)
+        self.defImBoundsButton.setHidden(False)
+        self.defImBoundsButton.clicked.connect(self.startBoundDef)
+        self.fitToRoiButton.clicked.connect(self.acceptRoiNoMc)
+        self.fitToRoiButton.setText("Accept ROI")
+
+
+        self.closeRoiButton.clicked.connect(self.acceptPolygon) #called to exit the paint function
+        self.undoLastPtButton.clicked.connect(self.undoLastPoint) #deletes last drawn rectangle if on sag or cor slices
+
+        self.redrawRoiButton.clicked.connect(self.undoLastRoi)
+        self.drawRoiButton.clicked.connect(self.startRoiDraw)
 
     def openAviImage(self, path):
         cap = cv2.VideoCapture(path)

@@ -200,6 +200,8 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
     def graph(self,x,y):
         global ticX, ticY
         # y -= min(y)
+        x[:,0] -= np.min(x[:,0])
+        y = y/np.max(y)
         self.ticX = x
         self.ticY = y
         ticX = self.ticX
