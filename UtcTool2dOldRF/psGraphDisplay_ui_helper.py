@@ -1,4 +1,4 @@
-from UtcTool2dIQ.psGraphDisplay_ui import *
+from UtcTool2d.psGraphDisplay_ui import *
 import os
 import csv
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QFileDialog

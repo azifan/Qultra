@@ -50,7 +50,7 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QLabel" name="phantomPathLabelVerasonics">
+  <widget class="QLabel" name="phantomPathLabel">
    <property name="geometry">
     <rect>
      <x>790</x>
@@ -67,7 +67,8 @@
 }</string>
    </property>
    <property name="text">
-    <string>Input Path to Phantom file (.mat)</string>
+    <string>Input Path to Phantom file
+ (.rf, .rfd, .mat, .bin)</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -134,7 +135,7 @@
     <string>Clear Path</string>
    </property>
   </widget>
-  <widget class="QLabel" name="imagePathLabelVerasonics">
+  <widget class="QLabel" name="imagePathLabel">
    <property name="geometry">
     <rect>
      <x>440</x>
@@ -151,7 +152,8 @@
 }</string>
    </property>
    <property name="text">
-    <string>Input Path to Image file (.mat)</string>
+    <string>Input Path to Image file
+ (.rf, .rfd, .mat, .bin)</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -264,85 +266,11 @@ of image data</string>
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QPushButton" name="choosePhantomFolderButton">
+  <widget class="QPushButton" name="philipsButton">
    <property name="geometry">
     <rect>
-     <x>790</x>
-     <y>390</y>
-     <width>131</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Choose Folder</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="chooseImageFolderButton">
-   <property name="geometry">
-    <rect>
-     <x>440</x>
-     <y>390</y>
-     <width>131</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Choose Folder</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="selectImageMethodLabel">
-   <property name="geometry">
-    <rect>
-     <x>540</x>
-     <y>30</y>
-     <width>431</width>
-     <height>131</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	font-size: 29px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Select Data Type:</string>
-   </property>
-   <property name="textFormat">
-    <enum>Qt::AutoText</enum>
-   </property>
-   <property name="scaledContents">
-    <bool>false</bool>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="canonButton">
-   <property name="geometry">
-    <rect>
-     <x>610</x>
-     <y>480</y>
+     <x>590</x>
+     <y>270</y>
      <width>301</width>
      <height>51</height>
     </rect>
@@ -359,7 +287,7 @@ of image data</string>
 }</string>
    </property>
    <property name="text">
-    <string>Canon IQ</string>
+    <string>Philips</string>
    </property>
   </widget>
   <widget class="QWidget" name="sidebar" native="true">
@@ -734,111 +662,43 @@ of image data</string>
     </property>
    </widget>
   </widget>
-  <widget class="QPushButton" name="verasonicsButton">
+  <widget class="QLabel" name="transducerBrandLabel">
    <property name="geometry">
     <rect>
-     <x>610</x>
-     <y>580</y>
-     <width>301</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Verasonics IQ (Not Active)</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="imagePathLabelCanon">
-   <property name="geometry">
-    <rect>
-     <x>440</x>
-     <y>290</y>
-     <width>271</width>
-     <height>51</height>
+     <x>540</x>
+     <y>70</y>
+     <width>431</width>
+     <height>131</height>
     </rect>
    </property>
    <property name="styleSheet">
     <string notr="true">QLabel {
+	font-size: 29px;
+	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
-	color: white;
-	font-size: 17px;
 }</string>
    </property>
    <property name="text">
-    <string>Input Path to Image file (.bin)</string>
+    <string>Select Transducer Brand:</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
    </property>
-   <property name="textInteractionFlags">
-    <set>Qt::NoTextInteraction</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="phantomPathLabelCanon">
-   <property name="geometry">
-    <rect>
-     <x>790</x>
-     <y>290</y>
-     <width>271</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	background-color: rgba(255, 255, 255, 0);
-	color: white;
-	font-size: 17px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Input Path to Phantom file (.bin)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="textInteractionFlags">
-    <set>Qt::NoTextInteraction</set>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="philipsButton">
-   <property name="geometry">
-    <rect>
-     <x>610</x>
-     <y>180</y>
-     <width>301</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Philips RF (Not Active)</string>
+   <property name="wordWrap">
+    <bool>true</bool>
    </property>
   </widget>
   <widget class="QPushButton" name="siemensButton">
    <property name="geometry">
     <rect>
-     <x>610</x>
-     <y>280</y>
+     <x>590</x>
+     <y>390</y>
      <width>301</width>
      <height>51</height>
     </rect>
@@ -855,14 +715,14 @@ of image data</string>
 }</string>
    </property>
    <property name="text">
-    <string>Siemens RF (Not Active)</string>
+    <string>Siemens</string>
    </property>
   </widget>
   <widget class="QPushButton" name="terasonButton">
    <property name="geometry">
     <rect>
-     <x>610</x>
-     <y>380</y>
+     <x>590</x>
+     <y>520</y>
      <width>301</width>
      <height>51</height>
     </rect>
@@ -879,61 +739,7 @@ of image data</string>
 }</string>
    </property>
    <property name="text">
-    <string>Terason RF</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="imagePathLabel">
-   <property name="geometry">
-    <rect>
-     <x>440</x>
-     <y>300</y>
-     <width>271</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	background-color: rgba(255, 255, 255, 0);
-	color: white;
-	font-size: 17px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Input Path to Image file
- (.rf, .rfd, .mat, .bin)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="textInteractionFlags">
-    <set>Qt::NoTextInteraction</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="phantomPathLabel">
-   <property name="geometry">
-    <rect>
-     <x>790</x>
-     <y>300</y>
-     <width>271</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	background-color: rgba(255, 255, 255, 0);
-	color: white;
-	font-size: 17px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Input Path to Phantom file
- (.rf, .rfd, .mat, .bin)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="textInteractionFlags">
-    <set>Qt::NoTextInteraction</set>
+    <string>Terason</string>
    </property>
   </widget>
  </widget>

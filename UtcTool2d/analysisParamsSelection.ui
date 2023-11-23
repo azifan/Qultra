@@ -322,38 +322,6 @@
     </widget>
    </widget>
   </widget>
-  <widget class="QLabel" name="analysisParamsLabel_2">
-   <property name="geometry">
-    <rect>
-     <x>460</x>
-     <y>10</y>
-     <width>571</width>
-     <height>131</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	font-size: 29px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Select Radio Frequency Analysis Parameters:</string>
-   </property>
-   <property name="textFormat">
-    <enum>Qt::AutoText</enum>
-   </property>
-   <property name="scaledContents">
-    <bool>false</bool>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
-   </property>
-  </widget>
   <widget class="QFrame" name="exportResultsSidebar">
    <property name="geometry">
     <rect>
@@ -422,108 +390,6 @@
     <string>Back</string>
    </property>
   </widget>
-  <widget class="QSpinBox" name="axOverlapVal">
-   <property name="geometry">
-    <rect>
-     <x>660</x>
-     <y>305</y>
-     <width>51</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QSpinBox {
-	background-color: white;
-	color: black;
-}</string>
-   </property>
-  </widget>
-  <widget class="QDoubleSpinBox" name="latWinSizeVal">
-   <property name="geometry">
-    <rect>
-     <x>660</x>
-     <y>250</y>
-     <width>61</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QDoubleSpinBox {
-	background-color: white;
-	color: black;
-}</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="windowThresholdLabel">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>410</y>
-     <width>231</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Window Threshold (%)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QDoubleSpinBox" name="axWinSizeVal">
-   <property name="geometry">
-    <rect>
-     <x>660</x>
-     <y>190</y>
-     <width>61</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QDoubleSpinBox {
-	background-color: white;
-	color: black;
-}</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="latWinSizeLabel">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>230</y>
-     <width>231</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Lateral Window Size (mm)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
   <widget class="QLabel" name="imageDepthVal">
    <property name="geometry">
     <rect>
@@ -551,6 +417,43 @@
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
+  <widget class="QDoubleSpinBox" name="lowBandFreqVal">
+   <property name="geometry">
+    <rect>
+     <x>1070</x>
+     <y>310</y>
+     <width>61</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QDoubleSpinBox {
+	background-color: white;
+	color: black;
+}</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="continueButton">
+   <property name="geometry">
+    <rect>
+     <x>500</x>
+     <y>600</y>
+     <width>191</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Continue</string>
+   </property>
+  </widget>
   <widget class="QSpinBox" name="latOverlapVal">
    <property name="geometry">
     <rect>
@@ -565,238 +468,6 @@
 	background-color: white;
 	color: black;
 }</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="axWinSizeLabel">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>170</y>
-     <width>231</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Axial Window Size (mm)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="imageDepthLabel">
-   <property name="geometry">
-    <rect>
-     <x>420</x>
-     <y>120</y>
-     <width>231</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Image Depth (mm)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="latOverlapLabel">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>350</y>
-     <width>231</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Lateral Overlap (%)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QSpinBox" name="windowThresholdVal">
-   <property name="geometry">
-    <rect>
-     <x>660</x>
-     <y>420</y>
-     <width>51</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QSpinBox {
-	background-color: white;
-	color: black;
-}</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="axOverlapLabel">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>290</y>
-     <width>231</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Axial Overlap (%)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="imageWidthVal">
-   <property name="geometry">
-    <rect>
-     <x>990</x>
-     <y>120</y>
-     <width>81</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>1000</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="imageWidthLabel">
-   <property name="geometry">
-    <rect>
-     <x>780</x>
-     <y>120</y>
-     <width>231</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Image Width (mm)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="maxFreqLabel">
-   <property name="geometry">
-    <rect>
-     <x>800</x>
-     <y>230</y>
-     <width>231</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Max Frequency (MHz)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="minFreqLabel">
-   <property name="geometry">
-    <rect>
-     <x>800</x>
-     <y>170</y>
-     <width>231</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Min Frequency (MHz)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="upBandFreqLabel">
@@ -821,250 +492,6 @@
    </property>
    <property name="text">
     <string>Up Band Frequency (MHz)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QDoubleSpinBox" name="maxFreqVal">
-   <property name="geometry">
-    <rect>
-     <x>1070</x>
-     <y>250</y>
-     <width>61</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QDoubleSpinBox {
-	background-color: white;
-	color: black;
-}</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lowBandFreqLabel">
-   <property name="geometry">
-    <rect>
-     <x>800</x>
-     <y>290</y>
-     <width>231</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Low Band Frequency (MHz)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QDoubleSpinBox" name="minFreqVal">
-   <property name="geometry">
-    <rect>
-     <x>1070</x>
-     <y>190</y>
-     <width>61</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QDoubleSpinBox {
-	background-color: white;
-	color: black;
-}</string>
-   </property>
-  </widget>
-  <widget class="QDoubleSpinBox" name="lowBandFreqVal">
-   <property name="geometry">
-    <rect>
-     <x>1070</x>
-     <y>310</y>
-     <width>61</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QDoubleSpinBox {
-	background-color: white;
-	color: black;
-}</string>
-   </property>
-  </widget>
-  <widget class="QDoubleSpinBox" name="upBandFreqVal">
-   <property name="geometry">
-    <rect>
-     <x>1070</x>
-     <y>370</y>
-     <width>61</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QDoubleSpinBox {
-	background-color: white;
-	color: black;
-}</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="samplingFreqLabel">
-   <property name="geometry">
-    <rect>
-     <x>800</x>
-     <y>410</y>
-     <width>231</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Sampling Frequency (MHz)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QDoubleSpinBox" name="samplingFreqVal">
-   <property name="geometry">
-    <rect>
-     <x>1070</x>
-     <y>430</y>
-     <width>61</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QDoubleSpinBox {
-	background-color: white;
-	color: black;
-}</string>
-   </property>
-   <property name="maximum">
-    <double>1000.000000000000000</double>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="continueButton">
-   <property name="geometry">
-    <rect>
-     <x>510</x>
-     <y>650</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Continue</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="windowPreviewLabel">
-   <property name="geometry">
-    <rect>
-     <x>300</x>
-     <y>450</y>
-     <width>571</width>
-     <height>131</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	font-size: 29px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Window Preview:</string>
-   </property>
-   <property name="textFormat">
-    <enum>Qt::AutoText</enum>
-   </property>
-   <property name="scaledContents">
-    <bool>false</bool>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QLabel" name="axWavelengthRatioLabel">
-   <property name="geometry">
-    <rect>
-     <x>340</x>
-     <y>540</y>
-     <width>291</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Ax Win Size / Signal Wavelength:</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="latWavelengthRatioLabel">
-   <property name="geometry">
-    <rect>
-     <x>340</x>
-     <y>580</y>
-     <width>291</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Lat Win Size / Signal Wavelength:</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -1099,12 +526,28 @@
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QLabel" name="latWavelengthRatioVal">
+  <widget class="QDoubleSpinBox" name="axWinSizeVal">
    <property name="geometry">
     <rect>
-     <x>630</x>
-     <y>580</y>
-     <width>171</width>
+     <x>660</x>
+     <y>190</y>
+     <width>61</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QDoubleSpinBox {
+	background-color: white;
+	color: black;
+}</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="latOverlapLabel">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>350</y>
+     <width>231</width>
      <height>51</height>
     </rect>
    </property>
@@ -1120,101 +563,10 @@
 }</string>
    </property>
    <property name="text">
-    <string>0</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="axWavelengthRatioVal">
-   <property name="geometry">
-    <rect>
-     <x>630</x>
-     <y>540</y>
-     <width>171</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>0</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="previewFrame">
-   <property name="geometry">
-    <rect>
-     <x>810</x>
-     <y>470</y>
-     <width>341</width>
-     <height>231</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	font-size: 29px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="textFormat">
-    <enum>Qt::AutoText</enum>
-   </property>
-   <property name="scaledContents">
-    <bool>false</bool>
+    <string>Lateral Overlap (%)</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QLabel" name="previewFrameMask">
-   <property name="geometry">
-    <rect>
-     <x>810</x>
-     <y>470</y>
-     <width>341</width>
-     <height>231</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	font-size: 29px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="textFormat">
-    <enum>Qt::AutoText</enum>
-   </property>
-   <property name="scaledContents">
-    <bool>false</bool>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
    </property>
   </widget>
   <widget class="QLabel" name="previewFrameMesh">
@@ -1249,6 +601,714 @@
     <bool>true</bool>
    </property>
   </widget>
+  <widget class="QLabel" name="lowBandFreqLabel">
+   <property name="geometry">
+    <rect>
+     <x>800</x>
+     <y>290</y>
+     <width>231</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Low Band Frequency (MHz)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="windowThresholdLabel">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>410</y>
+     <width>231</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Window Threshold (%)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="maxFreqVal">
+   <property name="geometry">
+    <rect>
+     <x>1070</x>
+     <y>250</y>
+     <width>61</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QDoubleSpinBox {
+	background-color: white;
+	color: black;
+}</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="windowPreviewLabel">
+   <property name="geometry">
+    <rect>
+     <x>300</x>
+     <y>420</y>
+     <width>571</width>
+     <height>131</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 29px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Window Preview:</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="latWinSizeLabel">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>230</y>
+     <width>231</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Lateral Window Size (mm)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="upBandFreqVal">
+   <property name="geometry">
+    <rect>
+     <x>1070</x>
+     <y>370</y>
+     <width>61</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QDoubleSpinBox {
+	background-color: white;
+	color: black;
+}</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="maxFreqLabel">
+   <property name="geometry">
+    <rect>
+     <x>800</x>
+     <y>230</y>
+     <width>231</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Max Frequency (MHz)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="previewFrameMask">
+   <property name="geometry">
+    <rect>
+     <x>810</x>
+     <y>470</y>
+     <width>341</width>
+     <height>231</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 29px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="imageDepthLabel">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>120</y>
+     <width>231</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Image Depth (mm)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="samplingFreqLabel">
+   <property name="geometry">
+    <rect>
+     <x>800</x>
+     <y>410</y>
+     <width>231</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Sampling Frequency (MHz)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="axWavelengthRatioLabel">
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>500</y>
+     <width>291</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Ax Win Size / Signal Wavelength:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="imageWidthVal">
+   <property name="geometry">
+    <rect>
+     <x>990</x>
+     <y>120</y>
+     <width>81</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>1000</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="minFreqLabel">
+   <property name="geometry">
+    <rect>
+     <x>800</x>
+     <y>170</y>
+     <width>231</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Min Frequency (MHz)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="imageWidthLabel">
+   <property name="geometry">
+    <rect>
+     <x>780</x>
+     <y>120</y>
+     <width>231</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Image Width (mm)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="axOverlapLabel">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>290</y>
+     <width>231</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Axial Overlap (%)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="latWavelengthRatioVal">
+   <property name="geometry">
+    <rect>
+     <x>630</x>
+     <y>540</y>
+     <width>171</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="minFreqVal">
+   <property name="geometry">
+    <rect>
+     <x>1070</x>
+     <y>190</y>
+     <width>61</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QDoubleSpinBox {
+	background-color: white;
+	color: black;
+}</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="analysisParamsLabel_2">
+   <property name="geometry">
+    <rect>
+     <x>460</x>
+     <y>10</y>
+     <width>571</width>
+     <height>131</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 29px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Select Radio Frequency Analysis Parameters:</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="latWavelengthRatioLabel">
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>540</y>
+     <width>291</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Lat Win Size / Signal Wavelength:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="latWinSizeVal">
+   <property name="geometry">
+    <rect>
+     <x>660</x>
+     <y>250</y>
+     <width>61</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QDoubleSpinBox {
+	background-color: white;
+	color: black;
+}</string>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="samplingFreqVal">
+   <property name="geometry">
+    <rect>
+     <x>1070</x>
+     <y>430</y>
+     <width>61</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QDoubleSpinBox {
+	background-color: white;
+	color: black;
+}</string>
+   </property>
+   <property name="maximum">
+    <double>1000.000000000000000</double>
+   </property>
+  </widget>
+  <widget class="QLabel" name="axWinSizeLabel">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>170</y>
+     <width>231</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Axial Window Size (mm)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="axOverlapVal">
+   <property name="geometry">
+    <rect>
+     <x>660</x>
+     <y>305</y>
+     <width>51</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QSpinBox {
+	background-color: white;
+	color: black;
+}</string>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="windowThresholdVal">
+   <property name="geometry">
+    <rect>
+     <x>660</x>
+     <y>420</y>
+     <width>51</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QSpinBox {
+	background-color: white;
+	color: black;
+}</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="previewFrame">
+   <property name="geometry">
+    <rect>
+     <x>810</x>
+     <y>470</y>
+     <width>341</width>
+     <height>231</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 29px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::AutoText</enum>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="axWavelengthRatioVal">
+   <property name="geometry">
+    <rect>
+     <x>630</x>
+     <y>500</y>
+     <width>171</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="singleRoiWindowButton">
+   <property name="geometry">
+    <rect>
+     <x>510</x>
+     <y>660</y>
+     <width>171</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Single ROI Window</string>
+   </property>
+  </widget>
+  <zorder>previewFrame</zorder>
+  <zorder>sidebar</zorder>
+  <zorder>exportResultsSidebar</zorder>
+  <zorder>backButton</zorder>
+  <zorder>imageDepthVal</zorder>
+  <zorder>lowBandFreqVal</zorder>
+  <zorder>continueButton</zorder>
+  <zorder>latOverlapVal</zorder>
+  <zorder>upBandFreqLabel</zorder>
+  <zorder>wavelengthRatioWarningLabel</zorder>
+  <zorder>axWinSizeVal</zorder>
+  <zorder>latOverlapLabel</zorder>
+  <zorder>lowBandFreqLabel</zorder>
+  <zorder>windowThresholdLabel</zorder>
+  <zorder>maxFreqVal</zorder>
+  <zorder>windowPreviewLabel</zorder>
+  <zorder>latWinSizeLabel</zorder>
+  <zorder>upBandFreqVal</zorder>
+  <zorder>maxFreqLabel</zorder>
+  <zorder>previewFrameMask</zorder>
+  <zorder>imageDepthLabel</zorder>
+  <zorder>samplingFreqLabel</zorder>
+  <zorder>axWavelengthRatioLabel</zorder>
+  <zorder>imageWidthVal</zorder>
+  <zorder>minFreqLabel</zorder>
+  <zorder>imageWidthLabel</zorder>
+  <zorder>axOverlapLabel</zorder>
+  <zorder>latWavelengthRatioVal</zorder>
+  <zorder>minFreqVal</zorder>
+  <zorder>analysisParamsLabel_2</zorder>
+  <zorder>latWavelengthRatioLabel</zorder>
+  <zorder>latWinSizeVal</zorder>
+  <zorder>samplingFreqVal</zorder>
+  <zorder>axWinSizeLabel</zorder>
+  <zorder>axOverlapVal</zorder>
+  <zorder>windowThresholdVal</zorder>
+  <zorder>axWavelengthRatioVal</zorder>
+  <zorder>previewFrameMesh</zorder>
+  <zorder>singleRoiWindowButton</zorder>
  </widget>
  <resources/>
  <connections/>

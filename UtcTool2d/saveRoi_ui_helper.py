@@ -2,7 +2,8 @@ from UtcTool2d.saveRoi_ui import *
 import os
 import re
 import csv
-from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
+
+from PyQt5.QtWidgets import QWidget, QFileDialog, QApplication
 
 class SaveRoiGUI(Ui_saveRoi, QWidget):
     def __init__(self):
@@ -32,8 +33,11 @@ class SaveRoiGUI(Ui_saveRoi, QWidget):
                 return
             with open(os.path.join(self.newFolderPathInput.text(), self.newFileNameInput.text()), mode='w') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',')
-                writer.writerow(["Image Name", "Spline x points", "Spline y points", "Frame"])
-                writer.writerow([self.rfAnalysisGUI.imagePathInput.text(), self.rfAnalysisGUI.curPointsPlottedX, self.rfAnalysisGUI.curPointsPlottedY, self.rfAnalysisGUI.frame])
+                writer.writerow(["Image Name", "Type", "Spline x points", "Spline y points", "Rect Coords"])
+                if len(self.rfAnalysisGUI.AnalysisInfo.rectCoords) > 0:
+                    writer.writerow([self.rfAnalysisGUI.imagePathInput.text(), "Rect", " ", " ", self.rfAnalysisGUI.AnalysisInfo.rectCoords])
+                else:
+                    writer.writerow([self.rfAnalysisGUI.imagePathInput.text(), "Freehand", self.rfAnalysisGUI.AnalysisInfo.curPointsPlottedX, self.rfAnalysisGUI.AnalysisInfo.curPointsPlottedY, " "])
             self.dataSavedSuccessfullyLabel.setHidden(False)
             self.newFileNameInput.setHidden(True)
             self.newFileNameLabel.setHidden(True)

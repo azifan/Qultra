@@ -2,9 +2,8 @@ import sys
 import pandas as pd
 from PyQt5.QtWidgets import QApplication
 from CeusTool3d.selectImage_ui_helper import *
-from UtcTool2d.selectImage_ui_helper import *
 from CeusMcTool2d.selectImage_ui_helper import *
-from UtcTool2dIQ.selectImage_ui_helper import *
+from UtcTool2d.selectImage_ui_helper import *
 from welcome_ui import *
 
 class QusGui(Ui_qusPage, QWidget):
