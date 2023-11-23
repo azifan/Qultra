@@ -504,27 +504,6 @@ QPushButton:checked {
     <string>Display Spectral Intercept (SI)</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="editImageDisplayButton">
-   <property name="geometry">
-    <rect>
-     <x>560</x>
-     <y>700</y>
-     <width>181</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 12px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Edit Image Display</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="avMbfLabel">
    <property name="geometry">
     <rect>
@@ -1013,6 +992,27 @@ QPushButton:checked {
    </property>
    <property name="text">
     <string>Export Data</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="editImageDisplayButton">
+   <property name="geometry">
+    <rect>
+     <x>560</x>
+     <y>700</y>
+     <width>181</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Edit Image Display</string>
    </property>
   </widget>
  </widget>

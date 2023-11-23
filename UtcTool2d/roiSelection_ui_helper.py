@@ -1,11 +1,11 @@
+import Parsers.verasonicsMatParser as vera
+import Parsers.canonBinParser as canon
+import Parsers.terasonRfParser as tera
 from UtcTool2d.roiSelection_ui import *
 from UtcTool2d.editImageDisplay_ui_helper import *
 from UtcTool2d.analysisParamsSelection_ui_helper import *
 from UtcTool2d.loadRoi_ui_helper import *
-import Parsers.philipsMatParser as matParser
-import Parsers.siemensRfdParser as rfdParser
-import Parsers.terasonRfParser as tera
-from Parsers.philipsRfParser import main_parser_stanford
+from Utils.roiFuncs import computeSpecWindowsIQ
 
 import pydicom
 import os
@@ -15,13 +15,24 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib
 import scipy.interpolate as interpolate
-from PyQt5.QtWidgets import QWidget, QApplication
-from PyQt5.QtGui import QPixmap, QPainter, QImage
-from PyQt5.QtCore import QLine, Qt
+from matplotlib.widgets import RectangleSelector
+import matplotlib.patches as patches
+
+from PyQt5.QtWidgets import QWidget
+from PyQt5.QtGui import QImage
 
 import platform
 system = platform.system()
 
+class ImDisplayInfo():
+    def __init__(self):
+        self.numSamplesDrOut = None
+        self.centerFrequency = None
+        self.minFrequency = None
+        self.maxFrequency = None
+        self.samplingFrequency = None
+        self.depth = None
+        self.width = None
 
 class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def __init__(self):
@@ -91,16 +102,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 font-weight:bold;
             }""")
 
-        self.curPointsPlottedX = []
-        self.curPointsPlottedY = []
-        self.oldSpline = []
-        self.multipleFrames = False
+
         self.imagePathInput.setHidden(True)
         self.phantomPathInput.setHidden(True)
-        self.ofFramesLabel.setHidden(True)
-        self.curFrameLabel.setHidden(True)
-        self.totalFramesLabel.setHidden(True)
-        self.curFrameSlider.setHidden(True)
         self.drawRoiButton.setHidden(True)
         self.closeRoiButton.setHidden(True)
         self.undoLastPtButton.setHidden(True)
@@ -108,121 +112,164 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.acceptRoiButton.setHidden(True)
         self.undoLoadedRoiButton.setHidden(True)
         self.acceptLoadedRoiButton.setHidden(True)
+        self.userDrawRectangleButton.setHidden(True)
+        self.drawFreehandButton.setHidden(True)
+        self.backFromFreehandButton.setHidden(True)
+        self.backFromRectangleButton.setHidden(True)
+        self.acceptRectangleButton.setHidden(True)
+        self.physicalRectDimsLabel.setHidden(True)
+        self.physicalRectHeightLabel.setHidden(True)
+        self.physicalRectWidthLabel.setHidden(True)
+        self.physicalRectHeightVal.setHidden(True)
+        self.physicalRectWidthVal.setHidden(True)
         self.acceptLoadedRoiButton.clicked.connect(self.acceptROI)
+        self.acceptRectangleButton.clicked.connect(self.acceptRect)
         self.undoLoadedRoiButton.clicked.connect(self.undoRoiLoad)
 
+        self.ImDisplayInfo = ImDisplayInfo()
+        self.RefDisplayInfo = ImDisplayInfo()
+        self.AnalysisInfo = AnalysisInfo()
+
         self.loadRoiGUI = LoadRoiGUI()
+        self.pointsPlottedX = []
+        self.pointsPlottedY = []
 
-        self.editImageDisplayButton.setHidden(True)
+        # Prepare B-Mode display plot
+        self.horizontalLayout = QHBoxLayout(self.imDisplayFrame)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.figure = plt.figure()
+        self.canvas = FigureCanvas(self.figure)
+        self.ax = self.figure.add_subplot(111)
+        self.horizontalLayout.addWidget(self.canvas)
 
-        self.imCoverPixmap = QPixmap(721, 501)
-        self.imCoverPixmap.fill(Qt.transparent)
-        self.imCoverFrame.setPixmap(self.imCoverPixmap)
+        self.editImageDisplayGUI = EditImageDisplayGUI()
+        self.editImageDisplayGUI.contrastVal.valueChanged.connect(self.changeContrast)
+        self.editImageDisplayGUI.brightnessVal.valueChanged.connect(self.changeBrightness)    
+        self.editImageDisplayGUI.sharpnessVal.valueChanged.connect(self.changeSharpness)
 
-        self.lastGui = None
-        self.imArray = None
-        self.axOverlapVal = None
-        self.latOverlapVal = None
-        self.minFreqVal = None
-        self.maxFreqVal = None
-        self.startDepthVal = None
-        self.endDepthVal = None
-        self.clipFactorVal = None
-        self.samplingFreqVal = None
-        self.analysisParamsGUI = None
-        self.maskCoverImg = None
-        self.dataFrame = None
+        self.analysisParamsGUI = AnalysisParamsGUI()
 
         self.scatteredPoints = []
+        self.dataFrame = None
+        self.lastGui = None
+
+        self.crosshairCursor = matplotlib.widgets.Cursor(self.ax, color="gold", linewidth=0.4, useblit=True)
+        self.selector = RectangleSelector(self.ax, self.drawRect, useblit=True, props = dict(linestyle='-', color='cyan', fill=False))
+        self.selector.set_active(False)
+        self.cid = None
+
+        self.redrawRoiButton.setHidden(True)
         
+        self.editImageDisplayButton.clicked.connect(self.openImageEditor)
+        self.drawRoiButton.clicked.connect(self.recordDrawRoiClicked)
+        self.userDrawRectangleButton.clicked.connect(self.recordDrawRectClicked)
         self.undoLastPtButton.clicked.connect(self.undoLastPt)
         self.closeRoiButton.clicked.connect(self.closeInterpolation)
         self.redrawRoiButton.clicked.connect(self.undoLastRoi)
         self.acceptRoiButton.clicked.connect(self.acceptROI)
-        self.backButton.clicked.connect(self.backToLastScreen)
+        self.backButton.clicked.connect(self.backToWelcomeScreen)
         self.newRoiButton.clicked.connect(self.drawNewRoi)
+        self.drawRectangleButton.clicked.connect(self.startDrawRectRoi)
         self.loadRoiButton.clicked.connect(self.openLoadRoiWindow)
+        self.backFromFreehandButton.clicked.connect(self.backFromFreehand)
+        self.backFromRectangleButton.clicked.connect(self.backFromRect)
     
     def undoRoiLoad(self):
         self.undoLoadedRoiButton.setHidden(True)
         self.acceptLoadedRoiButton.setHidden(True)
         self.loadRoiButton.setHidden(False)
         self.newRoiButton.setHidden(False)
+        self.drawRectangleButton.setHidden(False)
 
+        self.AnalysisInfo.rectCoords = []
         self.undoLastRoi()
 
     def openLoadRoiWindow(self):
         self.loadRoiGUI.chooseRoiGUI = self
-        self.hide()
         self.loadRoiGUI.show()
+
+    def backFromFreehand(self):
+        self.newRoiButton.setHidden(False)
+        self.loadRoiButton.setHidden(False)
+        self.drawRectangleButton.setHidden(False)
+        self.drawRoiButton.setHidden(True)
+        self.undoLastPtButton.setHidden(True)
+        self.closeRoiButton.setHidden(True)
+        self.acceptRoiButton.setHidden(True)
+        self.backFromFreehandButton.setHidden(True)
+        self.undoLastRoi()
+        self.drawRoiButton.setChecked(False)
+        self.crosshairCursor.set_active(False)
+        if self.cid is not None:
+            self.cid = self.figure.canvas.mpl_disconnect(self.cid)
+
+    def backFromRect(self):
+        self.newRoiButton.setHidden(False)
+        self.drawRectangleButton.setHidden(False)
+        self.loadRoiButton.setHidden(False)
+        self.userDrawRectangleButton.setHidden(True)
+        self.backFromRectangleButton.setHidden(True)
+        self.acceptRectangleButton.setHidden(True)
+        self.physicalRectDimsLabel.setHidden(True)
+        self.physicalRectHeightLabel.setHidden(True)
+        self.physicalRectWidthLabel.setHidden(True)
+        self.physicalRectHeightVal.setHidden(True)
+        self.physicalRectWidthVal.setHidden(True)
+        self.physicalRectHeightVal.setText("0")
+        self.physicalRectWidthVal.setText("0")
+        self.userDrawRectangleButton.setChecked(False)
+        self.undoLastRoi()
+        self.AnalysisInfo.rectCoords = []
+        self.selector.set_active(False)
+        if len(self.ax.patches) > 0:
+            self.ax.patches.pop()
+        self.canvas.draw()
 
     def drawNewRoi(self):
         self.newRoiButton.setHidden(True)
         self.loadRoiButton.setHidden(True)
+        self.drawRectangleButton.setHidden(True)
         self.drawRoiButton.setHidden(False)
         self.undoLastPtButton.setHidden(False)
         self.closeRoiButton.setHidden(False)
         self.acceptRoiButton.setHidden(False)
+        self.backFromFreehandButton.setHidden(False)
 
-    def backToLastScreen(self):
+    def startDrawRectRoi(self):
+        self.newRoiButton.setHidden(True)
+        self.drawRectangleButton.setHidden(True)
+        self.loadRoiButton.setHidden(True)
+        self.userDrawRectangleButton.setHidden(False)
+        self.backFromRectangleButton.setHidden(False)
+        self.acceptRectangleButton.setHidden(False)
+        self.physicalRectDimsLabel.setHidden(False)
+        self.physicalRectHeightLabel.setHidden(False)
+        self.physicalRectWidthLabel.setHidden(False)
+        self.physicalRectHeightVal.setHidden(False)
+        self.physicalRectWidthVal.setHidden(False)
+
+    def backToWelcomeScreen(self):
         self.lastGui.dataFrame = self.dataFrame
         self.lastGui.show()
         self.hide()
 
-    def mousePressEvent(self,event):
-        self.xCur = event.x()
-        self.yCur = event.y()
-        if self.drawRoiButton.isChecked():
-            # Plot ROI points
-            if self.xCur < self.xBorderMax and self.xCur > self.xBorderMin and self.yCur < self.yBorderMax and self.yCur > self.yBorderMin:
-                plotX = self.xCur - 401
-                plotY = self.yCur - 171
-            else:
-                return
-            self.curPointsPlottedX.append(plotX)
-            self.curPointsPlottedY.append(plotY)
-            self.updateSpline()
+    def changeContrast(self):
+        self.editImageDisplayGUI.contrastValDisplay.setValue(int(self.editImageDisplayGUI.contrastVal.value()*10))
+        self.updateBModeSettings()
 
-    def updateSpline(self):
-        self.maskCoverImg.fill(0)
-        if len(self.curPointsPlottedX) > 0:            
-            if len(self.curPointsPlottedX) > 1:
-                xSpline, ySpline = calculateSpline(self.curPointsPlottedX, self.curPointsPlottedY)
-                spline = [(int(xSpline[i]), int(ySpline[i])) for i in range(len(xSpline))]
-                spline = np.array([*set(spline)])
-                xSpline, ySpline = np.transpose(spline)
-                xSpline = np.clip(xSpline, a_min=round(self.xBorderMin - 400)+1, a_max=720 + round(self.xBorderMax - 1121))
-                ySpline = np.clip(ySpline, a_min=round(self.yBorderMin - 170)+1, a_max=500 + round(self.yBorderMax - 671))
-                for i in range(len(xSpline)):
-                    self.maskCoverImg[ySpline[i]-1:ySpline[i]+2, xSpline[i]-1:xSpline[i]+2] = [255, 255, 0, 255]
+    def changeBrightness(self):
+        self.editImageDisplayGUI.brightnessValDisplay.setValue(int(self.editImageDisplayGUI.brightnessVal.value()*10))
+        self.updateBModeSettings()
 
-            for i in range(len(self.curPointsPlottedX)):
-                self.maskCoverImg[self.curPointsPlottedY[i]-2:self.curPointsPlottedY[i]+3, \
-                                    self.curPointsPlottedX[i]-2:self.curPointsPlottedX[i]+3] = [0,0,255, 255]
+    def changeSharpness(self):
+        self.editImageDisplayGUI.sharpnessValDisplay.setValue(int(self.editImageDisplayGUI.sharpnessVal.value()*10))
+        self.updateBModeSettings()
 
-        self.plotOnCanvas()
-        # self.updateCrosshair()
-
-    def mouseMoveEvent(self, event):
-        self.xCur = event.x()
-        self.yCur = event.y()
-        # self.updateCrosshair()
-
-    # def updateCrosshair(self):
-    #     if self.xCur < 1121 and self.xCur > 400 and self.yCur < 671 and self.yCur > 170:
-    #         plotX = self.xCur - 401
-    #     else:
-    #         return
-        
-    #     plotY = self.yCur - 171
-    #     self.imCoverFrame.pixmap().fill(Qt.transparent)
-    #     painter = QPainter(self.imCoverFrame.pixmap())
-    #     painter.setPen(Qt.yellow)
-    #     bmodeVertLine = QLine(plotX, 0, plotX, 501)
-    #     bmodeLatLine = QLine(0, plotY, 721, plotY)
-    #     painter.drawLines([bmodeVertLine, bmodeLatLine])
-    #     painter.end()
-    #     self.update()
+    def openImageEditor(self):
+        if self.editImageDisplayGUI.isVisible():
+            self.editImageDisplayGUI.hide()
+        else:
+            self.editImageDisplayGUI.show()
 
     def setFilenameDisplays(self, imageName, phantomName):
         self.imagePathInput.setHidden(False)
@@ -231,304 +278,511 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.phantomPathInput.setText(phantomName)
     
     def plotOnCanvas(self): # Plot current image on GUI
-        if self.multipleFrames:
-            self.imData = np.array(self.imArray[self.frame]).reshape(self.arHeight, self.arWidth)
-        self.imData = np.require(self.imData,np.uint8,'C')
-        self.bytesLine = self.imData.strides[0]
-        self.arHeight = self.imData.shape[0]
-        self.arWidth = self.imData.shape[1]
+        self.ax.clear()
+        im = plt.imread(os.path.join("Junk", "bModeIm.png"))
+        self.ax.imshow(im, cmap='Greys_r')
+        plt.gcf().set_facecolor((0,0,0,0))
 
-        self.maskCoverImg = np.require(self.maskCoverImg, np.uint8, 'C')
-        self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
-        self.qImgMask = QImage(self.maskCoverImg, self.maskCoverImg.shape[1], self.maskCoverImg.shape[0], self.bytesLineMask, QImage.Format_ARGB32)
-
-        self.imMaskFrame.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(721, 501))
-
-        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8)
-        self.imDisplayFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
-
-    def openPhilipsImage(self, imageFilePath, phantomFilePath):
-        tmpLocation = imageFilePath.split("/")
-        dataFileName = tmpLocation[-1]
-        dataFileLocation = imageFilePath[:len(imageFilePath)-len(dataFileName)]
-        tmpPhantLocation = phantomFilePath.split("/")
-        phantFileName = tmpPhantLocation[-1]
-        phantFileLocation = phantomFilePath[:len(phantomFilePath)-len(phantFileName)]
-        if dataFileName[-3:] == ".rf":
-            dataFile = open(imageFilePath, 'rb')
-            datasig = list(dataFile.read(8))
-            if datasig != [0,0,0,0,255,255,0,0]: # Philips signature parameters
-                # self.invalidPath.setText("Data and Phantom files are both invalid.\nPlease use Philips .rf files.")
-                return
-            elif datasig != [0,0,0,0,255,255,0,0]:
-                # self.invalidPath.setText("Invalid phantom file.\nPlease use Philips .rf files.")
-                return
-            else: # Display Philips image and assign relevant default analysis
-                main_parser_stanford(imageFilePath) # parse image filee
-
-                dataFileName = str(dataFileLocation[:-3]+'.mat')
-        if phantFileName[-3:] == ".rf": # Check binary signatures at start of .rf files
-            phantFile = open(phantomFilePath, 'rb')
-            phantsig = list(phantFile.read(8))
-            if phantsig != [0,0,0,0,255,255,0,0]: # Philips signature parameters
-                # self.invalidPath.setText("Data and Phantom files are both invalid.\nPlease use Philips .rf files.")
-                return
-            elif phantsig != [0,0,0,0,255,255,0,0]:
-                # self.invalidPath.setText("Invalid phantom file.\nPlease use Philips .rf files.")
-                return
-            else: # Display Philips image and assign relevant default analysis
-                main_parser_stanford(imageFilePath) # parse image filee
-
-                phantFileName = str(phantFileName[:-3]+'.mat')
-
-        # Display Philips image and assign relevant default analysis params
-        self.frame = None
-        self.imArray, self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = matParser.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation, self.frame)
-        self.arHeight = self.imArray.shape[0]
-        self.arWidth = self.imArray.shape[1]
-        self.imData = np.array(self.imArray)
-        self.imData = np.require(self.imData,np.uint8,'C')
-        self.maskCoverImg = np.zeros([501, 721, 4]) # Hard-coded values match size of frame on GUI
-        self.bytesLine = self.imData.strides[0]
-
-        quotient = self.imgInfoStruct.width / self.imgInfoStruct.depth
-        if quotient > (721/501):
-            self.widthScale = 721
-            self.depthScale = self.widthScale / (self.imgInfoStruct.width/self.imgInfoStruct.depth)
-        else:
-            self.widthScale = 501 * quotient
-            self.depthScale = 501
-        self.yBorderMin = 170 + ((501 - self.depthScale)/2)
-        self.yBorderMax = 671 - ((501 - self.depthScale)/2)
-        self.xBorderMin = 400 + ((721 - self.widthScale)/2)
-        self.xBorderMax = 1121 - ((721 - self.widthScale)/2)
-
-        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8).scaled(self.widthScale, self.depthScale)
-
-        self.imDisplayFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
-
-        self.pixSizeAx = self.imgDataStruct.bMode.shape[0] #were both scBmode
-        self.pixSizeLat = self.imgDataStruct.bMode.shape[1]
-
-        self.axOverlapVal = 50
-        self.latOverlapVal = 50
-        self.minFreqVal = 3
-        self.maxFreqVal = 4.5
-        self.startDepthVal = 0.04
-        self.endDepthVal = 0.16
-        self.clipFactorVal = 95
-        self.samplingFreqVal = 20
-
-        self.plotOnCanvas()
-
-    def openSiemensImage(self, imageFilePath, phantomFilePath):
-        tmpLocation = imageFilePath.split("/")
-        dataFileName = tmpLocation[-1]
-        dataFileLocation = imageFilePath[:len(imageFilePath)-len(dataFileName)]
-        tmpPhantLocation = phantomFilePath.split("/")
-        phantFileName = tmpPhantLocation[-1]
-        phantFileLocation = phantomFilePath[:len(phantomFilePath)-len(phantFileName)]
-
-        self.imArray, self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = rfdParser.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation)
-        self.frame = 0
-        self.imData = np.array(self.imArray[self.frame]).reshape(self.imArray.shape[1], self.imArray.shape[2])
-        self.imData = np.require(self.imData,np.uint8,'C')
-        self.maskCoverImg = np.zeros([501, 721, 4]) # Hard-coded values match size of frame on GUI
-        self.bytesLine = self.imData.strides[0]
-        self.arHeight = self.imData.shape[0]
-        self.arWidth = self.imData.shape[1]
-        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8)
-
-        quotient = self.imgInfoStruct.width / self.imgInfoStruct.depth
-        if quotient > (721/501):
-            self.widthScale = 721
-            self.depthScale = self.widthScale / (self.imgInfoStruct.width/self.imgInfoStruct.depth)
-        else:
-            self.widthScale = 501 * quotient
-            self.depthScale = 501
-        self.yBorderMin = 170 + ((501 - self.depthScale)/2)
-        self.yBorderMax = 671 - ((501 - self.depthScale)/2)
-        self.xBorderMin = 400 + ((721 - self.widthScale)/2)
-        self.xBorderMax = 1121 - ((721 - self.widthScale)/2)
-
-        self.imDisplayFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
-
-        self.pixSizeAx = self.imgDataStruct.bMode.shape[1] #were both scBmode
-        self.pixSizeLat = self.imgDataStruct.bMode.shape[2]
-
-        self.ofFramesLabel.setHidden(False)
-        self.curFrameLabel.setHidden(False)
-        self.totalFramesLabel.setHidden(False)
-        self.curFrameSlider.setHidden(False)
-        self.curFrameSlider.setMaximum(self.imArray.shape[0]-1)
-        self.totalFramesLabel.setText(str(self.imArray.shape[0]-1))
-        self.curFrameSlider.valueChanged.connect(self.curFrameChanged)
-
-        self.axOverlapVal = 50
-        self.latOverlapVal = 50
-        self.startDepthVal = 0.04
-        self.endDepthVal = 0.16
-        self.clipFactorVal = 95
-        self.minFreqVal = 7
-        self.maxFreqVal = 17
-        self.samplingFreqVal = 40
-        self.multipleFrames = True
-        self.physicalDepthVal.setText(str(np.round(self.imgInfoStruct.depth, decimals=2)))
-        self.physicalWidthVal.setText(str(np.round(self.imgInfoStruct.width, decimals=2)))
-        self.pixelWidthVal.setText(str(self.imArray.shape[2]))
-        self.pixelDepthVal.setText(str(self.imArray.shape[1]))
-
-        self.plotOnCanvas()
-
-    def openTerasonImage(self, imageFilePath, phantomFilePath):
-        self.imArray, self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = tera.getImage(imageFilePath, phantomFilePath)
-
-        quotient = self.imgInfoStruct.width / self.imgInfoStruct.depth
-        if quotient > (721/501):
-            self.widthScale = 721
-            self.depthScale = self.widthScale / (self.imgInfoStruct.width/self.imgInfoStruct.depth)
-        else:
-            self.widthScale = 501 * quotient
-            self.depthScale = 501
-        self.maskCoverImg = np.zeros([501, 721, 4]) # Hard-coded values match size of frame on GUI
-        self.yBorderMin = 170 + ((501 - self.depthScale)/2)
-        self.yBorderMax = 671 - ((501 - self.depthScale)/2)
-        self.xBorderMin = 400 + ((721 - self.widthScale)/2)
-        self.xBorderMax = 1121 - ((721 - self.widthScale)/2)
-            
-
-        self.arHeight = self.imArray.shape[0]
-        self.arWidth = self.imArray.shape[1]
-        self.imData = np.array(self.imArray)
-        self.imData = np.require(self.imData,np.uint8,'C')
-        self.bytesLine = self.imData.strides[0]
-        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8).scaled(self.widthScale, self.depthScale)
-
-        self.imDisplayFrame.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
-
-        self.pixSizeAx = self.imArray.shape[0]
-        self.pixSizeLat = self.imArray.shape[1]
-        self.axOverlapVal = 50
-        self.latOverlapVal = 50
-        self.minFreqVal = 3
-        self.maxFreqVal = 4.5
-        self.startDepthVal = 0.04
-        self.endDepthVal = 0.16
-        self.clipFactorVal = 95
-        self.samplingFreqVal = 20
-        self.frame = None
-        self.physicalDepthVal.setText(str(np.round(self.imgInfoStruct.depth, decimals=2)))
-        self.physicalWidthVal.setText(str(np.round(self.imgInfoStruct.width, decimals=2)))
-        self.pixelWidthVal.setText(str(self.imArray.shape[1]))
-        self.pixelDepthVal.setText(str(self.imArray.shape[0]))
-
-
-        self.plotOnCanvas()
+        if len(self.pointsPlottedX) > 0:
+            self.scatteredPoints.append(self.ax.scatter(self.pointsPlottedX[-1], self.pointsPlottedY[-1], marker="o", s=0.5, c="red", zorder=500))
+            if len(self.pointsPlottedX) > 1:
+                xSpline, ySpline = calculateSpline(self.pointsPlottedX, self.pointsPlottedY)
+                self.spline = self.ax.plot(xSpline, ySpline, color = "cyan", zorder=1, linewidth=0.75)
         
+        try:
+            if self.ImDisplayInfo.numSamplesDrOut == 1400:
+                # Preset 1 boundaries for 20220831121844_IQ.bin
+                self.ax.plot([148.76, 154.22], [0, 500], c="purple") # left boundary
+                self.ax.plot([0, 716], [358.38, 386.78], c="purple") # bottom boundary
+                self.ax.plot([572.47, 509.967], [0, 500], c="purple") # right boundary
 
-    def curFrameChanged(self):
-        self.frame = self.curFrameSlider.value()
-        self.curFrameLabel.setText(str(self.frame))
+            elif self.ImDisplayInfo.numSamplesDrOut == 1496:
+                # Preset 2 boundaries for 20220831121752_IQ.bin
+                self.ax.plot([146.9, 120.79], [0, 500], c="purple") # left boundary
+                self.ax.plot([0, 644.76], [462.41, 500], c="purple") # bottom boundary
+                self.ax.plot([614.48, 595.84], [0, 500], c="purple") # right boundary
+
+            elif self.ImDisplayInfo.numSamplesDrOut != -1:
+                print("No preset found!")
+        except:
+            pass
+
+        self.figure.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
+        self.crosshairCursor.set_active(False)
+        plt.tick_params(bottom=False, left=False, labelbottom=False, labelleft=False)
+        self.canvas.draw() # Refresh canvas
+
+
+    def openImageVerasonics(self, imageFilePath, phantomFilePath): # Open initial image given data and phantom files previously inputted
+        tmpLocation = imageFilePath.split("/")
+        dataFileName = tmpLocation[-1]
+        dataFileLocation = imageFilePath[:len(imageFilePath)-len(dataFileName)]
+        tmpPhantLocation = phantomFilePath.split("/")
+        phantFileName = tmpPhantLocation[-1]
+        phantFileLocation = phantomFilePath[:len(phantomFilePath)-len(phantFileName)]
+
+        imArray, imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = vera.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation)
+        self.AnalysisInfo.pixDepth = imArray.shape[0]
+        self.AnalysisInfo.pixWidth = imArray.shape[1]
+        self.imData = np.array(imArray).reshape(self.AnalysisInfo.pixDepth, self.AnalysisInfo.pixWidth)
+        self.imData = np.flipud(self.imData) #flipud
+        self.imData = np.require(self.imData,np.uint8,'C')
+        self.bytesLine = self.imData.strides[0]
+        self.qIm = QImage(self.imData, self.AnalysisInfo.pixWidth, self.AnalysisInfo.pixDepth, self.bytesLine, QImage.Format_Grayscale8).scaled(721, 501)
+
+        self.qIm.mirrored().save(os.path.join("Junk", "bModeImRaw.png")) # Save as .png file
+
+        self.editImageDisplayGUI.contrastVal.setValue(1)
+        self.editImageDisplayGUI.brightnessVal.setValue(1)
+        self.editImageDisplayGUI.sharpnessVal.setValue(1)
+
+        self.analysisParamsGUI.axWinSizeVal.setValue(10)
+        self.analysisParamsGUI.latWinSizeVal.setValue(10)
+        self.analysisParamsGUI.axOverlapVal.setValue(50)
+        self.analysisParamsGUI.latOverlapVal.setValue(50)
+        # self.analysisParamsGUI.minFreqVal.setValue(3)
+        # self.analysisParamsGUI.maxFreqVal.setValue(4.5)
+        # self.analysisParamsGUI.clipFactorVal.setValue(95)
+        # self.analysisParamsGUI.samplingFreqVal.setValue(20)
+
+        # Implement correct previously assigned image display settings
+
+        self.analysisParamsGUI.computeSpecWindows = computeSpecWindowsIQ
+
+        self.cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
+        enhancer = ImageEnhance.Contrast(self.cvIm)
+
+        imOutput = enhancer.enhance(self.editImageDisplayGUI.contrastVal.value())
+        bright = ImageEnhance.Brightness(imOutput)
+        imOutput = bright.enhance(self.editImageDisplayGUI.brightnessVal.value())
+        sharp = ImageEnhance.Sharpness(imOutput)
+        imOutput = sharp.enhance(self.editImageDisplayGUI.sharpnessVal.value())
+        imOutput.save(os.path.join("Junk", "bModeIm.png"))
+
         self.plotOnCanvas()
+
+    def openImageCanon(self, imageFilePath, phantomFilePath): # Open initial image given data and phantom files previously inputted
+        # Find image and phantom paths
+        tmpLocation = imageFilePath.split("/")
+        dataFileName = tmpLocation[-1]
+        dataFileLocation = imageFilePath[:len(imageFilePath)-len(dataFileName)]
+        tmpPhantLocation = phantomFilePath.split("/")
+        phantFileName = tmpPhantLocation[-1]
+        phantFileLocation = phantomFilePath[:len(phantomFilePath)-len(phantFileName)]
+
+        # Open both images and record relevant data
+        imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = canon.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation)
+
+        # Assumes scan conversion
+        imArray = imgDataStruct.scBmode
+        self.AnalysisInfo.computeSpecWindows = computeSpecWindowsIQ
+        self.processImage(imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct)
+
+    def openImageTerason(self, imageFilePath, phantomFilePath):
+        imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = tera.getImage(imageFilePath, phantomFilePath)
+
+        # Assumes no scan conversion
+        imArray = imgDataStruct.bMode
+        self.AnalysisInfo.computeSpecWindows = computeSpecWindowsRF
+        self.processImage(imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct)
+
+    def processImage(self, imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct):
+        self.ImDisplayInfo.depth = imgInfoStruct.depth
+        self.ImDisplayInfo.width = imgInfoStruct.width
+        try:
+            self.ImDisplayInfo.numSamplesDrOut = imgInfoStruct.numSamplesDrOut
+            self.RefDisplayInfo.numSamplesDrOut = refInfoStruct.numSamplesDrOut
+        except:
+            self.ImDisplayInfo.numSamplesDrOut = -1
+            self.RefDisplayInfo.numSamplesDrOut = -1
+        self.ImDisplayInfo.centerFrequency = imgInfoStruct.centerFrequency
+        self.ImDisplayInfo.minFrequency = imgInfoStruct.minFrequency
+        self.ImDisplayInfo.maxFrequency = imgInfoStruct.maxFrequency
+        self.ImDisplayInfo.samplingFrequency = imgInfoStruct.samplingFrequency
+        self.AnalysisInfo.pixDepth = imArray.shape[0]
+        self.AnalysisInfo.pixWidth = imArray.shape[1]
+
+        self.RefDisplayInfo.depth = refInfoStruct.depth
+        self.RefDisplayInfo.width = refInfoStruct.width
+        self.RefDisplayInfo.centerFrequency = refInfoStruct.centerFrequency
+        self.RefDisplayInfo.minFrequency = refInfoStruct.minFrequency
+        self.RefDisplayInfo.maxFrequency = refInfoStruct.maxFrequency
+        self.RefDisplayInfo.samplingFrequency = refInfoStruct.samplingFrequency
+
+        if self.ImDisplayInfo.depth != self.ImDisplayInfo.depth:
+            print("Presets don't match! Analysis not possible")
+            exit()
+
+        # Display images correctly
+        quotient = self.ImDisplayInfo.width / self.ImDisplayInfo.depth
+        if quotient > (721/501):
+            self.AnalysisInfo.roiWidthScale = 721
+            self.AnalysisInfo.roiDepthScale = self.AnalysisInfo.roiWidthScale / (self.ImDisplayInfo.width/self.ImDisplayInfo.depth)
+        else:
+            self.AnalysisInfo.roiWidthScale = 501 * quotient
+            self.AnalysisInfo.roiDepthScale = 501
+        self.maskCoverImg = np.zeros([501, 721, 4]) # Hard-coded values match size of frame on GUI
+        self.yBorderMin = 190 + ((501 - self.AnalysisInfo.roiDepthScale)/2)
+        self.yBorderMax = 671 - ((501 - self.AnalysisInfo.roiDepthScale)/2)
+        self.xBorderMin = 400 + ((721 - self.AnalysisInfo.roiWidthScale)/2)
+        self.xBorderMax = 1121 - ((721 - self.AnalysisInfo.roiWidthScale)/2)
+
+        imData = np.array(imArray).reshape(self.AnalysisInfo.pixDepth, self.AnalysisInfo.pixWidth)
+        imData = np.flipud(imData) #flipud
+        imData = np.require(imData,np.uint8,'C')
+        self.bytesLine = imData.strides[0]
+        self.qIm = QImage(imData, self.AnalysisInfo.pixWidth, self.AnalysisInfo.pixDepth, self.bytesLine, QImage.Format_Grayscale8).scaled(self.AnalysisInfo.roiWidthScale, self.AnalysisInfo.roiDepthScale)
+
+        self.AnalysisInfo.axialRes = imgInfoStruct.axialRes
+        self.AnalysisInfo.lateralRes = imgInfoStruct.lateralRes
+        self.AnalysisInfo.imArray = imData
+        self.AnalysisInfo.lowBandFreq = imgInfoStruct.lowBandFreq
+        self.AnalysisInfo.upBandFreq = imgInfoStruct.upBandFreq
+        self.AnalysisInfo.imRawData = imgDataStruct.rf
+        self.AnalysisInfo.phantomRawData = refDataStruct.rf
+        try:
+            self.AnalysisInfo.scImRawData = imgDataStruct.scRF
+            self.AnalysisInfo.scPhantomRawData = imgDataStruct.scRF
+        except:
+            pass
+
+        self.qIm.mirrored().save(os.path.join("Junk", "bModeImRaw.png")) # Save as .png file
+
+        self.editImageDisplayGUI.contrastVal.setValue(1)
+        self.editImageDisplayGUI.brightnessVal.setValue(0.75)
+        self.editImageDisplayGUI.sharpnessVal.setValue(3)
+
+        self.displayInitialImage()
+
+    def displayInitialImage(self):
+        speedOfSoundInTissue = 1540 #m/s
+        waveLength = (speedOfSoundInTissue/self.ImDisplayInfo.centerFrequency)*1000 #mm
+        self.analysisParamsGUI.axWinSizeVal.setMinimum(2*waveLength) # should be at least 10 times wavelength, must be at least 2 times
+        self.analysisParamsGUI.latWinSizeVal.setMinimum(2*waveLength) # should be at least 10 times wavelength, must be at least 2 times
+        self.analysisParamsGUI.axWinSizeVal.setValue(10*waveLength)
+        self.analysisParamsGUI.latWinSizeVal.setValue(10*waveLength)
+
+        self.analysisParamsGUI.axOverlapVal.setValue(50)
+        self.analysisParamsGUI.latOverlapVal.setValue(50)
+        self.analysisParamsGUI.windowThresholdVal.setValue(95)
+        self.analysisParamsGUI.minFreqVal.setValue(np.round(self.ImDisplayInfo.minFrequency/1000000, decimals=2))
+        self.analysisParamsGUI.maxFreqVal.setValue(np.round(self.ImDisplayInfo.maxFrequency/1000000, decimals=2))
+        self.analysisParamsGUI.lowBandFreqVal.setValue(np.round(self.AnalysisInfo.lowBandFreq/1000000, decimals=2))
+        self.analysisParamsGUI.upBandFreqVal.setValue(np.round(self.AnalysisInfo.upBandFreq/1000000, decimals=2))
+        self.analysisParamsGUI.samplingFreqVal.setValue(np.round(self.ImDisplayInfo.samplingFrequency/1000000, decimals=2))
+        self.analysisParamsGUI.imageDepthVal.setText(str(np.round(self.ImDisplayInfo.depth, decimals=1)))
+        self.analysisParamsGUI.imageWidthVal.setText(str(np.round(self.ImDisplayInfo.width, decimals=1)))
+        self.physicalDepthVal.setText(str(np.round(self.ImDisplayInfo.depth, decimals=2)))
+        self.physicalWidthVal.setText(str(np.round(self.ImDisplayInfo.width, decimals=2)))
+        self.pixelWidthVal.setText(str(self.AnalysisInfo.pixWidth))
+        self.pixelDepthVal.setText(str(self.AnalysisInfo.pixDepth))
+
+        self.cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
+        enhancer = ImageEnhance.Contrast(self.cvIm)
+
+        imOutput = enhancer.enhance(self.editImageDisplayGUI.contrastVal.value())
+        bright = ImageEnhance.Brightness(imOutput)
+        imOutput = bright.enhance(self.editImageDisplayGUI.brightnessVal.value())
+        sharp = ImageEnhance.Sharpness(imOutput)
+        imOutput = sharp.enhance(self.editImageDisplayGUI.sharpnessVal.value())
+        imOutput.save(os.path.join("Junk", "bModeIm.png"))
+
+        self.plotOnCanvas()
+
+    def recordDrawRoiClicked(self):
+        if self.drawRoiButton.isChecked(): # Set up b-mode to be drawn on
+            # image, =self.ax.plot([], [], marker="o",markersize=3, markerfacecolor="red")
+            # self.cid = image.figure.canvas.mpl_connect('button_press_event', self.interpolatePoints)
+            self.cid = self.figure.canvas.mpl_connect('button_press_event', self.interpolatePoints)
+            self.crosshairCursor.set_active(True)
+        else: # No longer let b-mode be drawn on
+            self.cid = self.figure.canvas.mpl_disconnect(self.cid)
+            self.crosshairCursor.set_active(False)
+        self.canvas.draw()
+
+    def recordDrawRectClicked(self):
+        if self.userDrawRectangleButton.isChecked(): # Set up b-mode to be drawn on
+            self.selector.set_active(True)
+            self.cid = self.figure.canvas.mpl_connect('button_press_event', self.clearRect)
+        else: # No longer let b-mode be drawn on
+            self.cid = self.figure.canvas.mpl_disconnect(self.cid)
+            self.selector.set_active(False)
+        self.canvas.draw()
+
+
+    def undoLastPt(self): # When drawing ROI, undo last point plotted
+        if len(self.pointsPlottedX) > 0:
+            self.scatteredPoints[-1].remove()
+            self.scatteredPoints.pop()
+            self.pointsPlottedX.pop()
+            self.pointsPlottedY.pop()
+            if len(self.pointsPlottedX) > 0:
+                oldSpline = self.spline.pop(0)
+                oldSpline.remove()
+                if len(self.pointsPlottedX) > 1:
+                    self.finalSplineX, self.finalSplineY = calculateSpline(self.pointsPlottedX, self.pointsPlottedY)
+                    self.spline = self.ax.plot(self.finalSplineX, self.finalSplineY, color = "cyan", linewidth=0.75)
+            self.canvas.draw()
+            self.drawRoiButton.setChecked(True)
+            self.recordDrawRoiClicked()
 
     def closeInterpolation(self): # Finish drawing ROI
-        if len(self.curPointsPlottedX) > 2:
-            self.drawRoiButton.setChecked(False)
+        if len(self.pointsPlottedX) > 2:
+            self.ax.clear()
+            im = plt.imread(os.path.join("Junk", "bModeIm.png"))
+            plt.imshow(im, cmap='Greys_r')
+            self.pointsPlottedX.append(self.pointsPlottedX[0])
+            self.pointsPlottedY.append(self.pointsPlottedY[0])
+            self.finalSplineX, self.finalSplineY = calculateSpline(self.pointsPlottedX, self.pointsPlottedY)
 
-            # remove duplicate points
-            points = np.transpose(np.array([self.curPointsPlottedX, self.curPointsPlottedY]))
-            points = removeDuplicates(points)
-            [self.curPointsPlottedX, self.curPointsPlottedY] = np.transpose(points)
-            self.curPointsPlottedX = list(self.curPointsPlottedX)
-            self.curPointsPlottedY = list(self.curPointsPlottedY)
-            self.curPointsPlottedX.append(self.curPointsPlottedX[0])
-            self.curPointsPlottedY.append(self.curPointsPlottedY[0])
-            self.maskCoverImg.fill(0)
+            try:
+                if self.ImDisplayInfo.numSamplesDrOut == 1400:
+                    self.finalSplineX = np.clip(self.finalSplineX, a_min=148, a_max=573)
+                    self.finalSplineY = np.clip(self.finalSplineY, a_min=0.5, a_max=387)
+                elif self.ImDisplayInfo.numSamplesDrOut == 1496:
+                    self.finalSplineX = np.clip(self.finalSplineX, a_min=120, a_max=615)
+                    self.finalSplineY = np.clip(self.finalSplineY, a_min=0.5, a_max=645)
+                elif self.ImDisplayInfo.numSamplesDrOut != -1:
+                    print("Preset not found!")
+                    return
+            except:
+                pass
+            
+            self.ax.plot(self.finalSplineX, self.finalSplineY, color = "cyan", linewidth=0.75)
+            try:
+                image, =self.ax.plot([], [], marker="o",markersize=3, markerfacecolor="red")
+                image.figure.canvas.mpl_disconnect(self.cid)
+            except:
+                image = 0 # do nothing. Means we're loading ROI
 
-            xSpline, ySpline = calculateSpline(self.curPointsPlottedX, self.curPointsPlottedY)
-            xSpline = np.clip(xSpline, a_min=round(self.xBorderMin - 400)+1, a_max=720 + round(self.xBorderMax - 1121))
-            ySpline = np.clip(ySpline, a_min=round(self.yBorderMin - 170)+1, a_max=500 + round(self.yBorderMax - 671))
-            self.xSpline = xSpline
-            self.ySpline = ySpline
-            spline = [(int(xSpline[i]), int(ySpline[i])) for i in range(len(xSpline))]
-            spline = np.array([*set(spline)])
-            xSpline, ySpline = np.transpose(spline)
-            for i in range(len(xSpline)):
-                self.maskCoverImg[ySpline[i]-1:ySpline[i]+2, xSpline[i]-1:xSpline[i]+2] = [0, 0, 255, 255]
+            
+            try:
+                if self.ImDisplayInfo.numSamplesDrOut == 1400:
+                    # Preset 1 boundaries for 20220831121844_IQ.bin
+                    self.ax.plot([148.76, 154.22], [0, 500], c="purple") # left boundary
+                    self.ax.plot([0, 716], [358.38, 386.78], c="purple") # bottom boundary
+                    self.ax.plot([572.47, 509.967], [0, 500], c="purple") # right boundary
+
+                elif self.ImDisplayInfo.numSamplesDrOut == 1496:
+                    # Preset 2 boundaries for 20220831121752_IQ.bin
+                    self.ax.plot([146.9, 120.79], [0, 500], c="purple") # left boundary
+                    self.ax.plot([0, 644.76], [462.41, 500], c="purple") # bottom boundary
+                    self.ax.plot([614.48, 595.84], [0, 500], c="purple") # right boundary
+                
+                elif self.ImDisplayInfo.numSamplesDrOut != -1:
+                    print("No preset found!")
+            except:
+                pass
+
+            self.figure.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
+            plt.tick_params(bottom=False, left=False)
+            self.canvas.draw()
+            self.ROIDrawn = True
             self.drawRoiButton.setChecked(False)
             self.drawRoiButton.setCheckable(False)
             self.redrawRoiButton.setHidden(False)
             self.closeRoiButton.setHidden(True)
-            self.plotOnCanvas()
+            self.crosshairCursor.set_active(False)
+            self.undoLastPtButton.clicked.disconnect()
+            self.canvas.draw()
 
-    def undoLastPt(self):
-        if len(self.curPointsPlottedX):
-            self.maskCoverImg[self.curPointsPlottedX[-1]-2:self.curPointsPlottedX[-1]+3, \
-                            self.curPointsPlottedY[-1]-2:self.curPointsPlottedY[-1]+3] = [0,0,0,0]
-            self.curPointsPlottedX.pop()
-            self.curPointsPlottedY.pop()
-            self.updateSpline()
+    def undoLastRoi(self): # Remove previously drawn roi and prepare user to draw a new one
+        self.finalSplineX = []
+        self.finalSplineY = []
+        self.pointsPlottedX = []
+        self.pointsPlottedY = []
+        self.drawRoiButton.setChecked(False)
+        self.drawRoiButton.setCheckable(True)
+        self.closeRoiButton.setHidden(False)
+        self.redrawRoiButton.setHidden(True)
+        self.undoLastPtButton.clicked.connect(self.undoLastPt)
+        self.plotOnCanvas()
 
-    def undoLastRoi(self):
-        if not self.drawRoiButton.isCheckable() or self.drawRoiButton.isHidden():
-            self.curPointsPlottedX = []
-            self.curPointsPlottedY = []
-            self.drawRoiButton.setCheckable(True)
-            self.redrawRoiButton.setHidden(True)
-            self.closeRoiButton.setHidden(False)
-            self.maskCoverImg.fill(0)
-            self.plotOnCanvas()
-            self.update()
+    def updateBModeSettings(self): # Updates background photo when image settings are modified
+        self.cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
+        contrast = ImageEnhance.Contrast(self.cvIm)
+        imOutput = contrast.enhance(self.editImageDisplayGUI.contrastVal.value())
+        brightness = ImageEnhance.Brightness(imOutput)
+        imOutput = brightness.enhance(self.editImageDisplayGUI.brightnessVal.value())
+        sharpness = ImageEnhance.Sharpness(imOutput)
+        imOutput = sharpness.enhance(self.editImageDisplayGUI.sharpnessVal.value())
+        imOutput.save(os.path.join("Junk", "bModeIm.png"))
+        self.plotOnCanvas()
+
+    def clearRect(self, event):
+        if len(self.ax.patches) > 0:
+            self.ax.patches.pop()
+            self.canvas.draw()
+
+    
+    def interpolatePoints(self, event): # Update ROI being drawn using spline using 2D interpolation
+        try:
+            if self.ImDisplayInfo.numSamplesDrOut == 1400:
+                # Preset 1 boundaries for 20220831121844_IQ.bin
+                leftSlope = (500 - 0)/(154.22 - 148.76)
+                pointSlopeLeft = (event.ydata - 0) / (event.xdata - 148.76)
+                if pointSlopeLeft <= 0 or leftSlope < pointSlopeLeft:
+                    return
+                
+                bottomSlope = (386.78 - 358.38) / (716 - 0)
+                pointSlopeBottom = (event.ydata - 358.38) / (event.xdata - 0)
+                rightSlope = (500 - 0) / (509.967 - 572.47)
+                pointSlopeRight = (event.ydata - 0) / (event.xdata - 572.47)
+
+            elif self.ImDisplayInfo.numSamplesDrOut == 1496:
+                # Preset 2 boundaries for 20220831121752_IQ.bin
+                leftSlope = (500 - 0) / (120.79 - 146.9)
+                pointSlopeLeft = (event.ydata - 0) / (event.xdata - 146.9)
+                if pointSlopeLeft > leftSlope and pointSlopeLeft <= 0:
+                    return
+                
+                bottomSlope = (500 - 462.41) / (644.76 - 0)
+                pointSlopeBottom = (event.ydata - 462.41) / (event.xdata - 0)
+                rightSlope = (500 - 0) / (595.84 - 614.48)
+                pointSlopeRight = (event.ydata - 0) / (event.xdata - 614.48)
+            
+            elif self.ImDisplayInfo.numSamplesDrOut != -1:
+                print("Preset not found!")
+                return
+
+            if pointSlopeBottom > bottomSlope:
+                    return
+            if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
+                return
+        except:
+            pass
+
+        self.pointsPlottedX.append(int(event.xdata))
+        self.pointsPlottedY.append(int(event.ydata))
+        plottedPoints = len(self.pointsPlottedX)
+
+        if plottedPoints > 1:
+            if plottedPoints > 2:
+                oldSpline = self.spline.pop(0)
+                oldSpline.remove()
+
+            xSpline, ySpline = calculateSpline(self.pointsPlottedX, self.pointsPlottedY)
+            self.spline = self.ax.plot(xSpline, ySpline, color = "cyan", zorder=1, linewidth=0.75)
+            plt.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
+            plt.tick_params(bottom=False, left=False)
+        self.scatteredPoints.append(self.ax.scatter(self.pointsPlottedX[-1], self.pointsPlottedY[-1], marker="o", s=0.5, c="red", zorder=500))
+        self.canvas.draw()
+
+    def drawRect(self, event1, event2):
+        try:
+            if self.ImDisplayInfo.numSamplesDrOut == 1400:
+                # Preset 1 boundaries for 20220831121844_IQ.bin
+                leftSlope = (500 - 0)/(154.22 - 148.76)
+                pointSlopeLeft = (event1.ydata - 0) / (event1.xdata - 148.76)
+                if pointSlopeLeft <= 0 or leftSlope < pointSlopeLeft:
+                    return
+                pointSlopeLeft = (event2.ydata - 0) / (event2.xdata - 148.76)
+                if pointSlopeLeft <= 0 or leftSlope < pointSlopeLeft:
+                    return
+                
+                bottomSlope = (386.78 - 358.38) / (716 - 0)
+                pointSlopeBottom = (event1.ydata - 358.38) / (event1.xdata - 0)
+                if pointSlopeBottom > bottomSlope:
+                    return
+                pointSlopeBottom = (event2.ydata - 358.38) / (event2.xdata - 0)
+                if pointSlopeBottom > bottomSlope:
+                    return
+                rightSlope = (500 - 0) / (509.967 - 572.47)
+                pointSlopeRight = (event1.ydata - 0) / (event1.xdata - 572.47)
+                if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
+                    return
+                pointSlopeRight = (event2.ydata - 0) / (event2.xdata - 572.47)
+                if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
+                    return
+
+            elif self.ImDisplayInfo.numSamplesDrOut == 1496:
+                # Preset 2 boundaries for 20220831121752_IQ.bin
+                leftSlope = (500 - 0) / (120.79 - 146.9)
+                pointSlopeLeft = (event1.ydata - 0) / (event1.xdata - 146.9)
+                if pointSlopeLeft > leftSlope and pointSlopeLeft <= 0:
+                    return
+                pointSlopeLeft = (event2.ydata - 0) / (event2.xdata - 146.9)
+                if pointSlopeLeft > leftSlope and pointSlopeLeft <= 0:
+                    return
+                
+                bottomSlope = (500 - 462.41) / (644.76 - 0)
+                pointSlopeBottom = (event1.ydata - 462.41) / (event1.xdata - 0)
+                if pointSlopeBottom > bottomSlope:
+                    return
+                pointSlopeBottom = (event2.ydata - 462.41) / (event2.xdata - 0)
+                if pointSlopeBottom > bottomSlope:
+                    return
+                rightSlope = (500 - 0) / (595.84 - 614.48)
+                pointSlopeRight = (event1.ydata - 0) / (event1.xdata - 614.48)
+                if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
+                    return
+                pointSlopeRight = (event2.ydata - 0) / (event2.xdata - 614.48)
+                if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
+                    return
+            
+            elif self.ImDisplayInfo.numSamplesDrOut != -1:
+                print("Preset not found!")
+                return
+
+        except:
+            pass
+        
+        self.AnalysisInfo.rectCoords = [int(event1.xdata), int(event1.ydata), int(event2.xdata), int(event2.ydata)]
+        self.plotPatch()
+
+    def plotPatch(self):
+        if len(self.AnalysisInfo.rectCoords) > 0:
+            left, bottom, right, top = self.AnalysisInfo.rectCoords
+            rect = patches.Rectangle((left, bottom), (right-left), (top-bottom), linewidth=1, edgecolor='cyan', facecolor='none')
+            if len(self.ax.patches) > 0:
+                self.ax.patches.pop()
+
+            self.ax.add_patch(rect)
+            
+            xScale = self.AnalysisInfo.roiWidthScale/(self.AnalysisInfo.pixWidth)
+            mplPixWidth = abs(right - left)
+            imPixWidth = mplPixWidth / xScale
+            mmWidth = self.AnalysisInfo.lateralRes * imPixWidth # (mm/pixel)*pixels
+            self.physicalRectWidthVal.setText(str(np.round(mmWidth, decimals=2)))
+
+            yScale = self.AnalysisInfo.roiDepthScale/(self.AnalysisInfo.pixDepth)
+            mplPixHeight = abs(top - bottom)
+            imPixHeight = mplPixHeight / yScale
+            mmHeight = self.AnalysisInfo.axialRes * imPixHeight # (mm/pixel)*pixels
+            self.physicalRectHeightVal.setText(str(np.round(mmHeight, decimals=2)))
+
+            plt.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
+            plt.tick_params(bottom=False, left=False)
+            self.canvas.draw()
+
+
+    def acceptRect(self):
+        if len(self.ax.patches) == 1:
+            left, bottom = self.ax.patches[0].get_xy()
+            left = int(left)
+            bottom = int(bottom)
+            width = int(self.ax.patches[0].get_width())
+            height = int(self.ax.patches[0].get_height())
+            self.pointsPlottedX = list(range(left, left+width)) + list(np.ones(height).astype(int)*(left+width-1)) + list(range(left+width-1, left-1, -1)) + list(np.ones(height).astype(int)*left)
+            self.pointsPlottedY = list(np.ones(width).astype(int)*bottom) + list(range(bottom, bottom+height)) + list(np.ones(width).astype(int)*(bottom+height-1)) + list(range(bottom+height-1, bottom-1, -1))
+            self.finalSplineX = np.array(self.pointsPlottedX) # Image boundaries already addressed at plotting phase
+            self.finalSplineY = np.array(self.pointsPlottedY) # Image boundaries already addressed at plotting phase
+            self.acceptROI()
 
     def acceptROI(self):
-        if len(self.curPointsPlottedX) > 1 and self.curPointsPlottedX[-1] == self.curPointsPlottedX[0]:
-            del self.analysisParamsGUI
+        if len(self.pointsPlottedX) > 1 and self.pointsPlottedX[0] == self.pointsPlottedX[-1]:
+            self.AnalysisInfo.finalSplineX = self.finalSplineX
+            self.AnalysisInfo.finalSplineY = self.finalSplineY
+            self.AnalysisInfo.curPointsPlottedX = self.pointsPlottedX[:-1]
+            self.AnalysisInfo.curPointsPlottedY = self.pointsPlottedY[:-1]
+            self.AnalysisInfo.dataFrame = self.dataFrame
 
-            if self.multipleFrames:
-                imData = np.array(self.imArray[self.frame]).reshape(self.arHeight, self.arWidth)
-            else:
-                imData = self.imArray
-            imData = np.flipud(imData)
-            imData = np.require(imData, np.uint8, 'C')
-            bytesLine = imData.strides[0]
-            arHeight = imData.shape[0]
-            arWidth = imData.shape[1]
-            savedIm = QImage(imData, arWidth, arHeight, bytesLine, QImage.Format_Grayscale8).scaled(self.widthScale, self.depthScale)
-
-            savedIm.mirrored().save(os.path.join("Junk", "bModeImRaw.png"))
-            savedIm.mirrored().save(os.path.join("Junk", "bModeIm.png"))
-            self.analysisParamsGUI = AnalysisParamsGUI()
-            self.analysisParamsGUI.finalSplineX = self.xSpline - ((721 - self.widthScale)/2)
-            self.analysisParamsGUI.finalSplineY = self.ySpline - ((501 - self.depthScale)/2)
-            self.analysisParamsGUI.curPointsPlottedX = self.curPointsPlottedX
-            self.analysisParamsGUI.curPointsPlottedY = self.curPointsPlottedY
-            self.analysisParamsGUI.frame = self.frame
-            self.analysisParamsGUI.imArray = self.imArray
-            self.analysisParamsGUI.dataFrame = self.dataFrame
-            self.analysisParamsGUI.imageDepthVal.setText(str(np.round(self.imgInfoStruct.depth, decimals=1)))
-            self.analysisParamsGUI.imageWidthVal.setText(str(np.round(self.imgInfoStruct.width, decimals=1)))
-
-            speedOfSoundInTissue = 1540 #m/s
-            self.waveLength = (speedOfSoundInTissue/self.imgInfoStruct.centerFrequency)*1000 #mm
-            self.analysisParamsGUI.axWinSizeVal.setValue(self.waveLength*10)
-            self.analysisParamsGUI.latWinSizeVal.setValue(self.waveLength*10)
-            # self.analysisParamsGUI.yBorderMin = (721 - self.widthScale)/2
-            # self.analysisParamsGUI.xBorderMin = (501 - self.depthScale)/2
-            self.analysisParamsGUI.imWidthScale = self.widthScale
-            self.analysisParamsGUI.imDepthScale = self.depthScale
-
-            self.analysisParamsGUI.axOverlapVal.setValue(self.axOverlapVal)
-            self.analysisParamsGUI.latOverlapVal.setValue(self.latOverlapVal)
-            self.analysisParamsGUI.windowThresholdVal.setValue(95)
-            self.analysisParamsGUI.minFreqVal.setValue(np.round(self.imgInfoStruct.minFrequency/1000000, decimals=2))
-            self.analysisParamsGUI.maxFreqVal.setValue(np.round(self.imgInfoStruct.maxFrequency/1000000, decimals=2))
-            self.analysisParamsGUI.lowBandFreqVal.setValue(np.round(self.imgInfoStruct.lowBandFreq/1000000, decimals=2))
-            self.analysisParamsGUI.upBandFreqVal.setValue(np.round(self.imgInfoStruct.upBandFreq/1000000, decimals=2))
-            self.analysisParamsGUI.samplingFreqVal.setValue(np.round(self.imgInfoStruct.samplingFrequency/1000000, decimals=2))
-            self.analysisParamsGUI.setFilenameDisplays(self.imagePathInput.text().split('/')[-1], self.phantomPathInput.text().split('/')[-1])
+            self.analysisParamsGUI.AnalysisInfo = self.AnalysisInfo # Pass all image info to next layer
             self.analysisParamsGUI.lastGui = self
+            self.analysisParamsGUI.setFilenameDisplays(self.imagePathInput.text().split('/')[-1], self.phantomPathInput.text().split('/')[-1])
             self.analysisParamsGUI.plotRoiPreview()
             self.analysisParamsGUI.show()
+            self.editImageDisplayGUI.hide()
             self.hide()
 
 def calculateSpline(xpts, ypts): # 2D spline interpolation
@@ -544,9 +798,3 @@ def calculateSpline(xpts, ypts): # 2D spline interpolation
         tck, u_ = interpolate.splprep(cv.T, s=0.0, k=3)
     x,y = np.array(interpolate.splev(np.linspace(0, 1, 1000), tck))
     return x, y
-
-def removeDuplicates(ar):
-        # Credit: https://stackoverflow.com/questions/480214/how-do-i-remove-duplicates-from-a-list-while-preserving-order
-        seen = set()
-        seen_add = seen.add
-        return [x for x in ar if not (tuple(x) in seen or seen_add(tuple(x)))]

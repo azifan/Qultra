@@ -3,7 +3,8 @@ from openpyxl import load_workbook, Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 import os
 import re
-from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
+
+from PyQt5.QtWidgets import QWidget, QFileDialog, QApplication
 
 import platform
 system = platform.system()
@@ -75,7 +76,7 @@ class ExportDataGUI(Ui_exportData, QWidget):
                 border: 0px;
                 font-weight:bold;
             }""")
-
+            
         self.newFolderPathInput.setHidden(True)
         self.newFileNameInput.setHidden(True)
         self.newFolderPathLabel.setHidden(True)
@@ -155,7 +156,7 @@ class ExportDataGUI(Ui_exportData, QWidget):
 
     def createNewFile(self):
         if os.path.exists(self.newFolderPathInput.text()):
-            if not (self.newFileNameInput.text().endswith(".xlsx") and (not bool(re.search(r"\s", self.newFileNameInput.text())))):
+            if not (self.newFileNameInput.text().endswith(".xlsx") and (self.newFileNameInput.text() != ".xlsx") and (not bool(re.search(r"\s", self.newFileNameInput.text())))):
                 self.fileNameWarningLabel.setHidden(True)
                 self.fileNameErrorLabel.setHidden(False)
                 return
@@ -248,4 +249,3 @@ if __name__ == "__main__":
     # ui.selectImage.show()
     ui.show()
     sys.exit(app.exec_())
-    

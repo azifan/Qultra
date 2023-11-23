@@ -1,7 +1,8 @@
 from UtcTool2d.loadRoi_ui import *
 import os
 import csv
-from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
+
+from PyQt5.QtWidgets import QWidget, QFileDialog
 
 class LoadRoiGUI(Ui_loadRoi, QWidget):
     def __init__(self):
@@ -25,7 +26,7 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
 
     def clearFile(self):
         self.roiPathInput.clear()
-
+    
     def getRoiPath(self):
         if os.path.exists(self.roiPathInput.text()):
             imageName = ''
@@ -35,21 +36,23 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
                 for row in reader:
                     if line_count == 1:
                         imageName = row[0]
-                        self.chooseRoiGUI.curPointsPlottedX = row[1][1:-1].split(',')
-                        self.chooseRoiGUI.curPointsPlottedX = [int(num) for num in self.chooseRoiGUI.curPointsPlottedX]
-                        self.chooseRoiGUI.curPointsPlottedY = row[2][1:-1].split(',')
-                        self.chooseRoiGUI.curPointsPlottedY = [int(num) for num in self.chooseRoiGUI.curPointsPlottedY]
-                        try:
-                            self.chooseRoiGUI.frame = int(row[3])
-                            self.chooseRoiGUI.curFrameSlider.setValue(self.chooseRoiGUI.frame)
-                            self.chooseRoiGUI.curFrameChanged()
-                        except:
-                            self.chooseRoiGUI.frame = None
+                        roiType = row[1]
+                        if roiType == "Freehand":
+                            self.chooseRoiGUI.pointsPlottedX = row[2][1:-1].split(',')
+                            self.chooseRoiGUI.pointsPlottedX = [int(num) for num in self.chooseRoiGUI.pointsPlottedX]
+                            self.chooseRoiGUI.pointsPlottedY = row[3][1:-1].split(',')
+                            self.chooseRoiGUI.pointsPlottedY = [int(num) for num in self.chooseRoiGUI.pointsPlottedY]
+                            self.chooseRoiGUI.acceptLoadedRoiButton.clicked.connect(self.chooseRoiGUI.acceptROI)
+                        else:
+                            self.chooseRoiGUI.AnalysisInfo.rectCoords = row[4][1:-1].split(',')
+                            self.chooseRoiGUI.AnalysisInfo.rectCoords = [int(num) for num in self.chooseRoiGUI.AnalysisInfo.rectCoords]
+                            self.chooseRoiGUI.plotPatch()
+                            self.chooseRoiGUI.acceptLoadedRoiButton.clicked.connect(self.chooseRoiGUI.acceptRect)
                         break
                     line_count += 1
             if imageName != self.chooseRoiGUI.imagePathInput.text():
-                self.chooseRoiGUI.curPointsPlottedX = []
-                self.chooseRoiGUI.curPointsPlottedY = []
+                self.chooseRoiGUI.pointsPlottedX = []
+                self.chooseRoiGUI.pointsPlottedY = []
                 print("Selected ROI for wrong image")
                 return
             self.chooseRoiGUI.closeInterpolation()
@@ -60,5 +63,7 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
             self.chooseRoiGUI.drawRoiButton.setChecked(True)
             self.chooseRoiGUI.drawRoiButton.setCheckable(True)
             self.chooseRoiGUI.redrawRoiButton.setHidden(True)
+            self.chooseRoiGUI.drawRectangleButton.setHidden(True)
+            self.chooseRoiGUI.closeRoiButton.setHidden(True)
             self.hide()
             self.chooseRoiGUI.show()

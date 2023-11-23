@@ -1,10 +1,10 @@
-from UtcTool2dIQ.roiSelection_ui import *
-from UtcTool2dIQ.editImageDisplay_ui_helper import *
-from UtcTool2dIQ.rfAnalysis_ui import *
-from UtcTool2dIQ.exportData_ui_helper import *
-from UtcTool2dIQ.saveRoi_ui_helper import *
-from UtcTool2dIQ.psGraphDisplay_ui_helper import *
-from Utils.roiFuncs import roiWindowsGenerator
+from UtcTool2d.roiSelection_ui import *
+from UtcTool2d.editImageDisplay_ui_helper import *
+from UtcTool2d.rfAnalysis_ui import *
+from Utils.roiFuncs import *
+from UtcTool2d.exportData_ui_helper import *
+from UtcTool2d.saveRoi_ui_helper import *
+from UtcTool2d.psGraphDisplay_ui_helper import *
 
 import os
 import numpy as np
@@ -13,48 +13,14 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib
 import scipy.interpolate as interpolate
-
-from PyQt5.QtWidgets import QWidget, QHBoxLayout
+from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout
 
 import platform
 system = platform.system()
 
-class AnalysisInfo():
-    def __init__(self):
-        self.finalSplineX = None
-        self.finalSplineY = None
-        self.curPointsPlottedX = None
-        self.curPointsPlottedY = None
-        self.imArray = None
-        self.dataFrame = None
-        self.rectCoords = None
-        self.computeSpecWindows = None
-        self.frame = None
-
-        self.imRawData = None
-        self.phantomRawData = None
-        self.scImRawData = None
-        self.scPhantomRawData = None
-
-        self.axialRes = None
-        self.lateralRes = None
-        self.lowBandFreq = None
-        self.upBandFreq = None
-        self.pixDepth = None
-        self.pixWidth = None
-        self.axialWinSize = None
-        self.lateralWinSize = None
-        self.axialOverlap = None
-        self.lateralOverlap = None
-        self.threshold = None
-        self.minFrequency = None
-        self.maxFrequency = None
-        self.samplingFreq = None
-        self.roiWidthScale = None
-        self.roiDepthScale = None
 
 class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
-    def __init__(self):
+    def __init__(self, splineX, splineY):
         super().__init__()
         self.setupUi(self)
 
@@ -181,8 +147,9 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
 	            background-color: rgba(0,0,0,0);
             }""")
 
-        global roisLeft, roisRight, roisTop, roisBottom, mbf, ss, si, minMBF, minSS, minSI, PsGraphDisplayGUI, windowNPSs, windowFreqs, mbfPoint, \
-        maxMBF, maxSS, maxSI, curDisp, cmap, tempROISelected, selectedROI, indMBF, indSI, indSS, scanConverted
+            
+        global roisLeft, roisRight, roisTop, roisBottom, mbf, ss, si, minMBF, minSS, minSI, windowNPSs, windowFreqs, mbfPoint, \
+        maxMBF, maxSS, maxSI, curDisp, cmap, tempROISelected, selectedROI, indMBF, indSI, indSS, scanConverted, PsGraphDisplayGUI
         roisLeft = []
         roisRight = []
         roisTop = []
@@ -205,10 +172,33 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         indSS = None
         scanConverted = False
         PsGraphDisplayGUI = PsGraphDisplay()
+        mbfPoint = None
 
-        self.AnalysisInfo = None
+        self.splineX = splineX
+        self.splineY = splineY
+        self.imgDataStruct = None
+        self.imgInfoStruct = None
+        self.refDataStruct = None
+        self.refInfoStruct = None
+        self.frame = None
+        self.dataFrame = None
         self.exportDataGUI = None
         self.newData = None
+        self.curPointsPlottedX = None
+        self.curPointsPlottedY = None
+        self.widthScale = None
+        self.depthScale = None
+
+        self.axialWinSize = None
+        self.lateralWinSize = None
+        self.axialOverlap = None
+        self.lateralOverlap = None
+        self.windowThreshold = None
+        self.minFrequency = None
+        self.maxFrequency = None
+        self.samplingFreq = None
+        self.lowBandFreq = None
+        self.upBandFreq = None
         self.lastGui = None
         self.saveRoiGUI = SaveRoiGUI()
 
@@ -224,7 +214,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.horizontalLayout = QHBoxLayout(self.imDisplayFrame)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.figure = plt.figure()
-        self.ax = self.figure.add_subplot(111)
+        self.figure.patch.set_alpha(0)
         self.canvas = FigureCanvas(self.figure)
         self.horizontalLayout.addWidget(self.canvas)
 
@@ -240,18 +230,17 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.displaySsButton.clicked.connect(self.ssChecked)
         self.displaySiButton.clicked.connect(self.siChecked)
         self.chooseWindowButton.clicked.connect(self.chooseWindow)
-        self.editImageDisplayGUI.contrastVal.setValue(1)
-        self.editImageDisplayGUI.brightnessVal.setValue(1)
-        self.editImageDisplayGUI.sharpnessVal.setValue(1)
         self.editImageDisplayGUI.contrastVal.valueChanged.connect(self.changeContrast)
         self.editImageDisplayGUI.brightnessVal.valueChanged.connect(self.changeBrightness)
         self.editImageDisplayGUI.sharpnessVal.valueChanged.connect(self.changeSharpness)
+        self.editImageDisplayGUI.contrastVal.setValue(1)
+        self.editImageDisplayGUI.brightnessVal.setValue(1)
+        self.editImageDisplayGUI.sharpnessVal.setValue(1)
         
         # Prepare heatmap legend plot
         self.horizLayoutLeg = QHBoxLayout(self.legend)
         self.horizLayoutLeg.setObjectName("horizLayoutLeg")
         self.figLeg = plt.figure()
-        # self.figAx = self.figLeg.add_subplot(111)
         self.canvasLeg = FigureCanvas(self.figLeg)
         self.horizLayoutLeg.addWidget(self.canvasLeg)
         self.canvasLeg.draw()
@@ -268,7 +257,6 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             PsGraphDisplayGUI.show()
         else:
             PsGraphDisplayGUI.hide()
-
 
     def saveRoi(self):
         self.saveRoiGUI.rfAnalysisGUI = self
@@ -292,9 +280,9 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
 
     def backToLastScreen(self):
         global PsGraphDisplayGUI
+        self.lastGui.dataFrame = self.dataFrame
         PsGraphDisplayGUI.hide()
         del PsGraphDisplayGUI
-        self.lastGui.AnalysisInfo.dataFrame = self.AnalysisInfo.dataFrame
         self.lastGui.show()
         self.hide()
 
@@ -358,18 +346,18 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         if (len(vals2) != len(axes)):
             return False
         for i in range(len(vals2)):
-            if not (vals2[i] > 0 and vals2[i] < self.AnalysisInfo.imRawData.shape[axes[i]]):
+            if not (vals2[i] > 0 and vals2[i] < self.imgDataStruct.rf.shape[axes[i]]):
                 return False
         return True
     
     def plotOnCanvas(self): # Plot current image on GUI
-        self.ax.clear()
+        self.figure.clear()
+        self.ax = self.figure.add_subplot(111)
         im = plt.imread(os.path.join("Junk", "bModeIm.png"))
         self.ax.imshow(im, cmap='Greys_r')
-        self.figure.set_facecolor((0,0,0,0))
-        self.ax.axis("off")
+        self.ax.axis('off')
 
-        self.ax.plot(self.AnalysisInfo.finalSplineX, self.AnalysisInfo.finalSplineY, color = "cyan", zorder=1, linewidth=0.75)
+        self.ax.plot(self.splineX, self.splineY, color = "cyan", zorder=1, linewidth=0.75)
         self.figure.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
         self.cursor = matplotlib.widgets.Cursor(self.ax, color="gold", linewidth=0.4, useblit=True)
         self.cursor.set_active(False)
@@ -430,19 +418,21 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         # Compute ROI windows
         global scanConverted
         try:
-            self.roiWindowSplinesStruct, self.roiWindowSplinesStructPreSC = roiWindowsGenerator(self.AnalysisInfo.finalSplineX, self.AnalysisInfo.finalSplineY, self.AnalysisInfo.pixDepth, self.AnalysisInfo.pixWidth, self.AnalysisInfo.axialWinSize, self.AnalysisInfo.lateralWinSize, self.AnalysisInfo.axialRes, self.AnalysisInfo.lateralRes, self.AnalysisInfo.axialOverlap, self.AnalysisInfo.lateralOverlap, self.AnalysisInfo.threshold, self.AnalysisInfo.scImRawData.xmap, self.AnalysisInfo.scImRawData.ymap)
+            self.roiWindowSplinesStruct, self.roiWindowSplinesStructPreSC = roiWindowsGenerator(self.splineX, self.splineY, self.imgDataStruct.scBmode.shape[0], self.imgDataStruct.scBmode.shape[1], self.axialWinSize, self.lateralWinSize, self.imgInfoStruct.axialRes, self.imgInfoStruct.lateralRes, self.axialOverlap, self.lateralOverlap, self.windowThreshold, self.imgDataStruct.scRF.xmap, self.imgDataStruct.scRF.ymap)
             scanConverted = False
             self.cleanStructs()
         except:
-            scanConverted = True
-            xScale = self.AnalysisInfo.roiWidthScale/self.AnalysisInfo.pixWidth 
-            yScale = self.AnalysisInfo.roiDepthScale/self.AnalysisInfo.pixDepth
-            x = self.AnalysisInfo.finalSplineX/xScale
-            y = self.AnalysisInfo.finalSplineY/yScale
-            self.roiWindowSplinesStruct = roiWindowsGenerator(x, y, self.AnalysisInfo.pixDepth, self.AnalysisInfo.pixWidth, self.AnalysisInfo.axialWinSize, self.AnalysisInfo.lateralWinSize, self.AnalysisInfo.axialRes, self.AnalysisInfo.lateralRes, self.AnalysisInfo.axialOverlap, self.AnalysisInfo.lateralOverlap, self.AnalysisInfo.threshold)
+            xScale = self.cvIm.width/(self.imgDataStruct.widthPixels)
+            yScale = self.cvIm.height/(self.imgDataStruct.depthPixels)
+            x = self.splineX/xScale
+            y = self.splineY/yScale
+            self.roiWindowSplinesStruct = roiWindowsGenerator(x, y, self.imgDataStruct.depthPixels, self.imgDataStruct.widthPixels, self.axialWinSize, self.lateralWinSize, self.imgInfoStruct.axialRes, self.imgInfoStruct.lateralRes, self.axialOverlap, self.lateralOverlap, self.windowThreshold)
             self.roiWindowSplinesStructPreSC = self.roiWindowSplinesStruct
+            scanConverted = True
 
     def displayROIWindows(self):
+        self.splineX = np.clip(self.splineX, a_min=0, a_max=self.cvIm.width)
+        self.splineY = np.clip(self.splineY, a_min=0, a_max=self.cvIm.height)
         self.computeROIWindows()
         if len(self.roiWindowSplinesStruct.left) > 0:
             global roisLeft, roisRight, roisTop, roisBottom
@@ -455,15 +445,18 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 roisTop = self.roiWindowSplinesStruct.top
                 roisBottom = self.roiWindowSplinesStruct.bottom
             else:
-                xScale = self.AnalysisInfo.roiWidthScale/self.AnalysisInfo.pixWidth
-                yScale = self.AnalysisInfo.roiDepthScale/self.AnalysisInfo.pixDepth
+                xScale = self.cvIm.width/self.imgDataStruct.widthPixels
+                yScale = self.cvIm.height/self.imgDataStruct.depthPixels
                 for i in range(len(self.roiWindowSplinesStruct.left)):
                     roisLeft.append(self.roiWindowSplinesStruct.left[i]*xScale)#4.2969)
                     roisRight.append(self.roiWindowSplinesStruct.right[i]*xScale)#4.2969)
                     roisTop.append(self.roiWindowSplinesStruct.top[i]*yScale)#/2.79)
                     roisBottom.append(self.roiWindowSplinesStruct.bottom[i]*yScale)#/2.79)
-            
+            # self.frame = None
+            # computeSpecWindows(self.imgDataStruct.rf,self.refDataStruct.rf, self.roiWindowSplinesStructPreSC.top, self.roiWindowSplinesStructPreSC.bottom, self.roiWindowSplinesStructPreSC.left, self.roiWindowSplinesStructPreSC.right, self.minFrequency, self.maxFrequency, self.lowBandFreq, self.upBandFreq, self.samplingFreq, self.frame)
+            # return
             self.computeWindowSpec()
+
             # Populate parameters in av. spectral parameter textbox
             imMBF = str(int(np.average(mbf)*10)/10)
             imSS = str(int(np.average(ss)*100000000)/100)
@@ -474,6 +467,8 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
 
             updateWindows(self.ax)
             self.updateLegend()
+        # else:
+            # self.invalidPath.setText("No statistically significant windows have been found in the\ncurrently drawn ROI.")
         self.plotOnCanvas()
         self.figure.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
         plt.tick_params(bottom=False, left=False)
@@ -481,7 +476,13 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
 
     def computeWindowSpec(self):
         global mbf, ss, si, minMBF, maxMBF, minSS, maxSS, minSI, maxSI, windowNPSs, windowFreqs, PsGraphDisplayGUI, mbfPoint
-        self.winTopBottomDepth, self.winLeftRightWidth, mbf, ss, si, windowFreqs, windowNPSs = self.AnalysisInfo.computeSpecWindows(self.AnalysisInfo.imRawData,self.AnalysisInfo.phantomRawData, self.roiWindowSplinesStructPreSC.top, self.roiWindowSplinesStructPreSC.bottom, self.roiWindowSplinesStructPreSC.left, self.roiWindowSplinesStructPreSC.right, self.AnalysisInfo.minFrequency, self.AnalysisInfo.maxFrequency, self.AnalysisInfo.lowBandFreq, self.AnalysisInfo.upBandFreq, self.AnalysisInfo.samplingFreq, self.AnalysisInfo.frame)
+        if not scanConverted:
+            self.winTopBottomDepth, self.winLeftRightWidth, mbf, ss, si, windowFreqs, windowNPSs = computeSpecWindows(self.imgDataStruct.rf,self.refDataStruct.rf, self.roiWindowSplinesStructPreSC.top, self.roiWindowSplinesStructPreSC.bottom, self.roiWindowSplinesStructPreSC.left, self.roiWindowSplinesStructPreSC.right, self.minFrequency, self.maxFrequency, self.lowBandFreq, self.upBandFreq, self.samplingFreq, None)
+        else:
+            if self.imagePathInput.text().endswith('.rfd'):
+                self.winTopBottomDepth, self.winLeftRightWidth, mbf, ss, si, windowFreqs, windowNPSs = computeSpecWindows(self.imgDataStruct.rf,self.refDataStruct.rf, self.roiWindowSplinesStructPreSC.top, self.roiWindowSplinesStructPreSC.bottom, self.roiWindowSplinesStructPreSC.left, self.roiWindowSplinesStructPreSC.right, self.minFrequency, self.maxFrequency, self.lowBandFreq, self.upBandFreq, self.samplingFreq, self.frame, self.refInfoStruct.filename)
+            else:
+                self.winTopBottomDepth, self.winLeftRightWidth, mbf, ss, si, windowFreqs, windowNPSs = computeSpecWindows(self.imgDataStruct.rf,self.refDataStruct.rf, self.roiWindowSplinesStructPreSC.top, self.roiWindowSplinesStructPreSC.bottom, self.roiWindowSplinesStructPreSC.left, self.roiWindowSplinesStructPreSC.right, self.minFrequency, self.maxFrequency, self.lowBandFreq, self.upBandFreq, self.samplingFreq, None)
         minMBF = min(mbf)
         maxMBF = max(mbf)
         minSS = min(ss)
@@ -496,7 +497,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         avMBF = a*median + b
         windowFreqs /= 1000000 # Hz -> MHz
         x /= 1000000 # Hz -> MHz
-        PsGraphDisplayGUI.ax.vlines([self.AnalysisInfo.lowBandFreq/1000000, self.AnalysisInfo.upBandFreq/1000000], ymin=np.amin(windowNPSs), ymax=np.amax(windowNPSs), colors='purple', label="Band Lims")
+        PsGraphDisplayGUI.ax.vlines([self.imgInfoStruct.lowBandFreq/1000000, self.imgInfoStruct.upBandFreq/1000000], ymin=np.amin(windowNPSs), ymax=np.amax(windowNPSs), colors='purple', label="Band Lims")
         for i in range(len(windowNPSs)):
             PsGraphDisplayGUI.ax.plot(windowFreqs, windowNPSs[i], c='blue', alpha=0.2, zorder=1)
         PsGraphDisplayGUI.ax.plot(windowFreqs, np.mean(windowNPSs, axis=0), c='red', zorder=10, label="NPS")
@@ -508,8 +509,8 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
 
     def updateLegend(self):
         self.figLeg.clear()
-        self.figLeg.set_visible(True)
         a = np.array([[0,1]])
+        self.figLeg = plt.figure()
         if curDisp == "MBF":
             img = plt.imshow(a, cmap='viridis')
             plt.gca().set_visible(False)
@@ -548,10 +549,9 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             cax.set_yticklabels([int(minSI*10)/10,int((((maxSI-minSI)/4)+minSI)*10)/10,int((((maxSI - minSI)/2)+minSI)*10)/10,int(((3*(maxSI-minSI)/4)+minSI)*10)/10,int(maxSI*10)/10])
         elif curDisp == "" or curDisp == "clear":
             self.figLeg.set_visible(False)
-        self.figLeg.set_facecolor((1,1,1,1))
-        # self.horizLayoutLeg.removeWidget(self.canvasLeg)
-        # self.canvasLeg = FigureCanvas(self.figLeg)
-        # self.horizLayoutLeg.addWidget(self.canvasLeg)
+        self.horizLayoutLeg.removeWidget(self.canvasLeg)
+        self.canvasLeg = FigureCanvas(self.figLeg)
+        self.horizLayoutLeg.addWidget(self.canvasLeg)
         self.canvasLeg.draw()
 
     def chooseWindow(self): # select previously computed ROI window to run analysis on
@@ -564,7 +564,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 updateWindows(self.ax)
         else:
             image, = self.ax.plot([], [], marker="o", markersize=3, markerfacecolor="red")
-
+            
             [PsGraphDisplayGUI.ax.lines.pop() for i in range(2)]
             mbfPoint.remove()
             PsGraphDisplayGUI.figure.legend().remove()
@@ -600,6 +600,7 @@ def onSelect(event): # Update ROI window selected after computation
     curDisp = "clear"
     updateWindows(event.inaxes)
     curDisp = temp
+    coloredROI = None
     # Find top window selected
     for i in range(len(roisLeft)-1, -1, -1): 
         p = matplotlib.path.Path([(roisLeft[i], roisBottom[i]), (roisLeft[i], roisTop[i]), (roisRight[i], roisTop[i]), (roisRight[i], roisBottom[i])])
