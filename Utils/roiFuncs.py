@@ -162,7 +162,7 @@ def spectralAnalysisDefault6db(npsNormalized, f, db6LowF, db6HighF):
 def computeSpecWindowsIQ(
     imgRF, refRF, top, bottom, left, right,
     minFrequency, maxFrequency, imgLowBandFreq, imgUpBandFreq,
-    imgSamplingFreq
+    imgSamplingFreq, frame
 ):
 
     # Set some flags
@@ -243,7 +243,7 @@ def computeSpecWindowsIQ(
 
 
 
-def computeSpecWindows(
+def computeSpecWindowsRF(
     imgRF, refRF, top, bottom, left, right,
     minFrequency, maxFrequency, imgLowBandFreq, imgUpBandFreq,
     imgSamplingFreq, frame, phantName=None

@@ -10,7 +10,6 @@ import platform
 
 system = platform.system()
 
-
 class AnalysisParamsGUI(Ui_analysisParams, QWidget):
     def __init__(self):
         super().__init__()
@@ -149,18 +148,9 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
                 font-size: 18px;
             }""")
 
-
-
         self.rfAnalysisGUI = None
         self.lastGui = None
-        self.finalSplineX = None
-        self.finalSplineY = None
-        self.frame = None
-        self.imArray = None
-        self.dataFrame = None
-        self.curPointsPlottedX = None
-        self.curPointsPlottedY = None
-        self.rectCoords = []
+        self.AnalysisInfo = None
 
         self.continueButton.clicked.connect(self.continueToRfAnalysis)
         self.backButton.clicked.connect(self.backToLastScreen)
@@ -171,15 +161,15 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.latOverlapVal.setValue(0)
         self.windowThresholdVal.setValue(50)
 
-        xScale = 721/(self.imArray.shape[1])
-        mplPixWidth = max(self.finalSplineX) - min(self.finalSplineX)
+        xScale = self.AnalysisInfo.roiWidthScale/(self.AnalysisInfo.pixWidth)
+        mplPixWidth = max(self.AnalysisInfo.finalSplineX) - min(self.AnalysisInfo.finalSplineX)
         imPixWidth = mplPixWidth / xScale
-        mmWidth = self.lastGui.imgInfoStruct.lateralRes * imPixWidth # (mm/pixel)*pixels
+        mmWidth = self.AnalysisInfo.lateralRes * imPixWidth # (mm/pixel)*pixels
 
-        yScale = 501/(self.imArray.shape[0])
-        mplPixHeight = max(self.finalSplineY) - min(self.finalSplineY)
+        yScale = self.AnalysisInfo.roiDepthScale/(self.AnalysisInfo.pixDepth)
+        mplPixHeight = max(self.AnalysisInfo.finalSplineY) - min(self.AnalysisInfo.finalSplineY)
         imPixHeight = mplPixHeight / yScale
-        mmHeight = self.lastGui.imgInfoStruct.axialRes * imPixHeight # (mm/pixel)*pixels
+        mmHeight = self.AnalysisInfo.axialRes * imPixHeight # (mm/pixel)*pixels
 
         self.axWinSizeVal.setValue(np.round(mmHeight, decimals=2))
         self.latWinSizeVal.setValue(np.round(mmWidth, decimals=2))
@@ -197,17 +187,17 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             self.maskCoverMesh.fill(0)
             axialRSize = self.axWinSizeVal.value()
             lateralRSize = self.latWinSizeVal.value()
-            axialRes = self.lastGui.imgInfoStruct.axialRes
-            lateralRes = self.lastGui.imgInfoStruct.lateralRes
+            axialRes = self.AnalysisInfo.axialRes
+            lateralRes = self.AnalysisInfo.lateralRes
             axialSize = round(axialRSize/axialRes) # in pixels :: mm/(mm/pixel)
             lateralSize = round(lateralRSize/lateralRes)
             axialOverlap = self.axOverlapVal.value()/100
             lateralOverlap = self.latOverlapVal.value()/100
 
-            xScale = 721/(self.imArray.shape[1])
-            yScale = 501/(self.imArray.shape[0])
-            x = self.finalSplineX/xScale
-            y = self.finalSplineY/yScale
+            xScale = self.AnalysisInfo.roiWidthScale/(self.AnalysisInfo.pixWidth)
+            yScale = self.AnalysisInfo.roiDepthScale/(self.AnalysisInfo.pixDepth)
+            x = self.AnalysisInfo.finalSplineX/xScale
+            y = self.AnalysisInfo.finalSplineY/yScale
 
             # Some axial/lateral dims
             axialSize = round(axialRSize/axialRes) # in pixels :: mm/(mm/pixel)
@@ -236,10 +226,10 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
     def plotRoiPreview(self):
         self.waveLength = self.axWinSizeVal.value()/10
 
-        self.minX = min(self.finalSplineX)
-        self.maxX = max(self.finalSplineX)
-        self.minY = min(self.finalSplineY)
-        self.maxY = max(self.finalSplineY)
+        self.minX = min(self.AnalysisInfo.finalSplineX)
+        self.maxX = max(self.AnalysisInfo.finalSplineX)
+        self.minY = min(self.AnalysisInfo.finalSplineY)
+        self.maxY = max(self.AnalysisInfo.finalSplineY)
 
         quotient = (self.maxX - self.minX) / (self.maxY - self.minY)
         if quotient > (341/231):
@@ -252,16 +242,16 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.xLen = round(self.maxX - self.minX)
         self.yLen = round(self.maxY - self.minY)
 
-        self.xScale = self.imArray.shape[1]/721
-        self.yScale = self.imArray.shape[0]/501
+        self.xScale = self.AnalysisInfo.pixWidth/self.AnalysisInfo.roiWidthScale
+        self.yScale = self.AnalysisInfo.pixDepth/self.AnalysisInfo.roiDepthScale
         self.xLenBmode = round(self.xLen*self.xScale)
         self.yLenBmode = round(self.yLen*self.yScale)
-        self.minXBmode = round(self.minX*self.xScale)
-        self.minYBmode = round(self.minY*self.yScale)
-        endXBmode = min(self.minXBmode+self.xLenBmode, self.imArray.shape[1] - 1)
-        endYBmode = min(self.minYBmode+self.yLenBmode, self.imArray.shape[0] - 1)
-        self.imArray = np.flipud(self.imArray)
-        self.imData = np.require(self.imArray[self.minYBmode:endYBmode, \
+        self.minXBmode = round(self.minX*self.xScale) 
+        self.minYBmode = round(self.minY*self.yScale) 
+        endXBmode = min(self.minXBmode+self.xLenBmode, self.AnalysisInfo.pixWidth - 1)
+        endYBmode = min(self.minYBmode+self.yLenBmode, self.AnalysisInfo.pixDepth - 1)
+        flippedArray = np.flipud(self.AnalysisInfo.imArray)
+        self.imData = np.require(flippedArray[self.minYBmode:endYBmode, \
                                                 self.minXBmode:endXBmode],np.uint8,'C')
         self.arHeight = self.imData.shape[0]
         self.arWidth = self.imData.shape[1]
@@ -271,9 +261,9 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.maskCoverImg = np.zeros((self.yLen, self.xLen, 4))
         self.maskCoverMesh = np.zeros((self.yLenBmode, self.xLenBmode, 4))
 
-        for i in range(len(self.finalSplineX)):
-            self.maskCoverImg[max(round(self.finalSplineY[i] - self.minY - 1), 0):max(round(self.finalSplineY[i] - self.minY - 1), 0)+2, \
-                              max(round(self.finalSplineX[i] - self.minX - 1), 0):max(round(self.finalSplineX[i] - self.minX - 1), 0)+2] = [255, 255, 0, 255]
+        for i in range(len(self.AnalysisInfo.finalSplineX)):
+            self.maskCoverImg[max(round(self.AnalysisInfo.finalSplineY[i] - self.minY - 1), 0):max(round(self.AnalysisInfo.finalSplineY[i] - self.minY - 1), 0)+2, \
+                              max(round(self.AnalysisInfo.finalSplineX[i] - self.minX - 1), 0):max(round(self.AnalysisInfo.finalSplineX[i] - self.minX - 1), 0)+2] = [255, 255, 0, 255]
 
         self.maskCoverImg = np.require(self.maskCoverImg, np.uint8, 'C')
         self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
@@ -291,7 +281,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.latOverlapVal.valueChanged.connect(self.updateRoiSize)
 
     def backToLastScreen(self):
-        self.lastGui.dataFrame = self.dataFrame
+        self.lastGui.AnalysisInfo.dataFrame = self.AnalysisInfo.dataFrame
         self.lastGui.show()
         self.hide()
 
@@ -302,26 +292,20 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.phantomPathInput.setText(phantomName)
 
     def continueToRfAnalysis(self):
+        self.AnalysisInfo.axialWinSize = self.axWinSizeVal.value()
+        self.AnalysisInfo.lateralWinSize = self.latWinSizeVal.value()
+        self.AnalysisInfo.axialOverlap = self.axOverlapVal.value()/100
+        self.AnalysisInfo.lateralOverlap = self.latOverlapVal.value()/100
+        self.AnalysisInfo.threshold = self.windowThresholdVal.value()
+        self.AnalysisInfo.minFrequency = self.minFreqVal.value()*1000000 #Hz
+        self.AnalysisInfo.maxFrequency = self.maxFreqVal.value()*1000000 #Hz
+        self.AnalysisInfo.samplingFreq = self.samplingFreqVal.value()*1000000 #Hz
+        self.AnalysisInfo.lowBandFreq = self.lowBandFreqVal.value()*1000000 #Hz
+        self.AnalysisInfo.upBandFreq = self.upBandFreqVal.value()*1000000 #Hz
+
         del self.rfAnalysisGUI
-        self.rfAnalysisGUI = RfAnalysisGUI(self.finalSplineX, self.finalSplineY)
-        self.rfAnalysisGUI.rectCoords = self.rectCoords
-        self.rfAnalysisGUI.imgDataStruct = self.lastGui.imgDataStruct
-        self.rfAnalysisGUI.imgInfoStruct = self.lastGui.imgInfoStruct
-        self.rfAnalysisGUI.refDataStruct = self.lastGui.refDataStruct
-        self.rfAnalysisGUI.refInfoStruct = self.lastGui.refInfoStruct
-        self.rfAnalysisGUI.curPointsPlottedX = self.curPointsPlottedX
-        self.rfAnalysisGUI.curPointsPlottedY = self.curPointsPlottedY
-        self.rfAnalysisGUI.dataFrame = self.dataFrame
-        self.rfAnalysisGUI.axialWinSize = self.axWinSizeVal.value()
-        self.rfAnalysisGUI.lateralWinSize = self.latWinSizeVal.value()
-        self.rfAnalysisGUI.axialOverlap = self.axOverlapVal.value()/100
-        self.rfAnalysisGUI.lateralOverlap = self.latOverlapVal.value()/100
-        self.rfAnalysisGUI.threshold = self.windowThresholdVal.value()
-        self.rfAnalysisGUI.minFrequency = self.minFreqVal.value()*1000000 #Hz
-        self.rfAnalysisGUI.maxFrequency = self.maxFreqVal.value()*1000000 #Hz
-        self.rfAnalysisGUI.samplingFreq = self.samplingFreqVal.value()*1000000 #Hz
-        self.rfAnalysisGUI.lowBandFreq = self.lowBandFreqVal.value()*1000000 #Hz
-        self.rfAnalysisGUI.upBandFreq = self.upBandFreqVal.value()*1000000 #Hz
+        self.rfAnalysisGUI = RfAnalysisGUI()
+        self.rfAnalysisGUI.AnalysisInfo = self.AnalysisInfo
         self.rfAnalysisGUI.editImageDisplayGUI.contrastVal.setValue(self.lastGui.editImageDisplayGUI.contrastVal.value())
         self.rfAnalysisGUI.editImageDisplayGUI.brightnessVal.setValue(self.lastGui.editImageDisplayGUI.brightnessVal.value())
         self.rfAnalysisGUI.editImageDisplayGUI.sharpnessVal.setValue(self.lastGui.editImageDisplayGUI.sharpnessVal.value())

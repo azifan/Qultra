@@ -120,4 +120,4 @@ def getImage(filePath, phantomPath, OmniOn=1):
     refInfoStruct, focalDepthZone0, b_data_Zone1, b_data_Zone2 = readFileInfo(phantomPath)
     refDataStruct, refInfoStruct = readFileImg(b_data_Zone1, b_data_Zone2, focalDepthZone0, OmniOn, refInfoStruct)
 
-    return imgDataStruct.bMode, imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct
+    return imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct

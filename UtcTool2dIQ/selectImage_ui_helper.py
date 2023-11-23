@@ -103,13 +103,16 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.phantomPathLabelCanon.setHidden(True)
         self.imagePathLabelVerasonics.setHidden(True)
         self.phantomPathLabelVerasonics.setHidden(True)
+        self.imagePathLabel.setHidden(True)
+        self.phantomPathLabel.setHidden(True)
 
         self.welcomeGui = None
         self.roiSelectionGUI = None
         self.dataFrame = None
         self.machine = None
         self.fileExts = None
-        
+
+        self.terasonButton.clicked.connect(self.terasonClicked)
         self.canonButton.clicked.connect(self.canonClicked)
         self.verasonicsButton.clicked.connect(self.verasonicsClicked)
         self.chooseImageFileButton.clicked.connect(self.selectImageFile)
@@ -155,6 +158,8 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
                 self.roiSelectionGUI.openImageVerasonics(self.imagePathInput.text(), self.phantomPathInput.text())
             elif self.machine == "Canon":
                 self.roiSelectionGUI.openImageCanon(self.imagePathInput.text(), self.phantomPathInput.text())
+            elif self.machine == "Terason":
+                self.roiSelectionGUI.openImageTerason(self.imagePathInput.text(), self.phantomPathInput.text())
             else:
                 print("ERROR: Machine match not found")
                 return
@@ -179,6 +184,23 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.selectImageMethodLabel.setHidden(True)
         self.canonButton.setHidden(True)
         self.verasonicsButton.setHidden(True)
+        self.terasonButton.setHidden(True)
+        self.philipsButton.setHidden(True)
+        self.siemensButton.setHidden(True)
+
+    def terasonClicked(self):
+        self.chooseImagePrep()
+        self.selectDataLabel.setHidden(False)
+        self.imagePathLabel.setHidden(False)
+        self.phantomPathLabel.setHidden(False)
+        self.chooseImageFileButton.setHidden(False)
+        self.choosePhantomFileButton.setHidden(False)
+
+        self.imagePathLabel.setText("Input Path to Image file\n (.mat)")
+        self.phantomPathLabel.setText("Input Path to Phantom file\n (.mat)")
+
+        self.machine = 'Terason'
+        self.fileExts = '*.mat'
 
     def canonClicked(self): # Move user to screen to select individual files to generate image
         self.chooseImagePrep()

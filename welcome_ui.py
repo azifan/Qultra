@@ -31,7 +31,7 @@ class Ui_qusPage(object):
         self.qusLabel.setWordWrap(True)
         self.qusLabel.setObjectName("qusLabel")
         self.utc2dButton = QtWidgets.QPushButton(qusPage)
-        self.utc2dButton.setGeometry(QtCore.QRect(350, 220, 491, 51))
+        self.utc2dButton.setGeometry(QtCore.QRect(350, 250, 491, 51))
         self.utc2dButton.setStyleSheet("QPushButton {\n"
 "    color: white;\n"
 "    font-size: 16px;\n"
@@ -39,17 +39,8 @@ class Ui_qusPage(object):
 "    border-radius: 15px;\n"
 "}")
         self.utc2dButton.setObjectName("utc2dButton")
-        self.utc3dButton = QtWidgets.QPushButton(qusPage)
-        self.utc3dButton.setGeometry(QtCore.QRect(350, 330, 491, 51))
-        self.utc3dButton.setStyleSheet("QPushButton {\n"
-"    color: white;\n"
-"    font-size: 16px;\n"
-"    background: rgb(90, 37, 255);\n"
-"    border-radius: 15px;\n"
-"}")
-        self.utc3dButton.setObjectName("utc3dButton")
         self.ceus2dButton = QtWidgets.QPushButton(qusPage)
-        self.ceus2dButton.setGeometry(QtCore.QRect(350, 440, 491, 51))
+        self.ceus2dButton.setGeometry(QtCore.QRect(350, 380, 491, 51))
         self.ceus2dButton.setStyleSheet("QPushButton {\n"
 "    color: white;\n"
 "    font-size: 16px;\n"
@@ -58,7 +49,7 @@ class Ui_qusPage(object):
 "}")
         self.ceus2dButton.setObjectName("ceus2dButton")
         self.ceus3dButton = QtWidgets.QPushButton(qusPage)
-        self.ceus3dButton.setGeometry(QtCore.QRect(350, 550, 491, 51))
+        self.ceus3dButton.setGeometry(QtCore.QRect(350, 510, 491, 51))
         self.ceus3dButton.setStyleSheet("QPushButton {\n"
 "    color: white;\n"
 "    font-size: 16px;\n"
@@ -75,9 +66,7 @@ class Ui_qusPage(object):
         qusPage.setWindowTitle(_translate("qusPage", "QUS Tools"))
         self.qusLabel.setText(_translate("qusPage", "Quantitative Ultrasound (QUS) Tools:"))
         self.utc2dButton.setToolTip(_translate("qusPage", "<html><head/><body><p><br/></p></body></html>"))
-        self.utc2dButton.setText(_translate("qusPage", "2D Ultrasound Tissue Characterization (UTC) with RF Data"))
-        self.utc3dButton.setToolTip(_translate("qusPage", "<html><head/><body><p><br/></p></body></html>"))
-        self.utc3dButton.setText(_translate("qusPage", "2D Ultrasound Tissue Characterization (UTC) with IQ Data"))
+        self.utc2dButton.setText(_translate("qusPage", "2D Ultrasound Tissue Characterization (UTC)"))
         self.ceus2dButton.setToolTip(_translate("qusPage", "<html><head/><body><p><br/></p></body></html>"))
         self.ceus2dButton.setText(_translate("qusPage", "2D Contrast-Enhanced Ultrasound (CEUS) with Motion Correction"))
         self.ceus3dButton.setToolTip(_translate("qusPage", "<html><head/><body><p><br/></p></body></html>"))
