@@ -639,7 +639,7 @@ QTableWidget::item {
 }</string>
    </property>
    <property name="text">
-    <string>NIFTI</string>
+    <string>NIFTI (No MC)</string>
    </property>
   </widget>
   <widget class="QPushButton" name="dicomButton">
@@ -849,7 +849,7 @@ QTableWidget::item {
 }</string>
    </property>
    <property name="text">
-    <string>AVI</string>
+    <string>AVI (No MC)</string>
    </property>
   </widget>
   <widget class="QLabel" name="selectAviLabel">

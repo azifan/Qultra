@@ -306,7 +306,7 @@ def getImage(filename, filedirectory, refname, refdirectory):
 
     [ImgInfo, RefInfo, ImgData, RefData] = getData(Files, RefFiles)
     
-    return ImgData.scBmode, ImgData, ImgInfo, RefData, RefInfo
+    return ImgData, ImgInfo, RefData, RefInfo
 
 
 

@@ -1,9 +1,11 @@
 import Parsers.verasonicsMatParser as vera
 import Parsers.canonBinParser as canon
+import Parsers.terasonRfParser as tera
 from UtcTool2dIQ.roiSelection_ui import *
 from UtcTool2dIQ.editImageDisplay_ui_helper import *
 from UtcTool2dIQ.analysisParamsSelection_ui_helper import *
 from UtcTool2dIQ.loadRoi_ui_helper import *
+from Utils.roiFuncs import computeSpecWindowsIQ
 
 import pydicom
 import os
@@ -22,6 +24,15 @@ from PyQt5.QtGui import QImage
 import platform
 system = platform.system()
 
+class ImDisplayInfo():
+    def __init__(self):
+        self.numSamplesDrOut = None
+        self.centerFrequency = None
+        self.minFrequency = None
+        self.maxFrequency = None
+        self.samplingFrequency = None
+        self.depth = None
+        self.width = None
 
 class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def __init__(self):
@@ -114,6 +125,10 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.acceptLoadedRoiButton.clicked.connect(self.acceptROI)
         self.acceptRectangleButton.clicked.connect(self.acceptRect)
         self.undoLoadedRoiButton.clicked.connect(self.undoRoiLoad)
+
+        self.ImDisplayInfo = ImDisplayInfo()
+        self.RefDisplayInfo = ImDisplayInfo()
+        self.AnalysisInfo = AnalysisInfo()
 
         self.loadRoiGUI = LoadRoiGUI()
         self.pointsPlottedX = []
@@ -266,6 +281,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.ax.clear()
         im = plt.imread(os.path.join("Junk", "bModeIm.png"))
         self.ax.imshow(im, cmap='Greys_r')
+        plt.gcf().set_facecolor((0,0,0,0))
 
         if len(self.pointsPlottedX) > 0:
             self.scatteredPoints.append(self.ax.scatter(self.pointsPlottedX[-1], self.pointsPlottedY[-1], marker="o", s=0.5, c="red", zorder=500))
@@ -274,19 +290,19 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 self.spline = self.ax.plot(xSpline, ySpline, color = "cyan", zorder=1, linewidth=0.75)
         
         try:
-            if self.imgInfoStruct.numSamplesDrOut == 1400:
+            if self.ImDisplayInfo.numSamplesDrOut == 1400:
                 # Preset 1 boundaries for 20220831121844_IQ.bin
                 self.ax.plot([148.76, 154.22], [0, 500], c="purple") # left boundary
                 self.ax.plot([0, 716], [358.38, 386.78], c="purple") # bottom boundary
                 self.ax.plot([572.47, 509.967], [0, 500], c="purple") # right boundary
 
-            elif self.imgInfoStruct.numSamplesDrOut == 1496:
+            elif self.ImDisplayInfo.numSamplesDrOut == 1496:
                 # Preset 2 boundaries for 20220831121752_IQ.bin
                 self.ax.plot([146.9, 120.79], [0, 500], c="purple") # left boundary
                 self.ax.plot([0, 644.76], [462.41, 500], c="purple") # bottom boundary
                 self.ax.plot([614.48, 595.84], [0, 500], c="purple") # right boundary
-            
-            else:
+
+            elif self.ImDisplayInfo.numSamplesDrOut != -1:
                 print("No preset found!")
         except:
             pass
@@ -305,14 +321,14 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         phantFileName = tmpPhantLocation[-1]
         phantFileLocation = phantomFilePath[:len(phantomFilePath)-len(phantFileName)]
 
-        imArray, self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = vera.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation)
-        self.arHeight = imArray.shape[0]
-        self.arWidth = imArray.shape[1]
-        self.imData = np.array(imArray).reshape(self.arHeight, self.arWidth)
+        imArray, imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = vera.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation)
+        self.AnalysisInfo.pixDepth = imArray.shape[0]
+        self.AnalysisInfo.pixWidth = imArray.shape[1]
+        self.imData = np.array(imArray).reshape(self.AnalysisInfo.pixDepth, self.AnalysisInfo.pixWidth)
         self.imData = np.flipud(self.imData) #flipud
         self.imData = np.require(self.imData,np.uint8,'C')
         self.bytesLine = self.imData.strides[0]
-        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8).scaled(721, 501)
+        self.qIm = QImage(self.imData, self.AnalysisInfo.pixWidth, self.AnalysisInfo.pixDepth, self.bytesLine, QImage.Format_Grayscale8).scaled(721, 501)
 
         self.qIm.mirrored().save(os.path.join("Junk", "bModeImRaw.png")) # Save as .png file
 
@@ -331,6 +347,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
         # Implement correct previously assigned image display settings
 
+        self.analysisParamsGUI.computeSpecWindows = computeSpecWindowsIQ
+
         self.cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
         enhancer = ImageEnhance.Contrast(self.cvIm)
 
@@ -344,6 +362,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.plotOnCanvas()
 
     def openImageCanon(self, imageFilePath, phantomFilePath): # Open initial image given data and phantom files previously inputted
+        # Find image and phantom paths
         tmpLocation = imageFilePath.split("/")
         dataFileName = tmpLocation[-1]
         dataFileLocation = imageFilePath[:len(imageFilePath)-len(dataFileName)]
@@ -351,34 +370,93 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         phantFileName = tmpPhantLocation[-1]
         phantFileLocation = phantomFilePath[:len(phantomFilePath)-len(phantFileName)]
 
-        imArray, self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = canon.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation)
-        if self.imgInfoStruct.depth != self.refInfoStruct.depth:
+        # Open both images and record relevant data
+        imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = canon.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation)
+
+        # Assumes scan conversion
+        imArray = imgDataStruct.scBmode
+        self.AnalysisInfo.computeSpecWindows = computeSpecWindowsIQ
+        self.processImage(imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct)
+
+    def openImageTerason(self, imageFilePath, phantomFilePath):
+        imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = tera.getImage(imageFilePath, phantomFilePath)
+
+        # Assumes no scan conversion
+        imArray = imgDataStruct.bMode
+        self.AnalysisInfo.computeSpecWindows = computeSpecWindowsRF
+        self.processImage(imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct)
+
+    def processImage(self, imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct):
+        self.ImDisplayInfo.depth = imgInfoStruct.depth
+        self.ImDisplayInfo.width = imgInfoStruct.width
+        try:
+            self.ImDisplayInfo.numSamplesDrOut = imgInfoStruct.numSamplesDrOut
+            self.RefDisplayInfo.numSamplesDrOut = refInfoStruct.numSamplesDrOut
+        except:
+            self.ImDisplayInfo.numSamplesDrOut = -1
+            self.RefDisplayInfo.numSamplesDrOut = -1
+        self.ImDisplayInfo.centerFrequency = imgInfoStruct.centerFrequency
+        self.ImDisplayInfo.minFrequency = imgInfoStruct.minFrequency
+        self.ImDisplayInfo.maxFrequency = imgInfoStruct.maxFrequency
+        self.ImDisplayInfo.samplingFrequency = imgInfoStruct.samplingFrequency
+        self.AnalysisInfo.pixDepth = imArray.shape[0]
+        self.AnalysisInfo.pixWidth = imArray.shape[1]
+
+        self.RefDisplayInfo.depth = refInfoStruct.depth
+        self.RefDisplayInfo.width = refInfoStruct.width
+        self.RefDisplayInfo.centerFrequency = refInfoStruct.centerFrequency
+        self.RefDisplayInfo.minFrequency = refInfoStruct.minFrequency
+        self.RefDisplayInfo.maxFrequency = refInfoStruct.maxFrequency
+        self.RefDisplayInfo.samplingFrequency = refInfoStruct.samplingFrequency
+
+        if self.ImDisplayInfo.depth != self.ImDisplayInfo.depth:
             print("Presets don't match! Analysis not possible")
             exit()
-        self.arHeight = imArray.shape[0]
-        self.arWidth = imArray.shape[1]
-        self.imData = np.array(imArray).reshape(self.arHeight, self.arWidth)
-        self.imData = np.flipud(self.imData) #flipud
-        self.imData = np.require(self.imData,np.uint8,'C')
-        refData = np.array(self.refDataStruct.scBmode)
-        refData = np.flipud(refData)
-        refData = np.require(refData, np.uint8, 'C')
-        self.bytesLine = self.imData.strides[0]
-        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8).scaled(721, 501)
-        self.qImPhant = QImage(refData, refData.shape[1], refData.shape[0], refData.strides[0], QImage.Format_Grayscale8).scaled(721, 501)
+
+        # Display images correctly
+        quotient = self.ImDisplayInfo.width / self.ImDisplayInfo.depth
+        if quotient > (721/501):
+            self.AnalysisInfo.roiWidthScale = 721
+            self.AnalysisInfo.roiDepthScale = self.AnalysisInfo.roiWidthScale / (self.ImDisplayInfo.width/self.ImDisplayInfo.depth)
+        else:
+            self.AnalysisInfo.roiWidthScale = 501 * quotient
+            self.AnalysisInfo.roiDepthScale = 501
+        self.maskCoverImg = np.zeros([501, 721, 4]) # Hard-coded values match size of frame on GUI
+        self.yBorderMin = 190 + ((501 - self.AnalysisInfo.roiDepthScale)/2)
+        self.yBorderMax = 671 - ((501 - self.AnalysisInfo.roiDepthScale)/2)
+        self.xBorderMin = 400 + ((721 - self.AnalysisInfo.roiWidthScale)/2)
+        self.xBorderMax = 1121 - ((721 - self.AnalysisInfo.roiWidthScale)/2)
+
+        imData = np.array(imArray).reshape(self.AnalysisInfo.pixDepth, self.AnalysisInfo.pixWidth)
+        imData = np.flipud(imData) #flipud
+        imData = np.require(imData,np.uint8,'C')
+        self.bytesLine = imData.strides[0]
+        self.qIm = QImage(imData, self.AnalysisInfo.pixWidth, self.AnalysisInfo.pixDepth, self.bytesLine, QImage.Format_Grayscale8).scaled(self.AnalysisInfo.roiWidthScale, self.AnalysisInfo.roiDepthScale)
+
+        self.AnalysisInfo.axialRes = imgInfoStruct.axialRes
+        self.AnalysisInfo.lateralRes = imgInfoStruct.lateralRes
+        self.AnalysisInfo.imArray = imData
+        self.AnalysisInfo.lowBandFreq = imgInfoStruct.lowBandFreq
+        self.AnalysisInfo.upBandFreq = imgInfoStruct.upBandFreq
+        self.AnalysisInfo.imRawData = imgDataStruct.rf
+        self.AnalysisInfo.phantomRawData = refDataStruct.rf
+        try:
+            self.AnalysisInfo.scImRawData = imgDataStruct.scRF
+            self.AnalysisInfo.scPhantomRawData = imgDataStruct.scRF
+        except:
+            pass
 
         self.qIm.mirrored().save(os.path.join("Junk", "bModeImRaw.png")) # Save as .png file
-        self.qImPhant.mirrored().save(os.path.join("Junk", "phantImRaw.png"))
 
         self.editImageDisplayGUI.contrastVal.setValue(1)
         self.editImageDisplayGUI.brightnessVal.setValue(0.75)
         self.editImageDisplayGUI.sharpnessVal.setValue(3)
 
-        # self.analysisParamsGUI.axWinSizeVal.setValue(self.imgInfoStruct.depth/100)#7#1#1480/20000000*10000 # must be at least 10 times wavelength
-        # self.analysisParamsGUI.latWinSizeVal.setValue(self.imgInfoStruct.width/100)#7#1#1480/20000000*10000 # must be at least 10 times wavelength
+        self.displayInitialImage()
 
+    def displayInitialImage(self):
         speedOfSoundInTissue = 1540 #m/s
-        waveLength = (speedOfSoundInTissue/self.imgInfoStruct.centerFrequency)*1000 #mm
+        waveLength = (speedOfSoundInTissue/self.ImDisplayInfo.centerFrequency)*1000 #mm
         self.analysisParamsGUI.axWinSizeVal.setMinimum(2*waveLength) # should be at least 10 times wavelength, must be at least 2 times
         self.analysisParamsGUI.latWinSizeVal.setMinimum(2*waveLength) # should be at least 10 times wavelength, must be at least 2 times
         self.analysisParamsGUI.axWinSizeVal.setValue(10*waveLength)
@@ -387,29 +465,17 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.analysisParamsGUI.axOverlapVal.setValue(50)
         self.analysisParamsGUI.latOverlapVal.setValue(50)
         self.analysisParamsGUI.windowThresholdVal.setValue(95)
-        self.analysisParamsGUI.minFreqVal.setValue(np.round(self.imgInfoStruct.minFrequency/1000000, decimals=2))
-        self.analysisParamsGUI.maxFreqVal.setValue(np.round(self.imgInfoStruct.maxFrequency/1000000, decimals=2))
-        self.analysisParamsGUI.lowBandFreqVal.setValue(np.round(self.imgInfoStruct.lowBandFreq/1000000, decimals=2))
-        self.analysisParamsGUI.upBandFreqVal.setValue(np.round(self.imgInfoStruct.upBandFreq/1000000, decimals=2))
-        self.analysisParamsGUI.samplingFreqVal.setValue(np.round(self.imgInfoStruct.samplingFrequency/1000000, decimals=2))
-        self.analysisParamsGUI.imageDepthVal.setText(str(np.round(self.imgInfoStruct.depth, decimals=1)))
-        self.analysisParamsGUI.imageWidthVal.setText(str(np.round(self.imgInfoStruct.width, decimals=1)))
-        self.physicalDepthVal.setText(str(np.round(self.imgInfoStruct.depth, decimals=2)))
-        self.physicalWidthVal.setText(str(np.round(self.imgInfoStruct.width, decimals=2)))
-        self.pixelWidthVal.setText(str(self.arWidth))
-        self.pixelDepthVal.setText(str(self.arHeight))
-
-        # Hough transform
-        # import cv2
-        # image = Image.open(os.path.join("Junk", "phantIm.png"))
-        # filtered = cv2.blur(image, (7,7))
-        # filtered = cv2.filter2D(src=gray_arr, ddepth=-1, kernel=filter)
-        # thresh1 = 35
-        # thresh2 = 60
-        # cv2.Canny(filtered, thresh1, thresh2)
-        # cv2.HoughLines(edges, 1, np.pi/180, threshold, min_theta=angle1, max_theta=angle2)
-
-        # Implement correct previously assigned image display settings
+        self.analysisParamsGUI.minFreqVal.setValue(np.round(self.ImDisplayInfo.minFrequency/1000000, decimals=2))
+        self.analysisParamsGUI.maxFreqVal.setValue(np.round(self.ImDisplayInfo.maxFrequency/1000000, decimals=2))
+        self.analysisParamsGUI.lowBandFreqVal.setValue(np.round(self.AnalysisInfo.lowBandFreq/1000000, decimals=2))
+        self.analysisParamsGUI.upBandFreqVal.setValue(np.round(self.AnalysisInfo.upBandFreq/1000000, decimals=2))
+        self.analysisParamsGUI.samplingFreqVal.setValue(np.round(self.ImDisplayInfo.samplingFrequency/1000000, decimals=2))
+        self.analysisParamsGUI.imageDepthVal.setText(str(np.round(self.ImDisplayInfo.depth, decimals=1)))
+        self.analysisParamsGUI.imageWidthVal.setText(str(np.round(self.ImDisplayInfo.width, decimals=1)))
+        self.physicalDepthVal.setText(str(np.round(self.ImDisplayInfo.depth, decimals=2)))
+        self.physicalWidthVal.setText(str(np.round(self.ImDisplayInfo.width, decimals=2)))
+        self.pixelWidthVal.setText(str(self.AnalysisInfo.pixWidth))
+        self.pixelDepthVal.setText(str(self.AnalysisInfo.pixDepth))
 
         self.cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
         enhancer = ImageEnhance.Contrast(self.cvIm)
@@ -458,7 +524,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                     self.spline = self.ax.plot(self.finalSplineX, self.finalSplineY, color = "cyan", linewidth=0.75)
             self.canvas.draw()
             self.drawRoiButton.setChecked(True)
-            self.recordDrawROIClicked()
+            self.recordDrawRoiClicked()
 
     def closeInterpolation(self): # Finish drawing ROI
         if len(self.pointsPlottedX) > 2:
@@ -470,13 +536,13 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.finalSplineX, self.finalSplineY = calculateSpline(self.pointsPlottedX, self.pointsPlottedY)
 
             try:
-                if self.imgInfoStruct.numSamplesDrOut == 1400:
+                if self.ImDisplayInfo.numSamplesDrOut == 1400:
                     self.finalSplineX = np.clip(self.finalSplineX, a_min=148, a_max=573)
                     self.finalSplineY = np.clip(self.finalSplineY, a_min=0.5, a_max=387)
-                elif self.imgInfoStruct.numSamplesDrOut == 1496:
+                elif self.ImDisplayInfo.numSamplesDrOut == 1496:
                     self.finalSplineX = np.clip(self.finalSplineX, a_min=120, a_max=615)
                     self.finalSplineY = np.clip(self.finalSplineY, a_min=0.5, a_max=645)
-                else:
+                elif self.ImDisplayInfo.numSamplesDrOut != -1:
                     print("Preset not found!")
                     return
             except:
@@ -491,19 +557,19 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
             
             try:
-                if self.imgInfoStruct.numSamplesDrOut == 1400:
+                if self.ImDisplayInfo.numSamplesDrOut == 1400:
                     # Preset 1 boundaries for 20220831121844_IQ.bin
                     self.ax.plot([148.76, 154.22], [0, 500], c="purple") # left boundary
                     self.ax.plot([0, 716], [358.38, 386.78], c="purple") # bottom boundary
                     self.ax.plot([572.47, 509.967], [0, 500], c="purple") # right boundary
 
-                elif self.imgInfoStruct.numSamplesDrOut == 1496:
+                elif self.ImDisplayInfo.numSamplesDrOut == 1496:
                     # Preset 2 boundaries for 20220831121752_IQ.bin
                     self.ax.plot([146.9, 120.79], [0, 500], c="purple") # left boundary
                     self.ax.plot([0, 644.76], [462.41, 500], c="purple") # bottom boundary
                     self.ax.plot([614.48, 595.84], [0, 500], c="purple") # right boundary
                 
-                else:
+                elif self.ImDisplayInfo.numSamplesDrOut != -1:
                     print("No preset found!")
             except:
                 pass
@@ -551,7 +617,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     
     def interpolatePoints(self, event): # Update ROI being drawn using spline using 2D interpolation
         try:
-            if self.imgInfoStruct.numSamplesDrOut == 1400:
+            if self.ImDisplayInfo.numSamplesDrOut == 1400:
                 # Preset 1 boundaries for 20220831121844_IQ.bin
                 leftSlope = (500 - 0)/(154.22 - 148.76)
                 pointSlopeLeft = (event.ydata - 0) / (event.xdata - 148.76)
@@ -563,7 +629,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 rightSlope = (500 - 0) / (509.967 - 572.47)
                 pointSlopeRight = (event.ydata - 0) / (event.xdata - 572.47)
 
-            elif self.imgInfoStruct.numSamplesDrOut == 1496:
+            elif self.ImDisplayInfo.numSamplesDrOut == 1496:
                 # Preset 2 boundaries for 20220831121752_IQ.bin
                 leftSlope = (500 - 0) / (120.79 - 146.9)
                 pointSlopeLeft = (event.ydata - 0) / (event.xdata - 146.9)
@@ -575,7 +641,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 rightSlope = (500 - 0) / (595.84 - 614.48)
                 pointSlopeRight = (event.ydata - 0) / (event.xdata - 614.48)
             
-            else:
+            elif self.ImDisplayInfo.numSamplesDrOut != -1:
                 print("Preset not found!")
                 return
 
@@ -604,7 +670,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
     def drawRect(self, event1, event2):
         try:
-            if self.imgInfoStruct.numSamplesDrOut == 1400:
+            if self.ImDisplayInfo.numSamplesDrOut == 1400:
                 # Preset 1 boundaries for 20220831121844_IQ.bin
                 leftSlope = (500 - 0)/(154.22 - 148.76)
                 pointSlopeLeft = (event1.ydata - 0) / (event1.xdata - 148.76)
@@ -629,7 +695,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
                     return
 
-            elif self.imgInfoStruct.numSamplesDrOut == 1496:
+            elif self.ImDisplayInfo.numSamplesDrOut == 1496:
                 # Preset 2 boundaries for 20220831121752_IQ.bin
                 leftSlope = (500 - 0) / (120.79 - 146.9)
                 pointSlopeLeft = (event1.ydata - 0) / (event1.xdata - 146.9)
@@ -654,7 +720,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
                     return
             
-            else:
+            elif self.ImDisplayInfo.numSamplesDrOut != -1:
                 print("Preset not found!")
                 return
 
@@ -673,16 +739,16 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
             self.ax.add_patch(rect)
             
-            xScale = 721/(self.imData.shape[1])
+            xScale = 721/(self.AnalysisInfo.pixWidth)
             mplPixWidth = abs(right - left)
             imPixWidth = mplPixWidth / xScale
-            mmWidth = self.imgInfoStruct.lateralRes * imPixWidth # (mm/pixel)*pixels
+            mmWidth = self.AnalysisInfo.lateralRes * imPixWidth # (mm/pixel)*pixels
             self.physicalRectWidthVal.setText(str(np.round(mmWidth, decimals=2)))
 
-            yScale = 501/(self.imData.shape[0])
+            yScale = 501/(self.AnalysisInfo.pixDepth)
             mplPixHeight = abs(top - bottom)
             imPixHeight = mplPixHeight / yScale
-            mmHeight = self.imgInfoStruct.axialRes * imPixHeight # (mm/pixel)*pixels
+            mmHeight = self.AnalysisInfo.axialRes * imPixHeight # (mm/pixel)*pixels
             self.physicalRectHeightVal.setText(str(np.round(mmHeight, decimals=2)))
 
             plt.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
@@ -705,14 +771,15 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
     def acceptROI(self):
         if len(self.pointsPlottedX) > 1 and self.pointsPlottedX[0] == self.pointsPlottedX[-1]:
-            self.analysisParamsGUI.finalSplineX = self.finalSplineX
-            self.analysisParamsGUI.finalSplineY = self.finalSplineY
-            self.analysisParamsGUI.curPointsPlottedX = self.pointsPlottedX[:-1]
-            self.analysisParamsGUI.curPointsPlottedY = self.pointsPlottedY[:-1]
+            self.AnalysisInfo.finalSplineX = self.finalSplineX
+            self.AnalysisInfo.finalSplineY = self.finalSplineY
+            self.AnalysisInfo.curPointsPlottedX = self.pointsPlottedX[:-1]
+            self.AnalysisInfo.curPointsPlottedY = self.pointsPlottedY[:-1]
+            self.AnalysisInfo.dataFrame = self.dataFrame
+            self.AnalysisInfo.rectCoords = self.rectCoords
+
+            self.analysisParamsGUI.AnalysisInfo = self.AnalysisInfo # Pass all image info to next layer
             self.analysisParamsGUI.lastGui = self
-            self.analysisParamsGUI.imArray = self.imData
-            self.analysisParamsGUI.dataFrame = self.dataFrame
-            self.analysisParamsGUI.rectCoords = self.rectCoords
             self.analysisParamsGUI.setFilenameDisplays(self.imagePathInput.text().split('/')[-1], self.phantomPathInput.text().split('/')[-1])
             self.analysisParamsGUI.plotRoiPreview()
             self.analysisParamsGUI.show()

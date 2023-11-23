@@ -14,25 +14,15 @@ class QusGui(Ui_qusPage, QWidget):
         self.utc2dButton.clicked.connect(self.moveToUtc2d)
         self.ceus3dButton.clicked.connect(self.moveToCeus3d)
         self.ceus2dButton.clicked.connect(self.moveToCeusMc2d)
-        self.utc3dButton.clicked.connect(self.moveToUtc2dIQ)
         self.nextPage = None
         self.utc2dRfData = pd.DataFrame(columns=["Patient", "Phantom", "Midband Fit (MBF)", "Spectral Slope (SS)", "Spectral Intercept (SI)"])
-        self.utc2dIqData = pd.DataFrame(columns=["Patient", "Phantom", "Midband Fit (MBF)", "Spectral Slope (SS)", "Spectral Intercept (SI)"])
         self.ceus2dMcData = pd.DataFrame(columns=["Patient", "Area Under Curve (AUC)", "Peak Enhancement (PE)", "Time to Peak (TP)", "Mean Transit Time (MTT)", "TMPPV", "ROI Area (mm^2)"])
         self.ceus3dData = pd.DataFrame(columns=["Patient",  "Area Under Curve (AUC)", "Peak Enhancement (PE)", "Time to Peak (TP)", "Mean Transit Time (MTT)", "TMPPV", "VOI Volume (mm^3)"])
 
     def moveToUtc2d(self):
         del self.nextPage
-        self.nextPage = SelectImageGUI_UtcTool2d()
-        self.nextPage.dataFrame = self.utc2dRfData
-        self.nextPage.show()
-        self.nextPage.welcomeGui = self
-        self.hide()
-
-    def moveToUtc2dIQ(self):
-        del self.nextPage
         self.nextPage = SelectImageGUI_UtcTool2dIQ()
-        self.nextPage.dataFrame = self.utc2dIqData
+        self.nextPage.dataFrame = self.utc2dRfData
         self.nextPage.show()
         self.nextPage.welcomeGui = self
         self.hide()
