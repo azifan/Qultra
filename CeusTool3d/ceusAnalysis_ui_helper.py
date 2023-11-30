@@ -202,6 +202,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                     aucVal = self.masterParamap[point[0], point[1], point[2], 0]
                     if not self.masterParamap[point[0], point[1], point[2], 3]:
                         color = [0,0,0] # window not able to be fit
+                    elif self.maxAuc == self.minAuc:
+                        color = self.cmap[125]
                     else:
                         color = self.cmap[int((255/(self.maxAuc-self.minAuc))*(aucVal-self.minAuc))]
                 self.paramap[point[0], point[1], point[2]] = [int(color[2]*255), int(color[1]*255), int(color[0]*255),int(self.curAlpha)]   
@@ -247,6 +249,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                     peVal = self.masterParamap[point[0], point[1], point[2], 1]
                     if not self.masterParamap[point[0], point[1], point[2], 3]:
                         color = [0,0,0] # window not able to be fit
+                    elif self.maxPe == self.minPe:
+                        color = self.cmap[125]
                     else:
                         color = self.cmap[int((255/(self.maxPe-self.minPe))*(peVal-self.minPe))]
                 self.paramap[point[0], point[1], point[2]] = [int(color[2]*255), int(color[1]*255), int(color[0]*255),int(self.curAlpha)]   
@@ -292,6 +296,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                     tpVal = self.masterParamap[point[0], point[1], point[2], 2]
                     if not self.masterParamap[point[0], point[1], point[2], 3]:
                         color = [0,0,0] # window not able to be fit
+                    elif self.maxTp == self.minTp:
+                        color = self.cmap = 125
                     else:
                         color = self.cmap[int((255/(self.maxTp-self.minTp))*(tpVal-self.minTp))]
                 self.paramap[point[0], point[1], point[2]] = [int(color[2]*255), int(color[1]*255), int(color[0]*255),int(self.curAlpha)]   
@@ -333,6 +339,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                     mttVal = self.masterParamap[point[0], point[1], point[2], 2]
                     if not self.masterParamap[point[0], point[1], point[2], 3]:
                         color = [0,0,0] # window not able to be fit
+                    elif self.maxMtt == self.minMtt:
+                        color = self.cmap[125]
                     else:
                         color = self.cmap[int((255/(self.maxMtt-self.minMtt))*(mttVal-self.minMtt))]
                 self.paramap[point[0], point[1], point[2]] = [int(color[2]*255), int(color[1]*255), int(color[0]*255),int(self.curAlpha)]   
