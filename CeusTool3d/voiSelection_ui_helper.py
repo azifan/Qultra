@@ -390,7 +390,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.maskCoverImg = np.zeros([self.x, self.y, self.z,4])
         self.curSliceSlider.setMaximum(self.numSlices-1)
 
-        self.header = self.nibImg.header['pixdim'] # [dims, voxel dims (3 vals), timeconst, 0, 0, 0]
+        self.header = self.nibImg.header['pixdim'] # [dims, voxel dims (3 vals), timeconst, 0, 0, 0], assume mm/pix
         self.sliceArray = np.round([i*self.header[4] for i in range(1, self.OGData4dImg.shape[3]+1)], decimals=2)
         self.curSliceSpinBox.setMaximum(self.sliceArray[-1])
         self.curSliceTotal.setText(str(self.sliceArray[-1]))
