@@ -59,6 +59,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.paramapPoints = None
         self.curParamap = None
         self.cmap = None
+        self.newData = None
+        self.exportDataGUI = None
         self.legendDisplay = LegendDisplay()
 
         self.ticDisplay.setHidden(True)

@@ -148,12 +148,17 @@ def read_xmlraw_image_func(filename):
     filename_raw=filename[0:len(filename)-3]+('0.raw');
     fff = open(filename_raw,'rb')
 
+    drive, path = os.path.splitdrive(filename)
+    path, index = os.path.split(path)
+    index = int(os.path.splitext(index)[0])
+
     # parsing xml file
     tree = ET.parse(filename);
     root = tree.getroot();
 
-    # ADD MAX FRAMES TO LOAD
+    # ADD MAX FRAMES TO LOADmm
     numfiles = len(root); # Comment this out if using max num frames on next lines
+    time = 0
 
     for i in range(0, numfiles):
         if  root[i].tag=='Columns':
@@ -190,8 +195,15 @@ def read_xmlraw_image_func(filename):
 
         if root[i].tag=='AcquisitionDateTime':
           tval=root[i].text;
-          dateStr=tval[0:4]+'-'+tval[4:6]+'-'+tval[6:8]+' '+tval[8:10]+':'+tval[10:12]+':'+tval[12:len(tval)];
-          time=float(tval[12:len(tval)])+float(tval[10:12])*60+float(tval[8:10])*3600;
+          try:
+            dateStr=tval[0:4]+'-'+tval[4:6]+'-'+tval[6:8]+' '+tval[8:10]+':'+tval[10:12]+':'+tval[12:len(tval)];
+            time=float(tval[12:len(tval)])+float(tval[10:12])*60+float(tval[8:10])*3600;
+          except:
+              pass
+
+
+    if not time:
+        time = index
 
     x = np.fromfile(fff,dtype=np.uint8)
 
