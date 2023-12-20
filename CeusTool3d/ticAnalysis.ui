@@ -53,9 +53,9 @@
   <widget class="QPushButton" name="selectT0Button">
    <property name="geometry">
     <rect>
-     <x>680</x>
+     <x>450</x>
      <y>690</y>
-     <width>171</width>
+     <width>241</width>
      <height>41</height>
     </rect>
    </property>
@@ -754,6 +754,27 @@
     <set>Qt::NoTextInteraction</set>
    </property>
   </widget>
+  <widget class="QPushButton" name="automaticallySelectT0Button">
+   <property name="geometry">
+    <rect>
+     <x>820</x>
+     <y>690</y>
+     <width>241</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Automatically Select T0 Later</string>
+   </property>
+  </widget>
   <zorder>axialPlane</zorder>
   <zorder>sagPlane</zorder>
   <zorder>maskLayerSag</zorder>
@@ -778,6 +799,7 @@
   <zorder>maskLayerCor</zorder>
   <zorder>corCoverLabel</zorder>
   <zorder>coronalPlaneLabel</zorder>
+  <zorder>automaticallySelectT0Button</zorder>
  </widget>
  <resources/>
  <connections/>

@@ -148,9 +148,9 @@ def read_xmlraw_image_func(filename):
     filename_raw=filename[0:len(filename)-3]+('0.raw');
     fff = open(filename_raw,'rb')
 
-    drive, path = os.path.splitdrive(filename)
-    path, index = os.path.split(path)
-    index = int(os.path.splitext(index)[0])
+    # drive, path = os.path.splitdrive(filename)
+    # path, index = os.path.split(path)
+    # index = int(os.path.splitext(index)[0])
 
     # parsing xml file
     tree = ET.parse(filename);
@@ -201,9 +201,6 @@ def read_xmlraw_image_func(filename):
           except:
               pass
 
-
-    if not time:
-        time = index
 
     x = np.fromfile(fff,dtype=np.uint8)
 

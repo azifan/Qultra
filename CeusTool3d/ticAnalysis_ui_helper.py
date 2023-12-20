@@ -131,8 +131,9 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.ax = self.fig.add_subplot(111)
 
         self.selectT0Button.clicked.connect(self.initT0)
+        self.automaticallySelectT0Button.clicked.connect(self.deferAutomaticT0)
 
-        self.t0Index = -1
+        self.t0Index = -2
         self.selectedPoints = []
         self.frontPointsX = []
         self.frontPointsY = []
@@ -145,7 +146,6 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.timeLine = None
         self.backButton.clicked.connect(self.backToLastScreen)
         self.acceptT0Button.clicked.connect(self.acceptT0)
-        self.acceptTicButton.clicked.connect(self.ceusAnalysisGui.acceptTIC)
 
     def backToLastScreen(self):
         self.lastGui.restartVoiButton.clicked.connect(self.lastGui.restartVoi)
@@ -178,6 +178,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
     def initT0(self):
         self.acceptT0Button.setHidden(False)
         self.selectT0Button.setHidden(True)
+        self.automaticallySelectT0Button.setHidden(True)
         self.t0Slider.setHidden(False)
 
         self.t0Slider.setMinimum(int(min(self.ticX[:,0])))
@@ -186,9 +187,34 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.t0Slider.setValue(0)
         if self.prevLine != None:
             self.prevLine.remove()
-            self.t0Index = -1
+            self.t0Index = -2
         self.prevLine = self.ax.axvline(x = self.t0Slider.value(), color = 'green', label = 'axvline - full height')
         self.canvas.draw()
+        try:
+            self.acceptTicButton.clicked.disconnect()
+        except:
+            pass
+        self.acceptTicButton.clicked.connect(self.ceusAnalysisGui.acceptTIC)
+
+
+    def deferAutomaticT0(self):
+        self.automaticallySelectT0Button.setHidden(True)
+        self.selectT0Button.setHidden(True)
+        self.deSelectLastPointButton.setHidden(False)
+        self.deSelectLastPointButton.clicked.connect(self.deselectLast)
+        self.removeSelectedPointsButton.setHidden(False)
+        self.removeSelectedPointsButton.clicked.connect(self.removeSelectedPoints)
+        self.restoreLastPointsButton.setHidden(False)
+        self.restoreLastPointsButton.clicked.connect(self.restoreLastPoints)
+        self.acceptTicButton.setHidden(False)
+        self.t0Index = -1 # enables rectangular selector
+        self.ax.clear()
+        self.graph(self.ticX, self.ticY)
+        try:
+            self.acceptTicButton.clicked.disconnect()
+        except:
+            pass
+        self.acceptTicButton.clicked.connect(self.ceusAnalysisGui.acceptTICt0)
 
     def graph(self,x,y):
         global ticX, ticY
@@ -213,7 +239,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.1)
         self.fig.canvas.mpl_connect('pick_event', self.selectPoint)
 
-        if self.t0Index > -1:
+        if self.t0Index > -2:
             self.mask = np.zeros(self.ticX[:,0].shape, dtype=bool)
             self.selector = RectangleSelector(self.ax, self.rect_highlight, useblit=True, props = dict(facecolor='cyan', alpha=0.2))
 
@@ -249,7 +275,6 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
 
     def acceptT0(self):
         self.t0Slider.setHidden(True)
-        self.t0Slider.setHidden(True)
         self.acceptT0Button.setHidden(True)
         self.deSelectLastPointButton.setHidden(False)
         self.deSelectLastPointButton.clicked.connect(self.deselectLast)
@@ -259,7 +284,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.restoreLastPointsButton.clicked.connect(self.restoreLastPoints)
         self.acceptTicButton.setHidden(False)
 
-        if self.t0Index == -1:
+        if self.t0Index == -2:
             for i in range(len(self.ticX[:,0])):
                 if self.ticX[:,0][i] > self.t0Slider.value():
                     break

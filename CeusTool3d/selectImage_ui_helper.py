@@ -91,12 +91,16 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.selectNiftiImageLabel.setHidden(True)
         self.selectXmlFolderImageLabel.setHidden(True)
         self.niftiDestinationImageLabel.setHidden(True)
+        self.frameRateLabel.setHidden(True)
+        self.frameRateValue.setHidden(True)
+        self.confirmFrameRateButton.setHidden(True)
 
         self.imageNifti = 0
 
         self.voiSelectionGui = None
         self.welcomeGui = None
         self.dataFrame = None
+        self.timeconst = None
 
         self.selectNiftiImageOptionButton.clicked.connect(self.selectNiftiImageOption)
         self.selectXmlFolderImageOptionButton.clicked.connect(self.selectXmlImageOption)
@@ -148,6 +152,11 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.clearNiftiImageFileButton.setHidden(True)
         self.niftiImagePathInput.setHidden(True)
         self.imageBackButton.setHidden(True)
+        self.frameRateLabel.setHidden(True)
+        self.frameRateValue.setHidden(True)
+        self.confirmFrameRateButton.setHidden(True)
+        self.timeconst = None
+        self.frameRateValue.setValue(0)
 
         self.imageBackButton.clicked.disconnect()
 
@@ -166,6 +175,11 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.imageBackButton.setHidden(True)
         self.selectXmlFolderImageLabel.setHidden(True)
         self.niftiDestinationImageLabel.setHidden(True)
+        self.frameRateLabel.setHidden(True)
+        self.frameRateValue.setHidden(True)
+        self.confirmFrameRateButton.setHidden(True)
+        self.timeconst = None
+        self.frameRateValue.setValue(0)
 
         self.imageBackButton.clicked.disconnect()
 
@@ -203,6 +217,13 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
 
         self.imageNifti = 2 # NIFTI image doesn't exist yet
 
+    def confirmFrameRate(self):
+        self.timeconst = self.frameRateValue.value()
+        self.moveToVoiSelection()
+        self.generateImageButton.setHidden(False)
+        self.frameRateLabel.setHidden(True)
+        self.frameRateValue.setHidden(True)
+        self.confirmFrameRateButton.setHidden(True)
 
     def moveToVoiSelection(self):
         if self.imageNifti:
@@ -212,9 +233,19 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
             if self.imageNifti == 2 and os.path.exists(self.niftiImageDestinationPath.text()) and os.path.isdir(self.niftiImageDestinationPath.text()) and os.path.exists(self.xmlImagePathInput.text()):
                 imagePath = ut.xml2nifti(self.xmlImagePathInput.text(), self.niftiImageDestinationPath.text())
             if imagePath != "":
+                if self.timeconst is None:
+                    self.timeconst = nib.load(imagePath, mmap=False).header['pixdim'][4]
+                if not self.timeconst:
+                    self.generateImageButton.setHidden(True)
+                    self.frameRateLabel.setHidden(False)
+                    self.frameRateValue.setHidden(False)
+                    self.confirmFrameRateButton.setHidden(False)
+                    self.confirmFrameRateButton.clicked.connect(self.confirmFrameRate)
+                    return
                 del self.voiSelectionGui
                 self.voiSelectionGui = VoiSelectionGUI()
                 self.voiSelectionGui.dataFrame = self.dataFrame
+                self.voiSelectionGui.timeconst = 1/self.timeconst
                 self.voiSelectionGui.setFilenameDisplays(imagePath)
                 self.voiSelectionGui.openImage()
                 self.voiSelectionGui.lastGui = self

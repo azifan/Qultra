@@ -133,6 +133,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.lastGui = None
         self.exportDataGUI = None
         self.saveVoiGUI = None
+        self.timeconst = None
 
         self.setMouseTracking(True)
         
@@ -217,7 +218,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.voiAlphaSpinBox.setHidden(False)
         self.voiAlphaStatus.setHidden(False)
         self.voiAlphaTotal.setHidden(False)
-
+        self.restartVoiButton.clicked.connect(self.restartVoi)
 
         self.changeAxialSlices()
         self.changeSagSlices()
@@ -257,6 +258,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     def backToLastScreen(self):
         self.lastGui.dataFrame = self.dataFrame
+        self.lastGui.timeconst = None
         self.lastGui.show()
         self.hide()
 
@@ -284,10 +286,11 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.changeAxialSlices()
         self.changeSagSlices()
         self.changeCorSlices()
+        self.backFromNewVoi()
         self.update()
         
     def computeTic(self):
-        times = [i*self.header[4] for i in range(1, self.OGData4dImg.shape[3]+1)]
+        times = [i*self.timeconst for i in range(1, self.OGData4dImg.shape[3]+1)]
         self.voxelScale = self.header[1]*self.header[2]*self.header[3] #/1000/1000/1000 # mm^3
         self.pointsPlotted = [*set(self.pointsPlotted)]
         print("Voxel volume:", self.voxelScale)
@@ -312,7 +315,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.ticAnalysisGui.removedPointsX = []
         self.ticAnalysisGui.removedPointsY = []
         self.ticAnalysisGui.selectedPoints = []
-        self.ticAnalysisGui.t0Index = -1
+        self.ticAnalysisGui.t0Index = -2
         self.ticAnalysisGui.graph(self.ticX, self.ticY)
 
 
@@ -391,7 +394,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.curSliceSlider.setMaximum(self.numSlices-1)
 
         self.header = self.nibImg.header['pixdim'] # [dims, voxel dims (3 vals), timeconst, 0, 0, 0], assume mm/pix
-        self.sliceArray = np.round([i*self.header[4] for i in range(1, self.OGData4dImg.shape[3]+1)], decimals=2)
+        self.sliceArray = np.round([i*self.timeconst for i in range(1, self.OGData4dImg.shape[3]+1)], decimals=2)
         self.curSliceSpinBox.setMaximum(self.sliceArray[-1])
         self.curSliceTotal.setText(str(self.sliceArray[-1]))
 
@@ -833,10 +836,11 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.ticAnalysisGui.acceptT0Button.setHidden(True)
         self.ticAnalysisGui.t0Slider.setHidden(True)
         self.ticAnalysisGui.selectT0Button.setHidden(False)
+        self.ticAnalysisGui.automaticallySelectT0Button.setHidden(False)
         self.ticAnalysisGui.show()
         self.ticAnalysisGui.lastGui = self
         self.ticAnalysisGui.imagePathInput.setText(self.imagePathInput.text())
-        self.hide()   
+        self.hide()
 
 
     def startRoiDraw(self):

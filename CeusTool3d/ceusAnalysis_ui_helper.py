@@ -552,8 +552,11 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.lastGui.show()
         self.hide()
 
+    def acceptTICt0(self):
+        self.acceptTIC(1)
 
-    def acceptTIC(self):
+
+    def acceptTIC(self, autoT0=0):
         self.pointsPlotted = self.lastGui.pointsPlotted
         self.dataFrame = self.lastGui.dataFrame
         self.data4dImg = self.lastGui.data4dImg
@@ -628,7 +631,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
         # Do the fitting
         try:
-            params, popt, wholecurve = lf.data_fit([x, self.lastGui.ticY], tmppv);
+            params, popt, wholecurve = lf.data_fit([x, self.lastGui.ticY], tmppv, autoT0);
             self.ax.plot(self.lastGui.ticX[:,0], wholecurve)
             range = max(self.lastGui.ticX[:,0]) - min(self.lastGui.ticX[:,0])
             self.ax.set_xlim(xmin=min(self.lastGui.ticX[:,0])-(0.05*range), xmax=max(self.lastGui.ticX[:,0])+(0.05*range))
@@ -644,6 +647,10 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.tpVal.setText(str(np.around(params[2], decimals=2)))
         self.mttVal.setText(str(np.around(params[3], decimals=2)))
         self.tmppvVal.setText(str(np.around(tmppv, decimals=1)))
+        if params[4] != 0:
+            self.t0Val.setText(str(np.around(params[4], decimals=2)))
+        else:
+            self.t0Val.setText(str(np.around(self.lastGui.ticX[0,0], decimals=2)))
         self.voiVolumeVal.setText(str(np.around(self.voxelScale, decimals=1)))
         self.auc = params[1]
         self.pe = params[0]

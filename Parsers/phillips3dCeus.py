@@ -212,6 +212,8 @@ end
     # Interpolate using cubic interpolation
     img = scipy.interpolate.interpn((beamDist, np.pi*lineAngles/180, np.pi*planeAngles/180), rxLines, (R, TH, PHI), bounds_error=False, method='cubic')
 
+    print("Finished scan converting volume data...")
+
     return img, xLoc, yLoc, zLoc
 
 
@@ -275,13 +277,13 @@ def image4dCeusPostXbr(pathToData, sipFilename):
     # Scan Conversion of 3D volume time series (Only doing 1 volume here)
     scSipVolDat = SipVolDataStruct()
     scSipVolDat.linVol, xlin, ylin, zlin = scanConvert3dVolumeSeries(sipVolDat.linVol[0], scParams)
-    scSipVolDat.nLinVol, x, y, z = scanConvert3dVolumeSeries(sipVolDat.nLinVol[0], scParams)
+    # scSipVolDat.nLinVol, x, y, z = scanConvert3dVolumeSeries(sipVolDat.nLinVol[0], scParams)
 
     # Parameters for basic visualization of volume
     maxBrightnessValue = 2**sipNumInBits
     scDbEnvDatMlt = 6 # trial and error
     scDbEnvDatThr = 40 # trial and error
-    scRows, scCols, scPlanes = scSipVolDat.linVol[0].shape
+    scRows, scCols, scPlanes = scSipVolDat.linVol[0].shapem
     centerPlane = round(scPlanes/2)
 
     # Img compression
@@ -291,10 +293,14 @@ def image4dCeusPostXbr(pathToData, sipFilename):
     slope = (2**sipNumOutBits)/(20*np.log10(2**sipNumOutBits))
     upperLim = slope*drUpperDb
     lowerLim = slope*drLowerDb
+    scSipVolDat.linVol = np.clip(scSipVolDat.linVol, a_min=lowerLim, a_max=upperLim)
 
     # Binary image of center plane
     import matplotlib.pyplot as plt
-    
+    plt.imshow(scSipVolDat.linVol[:,:,0], cmap="Greys_r")
+    plt.show()
+    hi = 0
+
 
 
 pathToData = "/Volumes/CREST Data/David_S_Data/David_Duncan 4D_SIP_to_SC_Volume/Data"
