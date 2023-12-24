@@ -18,44 +18,12 @@
 	background: rgb(42, 42, 42);
 }</string>
   </property>
-  <widget class="QLabel" name="analysisParamsLabel_2">
-   <property name="geometry">
-    <rect>
-     <x>470</x>
-     <y>-20</y>
-     <width>571</width>
-     <height>131</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	font-size: 29px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Time Intensity Curve (TIC) Editor:</string>
-   </property>
-   <property name="textFormat">
-    <enum>Qt::AutoText</enum>
-   </property>
-   <property name="scaledContents">
-    <bool>false</bool>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
-   </property>
-  </widget>
   <widget class="QPushButton" name="selectT0Button">
    <property name="geometry">
     <rect>
-     <x>680</x>
+     <x>420</x>
      <y>690</y>
-     <width>171</width>
+     <width>251</width>
      <height>41</height>
     </rect>
    </property>
@@ -529,39 +497,57 @@
     <string>Back</string>
    </property>
   </widget>
-  <widget class="QLabel" name="bmodeCoverLabel">
-   <property name="geometry">
-    <rect>
-     <x>440</x>
-     <y>120</y>
-     <width>231</width>
-     <height>211</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	background-color: transparent;
-}</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
   <widget class="QLabel" name="imDisplayLabel">
    <property name="geometry">
     <rect>
      <x>370</x>
-     <y>80</y>
+     <y>10</y>
      <width>771</width>
-     <height>261</height>
+     <height>341</height>
     </rect>
    </property>
    <property name="text">
     <string/>
    </property>
   </widget>
+  <widget class="QLabel" name="maskDisplayLabel">
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>10</y>
+     <width>771</width>
+     <height>341</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="automaticT0Button">
+   <property name="geometry">
+    <rect>
+     <x>830</x>
+     <y>690</y>
+     <width>251</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Automatically Select T0 Later</string>
+   </property>
+  </widget>
   <zorder>imDisplayLabel</zorder>
-  <zorder>analysisParamsLabel_2</zorder>
   <zorder>selectT0Button</zorder>
   <zorder>sidebar</zorder>
   <zorder>analysisParamsSidebar</zorder>
@@ -573,7 +559,8 @@
   <zorder>restoreLastPointsButton</zorder>
   <zorder>acceptTicButton</zorder>
   <zorder>backButton</zorder>
-  <zorder>bmodeCoverLabel</zorder>
+  <zorder>maskDisplayLabel</zorder>
+  <zorder>automaticT0Button</zorder>
  </widget>
  <resources/>
  <connections/>

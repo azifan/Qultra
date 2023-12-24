@@ -4,6 +4,7 @@ from CeusTool3d.voiSelection_ui_helper import *
 import os
 import shutil
 import Utils.utils as ut
+import Parsers.philips3dCeus as phil
 
 from PyQt5.QtWidgets import QWidget, QApplication
 
@@ -79,6 +80,10 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.xmlImagePathInput.setHidden(True)
         self.imageFilenameDisplay.setHidden(True)
         self.niftiImagePathInput.setHidden(True)
+        self.niftiBmodePathInput.setHidden(True)
+        self.clearNiftiBmodeFileButton.setHidden(True)
+        self.chooseNiftiBmodeFileButton.setHidden(True)
+        self.selectNiftiBmodeLabel.setHidden(True)
         self.niftiImageDestinationButton.setHidden(True)
         self.niftiImageDestinationPath.setHidden(True)
         self.clearNiftiImageDestinationButton.setHidden(True)
@@ -94,19 +99,23 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.frameRateLabel.setHidden(True)
         self.frameRateValue.setHidden(True)
         self.confirmFrameRateButton.setHidden(True)
+        self.generateImageButton.setHidden(True)
 
         self.imageNifti = 0
 
         self.voiSelectionGui = None
         self.welcomeGui = None
         self.dataFrame = None
+        self.imagePath = ""
         self.timeconst = None
 
         self.selectNiftiImageOptionButton.clicked.connect(self.selectNiftiImageOption)
+        self.philipsOptionButton.clicked.connect(self.selectPhilipsImageOption)
         self.selectXmlFolderImageOptionButton.clicked.connect(self.selectXmlImageOption)
         self.generateImageButton.clicked.connect(self.moveToVoiSelection)
-        self.chooseXmlImageFolderButton.clicked.connect(self.getXmlImageDestinationPath)
         self.chooseNiftiImageFileButton.clicked.connect(self.getNiftiImagePath)
+        self.chooseNiftiBmodeFileButton.clicked.connect(self.getNiftiBmodePath)
+        self.clearNiftiBmodeFileButton.clicked.connect(self.clearNiftiBmodePath)
         self.niftiImageDestinationButton.clicked.connect(self.getNiftiImageDestinationPath)
         self.clearNiftiImageFileButton.clicked.connect(self.clearNiftiImagePath)
         self.clearNiftiImageDestinationButton.clicked.connect(self.clearNiftiImageDestinationPath)
@@ -123,8 +132,16 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         if fileName != '':
             self.niftiImagePathInput.setText(fileName)
 
+    def getNiftiBmodePath(self):
+        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.nii *.nii.gz')
+        if fileName != '':
+            self.niftiBmodePathInput.setText(fileName)
+
     def clearNiftiImagePath(self):
         self.niftiImagePathInput.setText('')
+    
+    def clearNiftiBmodePath(self):
+        self.niftiBmodePathInput.setText('')
 
     def getNiftiImageDestinationPath(self):
         fileName = QFileDialog.getExistingDirectory(None, 'Select Directory')
@@ -139,6 +156,11 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         if fileName != '':
             self.xmlImagePathInput.setText(fileName)
 
+    def getPhilipsFilePath(self):
+        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.raw')
+        if fileName != '':
+            self.xmlImagePathInput.setText(fileName)
+
     def clearXmlImageDestinationPath(self):
         self.xmlImagePathInput.setText('')
         
@@ -146,15 +168,21 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
     def backFromNiftiImage(self):
         self.selectNiftiImageOptionButton.setHidden(False)
         self.selectXmlFolderImageOptionButton.setHidden(False)
+        self.philipsOptionButton.setHidden(False)
 
         self.selectNiftiImageLabel.setHidden(True)
         self.chooseNiftiImageFileButton.setHidden(True)
         self.clearNiftiImageFileButton.setHidden(True)
         self.niftiImagePathInput.setHidden(True)
+        self.niftiBmodePathInput.setHidden(True)
+        self.clearNiftiBmodeFileButton.setHidden(True)
+        self.chooseNiftiBmodeFileButton.setHidden(True)
+        self.selectNiftiBmodeLabel.setHidden(True)
         self.imageBackButton.setHidden(True)
         self.frameRateLabel.setHidden(True)
         self.frameRateValue.setHidden(True)
         self.confirmFrameRateButton.setHidden(True)
+        self.generateImageButton.setHidden(True)
         self.timeconst = None
         self.frameRateValue.setValue(0)
 
@@ -165,12 +193,14 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
     def backFromXmlImage(self):
         self.selectNiftiImageOptionButton.setHidden(False)
         self.selectXmlFolderImageOptionButton.setHidden(False)
+        self.philipsOptionButton.setHidden(False)
 
         self.chooseXmlImageFolderButton.setHidden(True)
         self.clearXmlImageFolderButton.setHidden(True)
         self.xmlImagePathInput.setHidden(True)
         self.niftiImageDestinationButton.setHidden(True)
         self.clearNiftiImageDestinationButton.setHidden(True)
+        self.generateImageButton.setHidden(True)
         self.niftiImageDestinationPath.setHidden(True)
         self.imageBackButton.setHidden(True)
         self.selectXmlFolderImageLabel.setHidden(True)
@@ -188,12 +218,18 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
     def selectNiftiImageOption(self):
         self.selectNiftiImageOptionButton.setHidden(True)
         self.selectXmlFolderImageOptionButton.setHidden(True)
+        self.philipsOptionButton.setHidden(True)
 
         self.selectNiftiImageLabel.setHidden(False)
         self.chooseNiftiImageFileButton.setHidden(False)
         self.clearNiftiImageFileButton.setHidden(False)
         self.niftiImagePathInput.setHidden(False)
+        self.niftiBmodePathInput.setHidden(False)
+        self.clearNiftiBmodeFileButton.setHidden(False)
+        self.chooseNiftiBmodeFileButton.setHidden(False)
+        self.selectNiftiBmodeLabel.setHidden(False)
         self.imageBackButton.setHidden(False)
+        self.generateImageButton.setHidden(False)
 
         self.imageBackButton.clicked.connect(self.backFromNiftiImage)
 
@@ -202,39 +238,85 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
     def selectXmlImageOption(self):
         self.selectNiftiImageOptionButton.setHidden(True)
         self.selectXmlFolderImageOptionButton.setHidden(True)
+        self.philipsOptionButton.setHidden(True)
 
         self.chooseXmlImageFolderButton.setHidden(False)
+        self.chooseXmlImageFolderButton.setText("Choose Folder")
         self.clearXmlImageFolderButton.setHidden(False)
         self.xmlImagePathInput.setHidden(False)
         self.niftiImageDestinationButton.setHidden(False)
         self.clearNiftiImageDestinationButton.setHidden(False)
         self.niftiImageDestinationPath.setHidden(False)
         self.imageBackButton.setHidden(False)
+        self.selectXmlFolderImageLabel.setText("Select XML Data Folder:")
         self.selectXmlFolderImageLabel.setHidden(False)
         self.niftiDestinationImageLabel.setHidden(False)
+        self.generateImageButton.setHidden(False)
 
         self.imageBackButton.clicked.connect(self.backFromXmlImage)
+        try:
+            self.chooseXmlImageFolderButton.clicked.disconnect()
+        except:
+            pass
+        self.chooseXmlImageFolderButton.clicked.connect(self.getXmlImageDestinationPath)
+
 
         self.imageNifti = 2 # NIFTI image doesn't exist yet
 
+    def selectPhilipsImageOption(self):
+        self.selectNiftiImageOptionButton.setHidden(True)
+        self.selectXmlFolderImageOptionButton.setHidden(True)
+        self.philipsOptionButton.setHidden(True)
+
+        self.chooseXmlImageFolderButton.setHidden(False)
+        self.chooseXmlImageFolderButton.setText("Choose File")
+        self.clearXmlImageFolderButton.setHidden(False)
+        self.xmlImagePathInput.setHidden(False)
+        self.niftiImageDestinationButton.setHidden(False)
+        self.clearNiftiImageDestinationButton.setHidden(False)
+        self.niftiImageDestinationPath.setHidden(False)
+        self.imageBackButton.setHidden(False)
+        self.selectXmlFolderImageLabel.setText("Select Philips Data File: (.raw)")
+        self.selectXmlFolderImageLabel.setHidden(False)
+        self.niftiDestinationImageLabel.setHidden(False)
+        self.generateImageButton.setHidden(False)
+
+        self.imageBackButton.clicked.connect(self.backFromXmlImage)
+        try:
+            self.chooseXmlImageFolderButton.clicked.disconnect()
+        except:
+            pass
+        self.chooseXmlImageFolderButton.clicked.connect(self.getPhilipsFilePath)
+
+        self.imageNifti = 3 # NIFTI image doesn't exist yet
+
     def confirmFrameRate(self):
         self.timeconst = self.frameRateValue.value()
-        self.moveToVoiSelection()
+        self.moveToVoiSelection(1)
         self.generateImageButton.setHidden(False)
         self.frameRateLabel.setHidden(True)
         self.frameRateValue.setHidden(True)
         self.confirmFrameRateButton.setHidden(True)
 
-    def moveToVoiSelection(self):
+    def moveToVoiSelection(self, confirmation=0):
         if self.imageNifti:
-            imagePath = ""
-            if self.imageNifti == 1 and os.path.exists(self.niftiImagePathInput.text()):
-                imagePath = self.niftiImagePathInput.text()
-            if self.imageNifti == 2 and os.path.exists(self.niftiImageDestinationPath.text()) and os.path.isdir(self.niftiImageDestinationPath.text()) and os.path.exists(self.xmlImagePathInput.text()):
-                imagePath = ut.xml2nifti(self.xmlImagePathInput.text(), self.niftiImageDestinationPath.text())
-            if imagePath != "":
+            if not confirmation:
+                self.imagePath = ""
+                self.bmodePath = ""
+                if self.imageNifti == 1 and os.path.exists(self.niftiImagePathInput.text()):
+                    self.imagePath = self.niftiImagePathInput.text()
+                if self.imageNifti == 1 and len(self.niftiBmodePathInput.text()):
+                    if os.path.exists(self.niftiBmodePathInput.text()):
+                        self.bmodePath = self.niftiBmodePathInput.text()
+                    else:
+                        return
+                if self.imageNifti == 2 and os.path.exists(self.niftiImageDestinationPath.text()) and os.path.isdir(self.niftiImageDestinationPath.text()) and os.path.exists(self.xmlImagePathInput.text()):
+                    self.imagePath = ut.xml2nifti(self.xmlImagePathInput.text(), self.niftiImageDestinationPath.text())
+                if self.imageNifti == 3 and os.path.exists(self.niftiImageDestinationPath.text()) and os.path.exists(self.xmlImagePathInput.text()):
+                    self.imagePath, self.bmodePath = phil.makeNifti(self.xmlImagePathInput.text(), self.niftiImageDestinationPath.text())
+            if self.imagePath != "":
                 if self.timeconst is None:
-                    self.timeconst = nib.load(imagePath, mmap=False).header['pixdim'][4]
+                    self.timeconst = nib.load(self.imagePath, mmap=False).header['pixdim'][4]
                 if not self.timeconst:
                     self.generateImageButton.setHidden(True)
                     self.frameRateLabel.setHidden(False)
@@ -246,8 +328,11 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
                 self.voiSelectionGui = VoiSelectionGUI()
                 self.voiSelectionGui.dataFrame = self.dataFrame
                 self.voiSelectionGui.timeconst = 1/self.timeconst
-                self.voiSelectionGui.setFilenameDisplays(imagePath)
-                self.voiSelectionGui.openImage()
+                self.voiSelectionGui.setFilenameDisplays(self.imagePath)
+                if self.bmodePath != "":
+                    self.voiSelectionGui.openImage(self.bmodePath)
+                else:
+                    self.voiSelectionGui.openImage(None)
                 self.voiSelectionGui.lastGui = self
                 self.voiSelectionGui.show()
                 self.hide()

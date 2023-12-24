@@ -7,7 +7,6 @@ from UtcTool2d.analysisParamsSelection_ui_helper import *
 from UtcTool2d.loadRoi_ui_helper import *
 from Utils.roiFuncs import computeSpecWindowsIQ
 
-import pydicom
 import os
 import numpy as np
 from PIL import Image, ImageEnhance
@@ -160,7 +159,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
         self.redrawRoiButton.setHidden(True)
         
-        self.editImageDisplayButton.clicked.connect(self.openImageEditor)
+        # self.editImageDisplayButton.clicked.connect(self.openImageEditor)
+        self.editImageDisplayButton.setHidden(True) # done for now for simplicity
         self.drawRoiButton.clicked.connect(self.recordDrawRoiClicked)
         self.userDrawRectangleButton.clicked.connect(self.recordDrawRectClicked)
         self.undoLastPtButton.clicked.connect(self.undoLastPt)
@@ -530,7 +530,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         if len(self.pointsPlottedX) > 2:
             self.ax.clear()
             im = plt.imread(os.path.join("Junk", "bModeIm.png"))
-            plt.imshow(im, cmap='Greys_r')
+            self.ax.imshow(im, cmap='Greys_r')
             self.pointsPlottedX.append(self.pointsPlottedX[0])
             self.pointsPlottedY.append(self.pointsPlottedY[0])
             self.finalSplineX, self.finalSplineY = calculateSpline(self.pointsPlottedX, self.pointsPlottedY)
@@ -575,7 +575,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 pass
 
             self.figure.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
-            plt.tick_params(bottom=False, left=False)
+            self.ax.tick_params(bottom=False, left=False)
             self.canvas.draw()
             self.ROIDrawn = True
             self.drawRoiButton.setChecked(False)
@@ -663,8 +663,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
             xSpline, ySpline = calculateSpline(self.pointsPlottedX, self.pointsPlottedY)
             self.spline = self.ax.plot(xSpline, ySpline, color = "cyan", zorder=1, linewidth=0.75)
-            plt.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
-            plt.tick_params(bottom=False, left=False)
+            self.figure.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
+            self.ax.tick_params(bottom=False, left=False)
         self.scatteredPoints.append(self.ax.scatter(self.pointsPlottedX[-1], self.pointsPlottedY[-1], marker="o", s=0.5, c="red", zorder=500))
         self.canvas.draw()
 
@@ -751,8 +751,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             mmHeight = self.AnalysisInfo.axialRes * imPixHeight # (mm/pixel)*pixels
             self.physicalRectHeightVal.setText(str(np.round(mmHeight, decimals=2)))
 
-            plt.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
-            plt.tick_params(bottom=False, left=False)
+            self.figure.subplots_adjust(left=0,right=1, bottom=0,top=1, hspace=0.2,wspace=0.2)
+            self.ax.tick_params(bottom=False, left=False)
             self.canvas.draw()
 
 

@@ -918,9 +918,9 @@ frame as reference</string>
   <widget class="QPushButton" name="saveRoiButton">
    <property name="geometry">
     <rect>
-     <x>970</x>
-     <y>580</y>
-     <width>171</width>
+     <x>870</x>
+     <y>680</y>
+     <width>181</width>
      <height>41</height>
     </rect>
    </property>
@@ -946,8 +946,8 @@ frame as reference</string>
   <widget class="QPushButton" name="backFromDrawButton">
    <property name="geometry">
     <rect>
-     <x>880</x>
-     <y>690</y>
+     <x>780</x>
+     <y>700</y>
      <width>171</width>
      <height>41</height>
     </rect>
@@ -1100,6 +1100,68 @@ frame as reference</string>
     <bool>false</bool>
    </property>
   </widget>
+  <widget class="QPushButton" name="acceptConstRoiButton">
+   <property name="geometry">
+    <rect>
+     <x>970</x>
+     <y>700</y>
+     <width>171</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+</string>
+   </property>
+   <property name="text">
+    <string>Accept Constant ROI</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <zorder>curSliceLabel</zorder>
+  <zorder>curSliceSlider</zorder>
+  <zorder>curSliceOfLabel</zorder>
+  <zorder>curSliceTotal</zorder>
+  <zorder>sidebar</zorder>
+  <zorder>analysisParamsSidebar</zorder>
+  <zorder>imPlane</zorder>
+  <zorder>mcImDisplayLabel</zorder>
+  <zorder>backButton</zorder>
+  <zorder>curSliceSpinBox</zorder>
+  <zorder>constructRoiLabel</zorder>
+  <zorder>undoLastPtButton</zorder>
+  <zorder>closeRoiButton</zorder>
+  <zorder>redrawRoiButton</zorder>
+  <zorder>drawRoiButton</zorder>
+  <zorder>fitToRoiButton</zorder>
+  <zorder>acceptGeneratedRoiButton</zorder>
+  <zorder>roiFitNoteLabel</zorder>
+  <zorder>imCoverLabel</zorder>
+  <zorder>undoRoiButton</zorder>
+  <zorder>newRoiButton</zorder>
+  <zorder>loadRoiButton</zorder>
+  <zorder>preLoadedRoiButton</zorder>
+  <zorder>chooseRoiButton</zorder>
+  <zorder>backFromLoadButton</zorder>
+  <zorder>saveRoiButton</zorder>
+  <zorder>backFromDrawButton</zorder>
+  <zorder>defImBoundsButton</zorder>
+  <zorder>horizontalSlider</zorder>
+  <zorder>acceptBoundsButton</zorder>
+  <zorder>boundDrawLabel</zorder>
+  <zorder>boundBackButton</zorder>
+  <zorder>imMaskLayer</zorder>
+  <zorder>acceptConstRoiButton</zorder>
  </widget>
  <resources/>
  <connections/>

@@ -187,6 +187,22 @@ def iqToRf(iqData, rxFrequency, decimationFactor, carrierFrequency):
         rfData[:,i] = np.real(np.multiply(iqData[:,i], np.exp(1j*(2*np.pi*carrierFrequency*np.transpose(t)))))
     return rfData
 
+def findPreset(filename):
+    headersize = 16
+
+    file_obj = open(filename, 'rb')
+    hdr = [int.from_bytes(file_obj.read(2), byteorder='little', signed=False) for i in range(2)]
+    numAcquiredRxBeams = hdr[0]
+
+    hdr = [int.from_bytes(file_obj.read(2), byteorder='little', signed=False) for i in range(2)]
+    numParallelAcquisitions = hdr[1]
+
+    hdr = [int.from_bytes(file_obj.read(2), byteorder='little', signed=False) for i in range(2)]
+    numSamplesDrOut = hdr[0]
+    file_obj.close()
+
+    return numSamplesDrOut
+
 def readIQ(filename):
     headersize = 16
 

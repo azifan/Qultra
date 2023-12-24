@@ -104,6 +104,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.defImBoundsButton.setHidden(True)
         self.boundDrawLabel.setHidden(True)
         self.boundBackButton.setHidden(True)
+        self.acceptConstRoiButton.setHidden(True)
         self.df = None
         self.dataFrame = None
         self.niftiSegPath = None
@@ -120,7 +121,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.oldSpline = []
         self.mcResultsArray = []
         self.ticAnalysisGui = TicAnalysisGUI()
-        self.saveRoiGUI = SaveRoiGUI()
         self.index = None
         self.bboxes = None
         self.ref_frames = None
@@ -143,31 +143,38 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.newRoiButton.clicked.connect(self.drawNewRoi)
         self.loadRoiButton.clicked.connect(self.startLoadRoi)
         self.saveRoiButton.clicked.connect(self.startSaveRoi)
+        self.acceptConstRoiButton.clicked.connect(self.acceptRoiNoMc)
         self.backFromDrawButton.clicked.connect(self.backFromDraw)
+        self.fitToRoiButton.clicked.connect(self.perform_MC)
 
     def startSaveRoi(self):
+        try:
+            del self.saveRoiGUI
+        except:
+            pass
+        self.saveRoiGUI = SaveRoiGUI()
         self.saveRoiGUI.roiSelectionGUI = self
-        pathPieces = self.fullPath.split('/')
-        pathPieces[-2] = 'nifti_segmentation_QUANTUS'
-        pathPieces[-1] = pathPieces[-1][:-4] # removes .dcm from filename
-        path = pathPieces[0]
-        for i in range(len(pathPieces)-2):
-            path = str(path + '/' + pathPieces[i+1])
+        dir, filename = os.path.split(self.fullPath)
+        ext = os.path.splitext(self.fullPath)[-1]
+        filename = filename[:(-1*len(ext))]
+        if filename.endswith('.nii'):
+            filename = filename[:-4]
+        path = os.path.join(dir, 'nifti_segmentation_QUANTUS')
+        self.saveRoiGUI.newFolderPathInput.setText(path)
+        self.saveRoiGUI.newFileNameInput.setText(str(filename + '.nii.gz'))
         if not os.path.exists(path):
             os.mkdir(path)
-        self.saveRoiGUI.newFolderPathInput.setText(path)
-        self.saveRoiGUI.newFileNameInput.setText(str(pathPieces[-1] + '.nii.gz'))
         self.saveRoiGUI.show()
 
     def saveRoi(self, fileDestination, name, frame):
-        segMask = np.zeros([self.numSlices, self.y, self.x])
-        self.pointsPlotted = [*set(self.pointsPlotted)]
-        for point in self.pointsPlotted:
-            segMask[frame, point[1], point[0]] = 1
-        segMask[frame] = binary_fill_holes(segMask[frame])
+        # segMask = np.zeros([self.numSlices, self.y, self.x])
+        # self.pointsPlotted = [*set(self.pointsPlotted)]
+        # for point in self.pointsPlotted:
+        #     segMask[frame, point[1], point[0]] = 1
+        # segMask[frame] = binary_fill_holes(segMask[frame])
 
         affine = np.eye(4)
-        niiarray = nib.Nifti1Image(np.transpose(segMask).astype('uint8'), affine)
+        niiarray = nib.Nifti1Image(np.transpose(self.segMask).astype('uint8'), affine)
         niiarray.header['descrip'] = self.imagePathInput.text()
         outputPath = os.path.join(fileDestination, name)
         if os.path.exists(outputPath):
@@ -203,36 +210,29 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
     def loadRoi(self, mask):
         mask = np.transpose(mask)
         maskPoints = np.where(mask > 0)
-        minX = np.min(maskPoints[2])
-        maxX = np.max(maskPoints[2])
-        minY = np.min(maskPoints[1])
-        maxY = np.max(maskPoints[1])
-        if maxX < self.x0_CE + self.w_CE and minX > self.x0_CE and maxY < self.y0_CE + self.h_CE and minY > self.y0_CE:
-            self.imDrawn = 2
-        elif maxX < self.x0_bmode + self.w_bmode and minX > self.x0_bmode and maxY < self.y0_bmode + self.h_bmode and minY > self.y0_bmode:
-            self.imDrawn = 1
-        else:
-            print("Cannont complete motion correction with this ROI!")
-            return
-        maskPoints = np.transpose(maskPoints)
-        for point in maskPoints:
-            self.maskCoverImg[point[1], point[2]] = [0,0,255,255]
-            self.pointsPlotted.append((point[2], point[1]))
-        self.curFrameIndex = maskPoints[0,0]
-        self.curSliceSlider.setValue(self.curFrameIndex)
-        self.curSliceSpinBox.setValue(self.curFrameIndex)
-        self.perform_MC(True)
+        self.mcResultsArray = self.fullArray
+
+        self.segMask = mask
+        self.segCoverMask = np.zeros((self.numSlices, self.y, self.x, 4))
+        self.pointsPlotted = np.transpose(maskPoints)
+        for point in self.pointsPlotted:
+            self.segCoverMask[point[0], point[1], point[2]] = [128, 0, 128, 100]
+            newY = point[1] + (self.y0_bmode - self.y0_CE)
+            newX = point[2] + (self.x0_bmode - self.x0_CE)
+            self.segCoverMask[point[0], newY, newX] = [0, 255, 0, 100]
 
         self.backFromLoadButton.setHidden(True)
         self.preLoadedRoiButton.setHidden(True)
         self.chooseRoiButton.setHidden(True)
         self.undoRoiButton.setHidden(False)
         self.acceptGeneratedRoiButton.setHidden(False)
+        self.acceptGeneratedRoiButton.clicked.connect(self.moveToTic)
+        self.undoRoiButton.clicked.connect(self.restartRoi)
+        self.updateIm()
 
     def drawNewRoi(self):
         self.newRoiButton.setHidden(True)
         self.loadRoiButton.setHidden(True)
-        self.undoLastPtButton.setHidden(True)
         self.saveRoiButton.setHidden(True)
         self.drawRoiButton.setHidden(False)
         self.backFromDrawButton.setHidden(False)
@@ -240,7 +240,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.redrawRoiButton.setHidden(False)
         self.fitToRoiButton.setHidden(False)
         self.closeRoiButton.setHidden(False)
-        self.saveRoiButton.setHidden(True)
+        self.acceptConstRoiButton.setHidden(False)
 
     def backToLastScreen(self):
         self.lastGui.dataFrame = self.dataFrame
@@ -256,9 +256,8 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.imagePathInput.setText(imFile)
         self.inputTextPath = imageName
 
-    def acceptRoiNoMc(self, loaded=False):
+    def acceptRoiNoMc(self):
         if not self.drawRoiButton.isCheckable():
-            self.segMask = np.zeros([self.numSlices, self.y, self.x])
             self.pointsPlotted = [*set(self.pointsPlotted)] 
             points = self.pointsPlotted    
             if self.imDrawn == 1: # move ROI to CE
@@ -269,22 +268,54 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
                 return
             
             self.mcResultsArray = self.fullArray
+
+            self.segCoverMask = np.zeros((self.numSlices, self.y, self.x, 4))
+            self.segMask = np.zeros((self.numSlices, self.y, self.x))
             
+            bmodeMask = np.zeros((self.y, self.x))
+            ceusMask = np.zeros((self.y, self.x))
             for point in points:
-                self.segMask[self.curFrameIndex,point[1], point[0]] = 1
-                self.mcResultsArray[:, point[1], point[0]] = [255, 0, 0]
-            if not loaded:
-                self.segMask[self.curFrameIndex] = binary_fill_holes(self.segMask[self.curFrameIndex])
+                ceusMask[point[1], point[0]] = 1
+                self.segMask[:, point[1], point[0]] = 1
+                # self.mcResultsArray[:, point[1], point[0]] = [255, 0, 0] 
+                newX = point[0] + (self.x0_bmode - self.x0_CE) # CE to B-Mode
+                newY = point[1] + (self.y0_bmode - self.y0_CE) # CE to B-Mode
+                bmodeMask[newY, newX] = 1
 
+            ceusMask = binary_fill_holes(ceusMask)
+            bmodeMask = binary_fill_holes(bmodeMask)
             
-            for i in range(self.segMask.shape[0]):
-                if i != self.curFrameIndex:
-                    self.segMask[i] = self.segMask[self.curFrameIndex]
+            ceusMaskPoints = np.transpose(np.where(ceusMask > 0))
+            bmodeMaskPoints = np.transpose(np.where(bmodeMask > 0))
 
 
-            self.moveToTic()
+            for point in ceusMaskPoints:
+                self.segCoverMask[:,point[0], point[1]] = [128, 0, 128, 100]
+                self.segMask[:, point[0], point[1]] = 1
 
-    def perform_MC(self, loaded=False):
+            # self.loadRoi(np.transpose(self.segMask))
+            
+            for point in bmodeMaskPoints:
+                self.segCoverMask[:, point[0], point[1]] = [0, 255, 0, 100]
+
+            self.updateIm()
+            self.acceptGeneratedRoiButton.setHidden(False)
+            self.drawRoiButton.setHidden(True)
+            self.backFromDrawButton.setHidden(True)
+            self.undoRoiButton.setHidden(False)
+            self.undoLastPtButton.setHidden(True)
+            self.redrawRoiButton.setHidden(True)
+            self.fitToRoiButton.setHidden(True)
+            self.acceptConstRoiButton.setHidden(True)
+            self.roiFitNoteLabel.setHidden(True)
+            self.saveRoiButton.setHidden(False)
+            self.acceptGeneratedRoiButton.setCheckable(False)
+            self.undoRoiButton.setCheckable(False)
+            self.acceptGeneratedRoiButton.clicked.connect(self.moveToTic)
+            self.undoRoiButton.clicked.connect(self.restartRoi)
+            self.update()
+
+    def perform_MC(self):
         # Credit Thodsawit Tiyarattanachai, MD. See Utils/motionCorrection.py for full citation
         if not self.drawRoiButton.isCheckable():
             self.segMask = np.zeros([self.numSlices, self.y, self.x])
@@ -299,8 +330,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             
             for point in points:
                 self.segMask[self.curFrameIndex,point[1], point[0]] = 1
-            if not loaded:
-                self.segMask[self.curFrameIndex] = binary_fill_holes(self.segMask[self.curFrameIndex])   
+            self.segMask[self.curFrameIndex] = binary_fill_holes(self.segMask[self.curFrameIndex])   
 
             set_quantile = 0.50
             step = 1 # fullFrameRate. step=2 for halfFrameRate
@@ -441,10 +471,10 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
                                                             (search_x0, search_y0),
                                                             (search_x0+search_w, search_y0+search_h),
                                                             (255, 255, 255), 2)
-                                img_bbox = cv2.rectangle(img_bbox,
-                                                            (current_bbox[0], current_bbox[1]),
-                                                            (current_bbox[0] + current_bbox[2], current_bbox[1] + current_bbox[3]),
-                                                            (0, 255, 0), 2)
+                                # img_bbox = cv2.rectangle(img_bbox,
+                                #                             (current_bbox[0], current_bbox[1]),
+                                #                             (current_bbox[0] + current_bbox[2], current_bbox[1] + current_bbox[3]),
+                                #                             (0, 255, 0), 2)
                                 # img_bbox = cv2.putText(img_bbox, 'frame: '+str(frame), (25,25), cv2.FONT_HERSHEY_SIMPLEX,  
                                 #             1, (0,255,0), 2, cv2.LINE_AA) 
                                 # img_bbox = cv2.putText(img_bbox, 'corr: '+str(mean_corr), (25,50), cv2.FONT_HERSHEY_SIMPLEX,  
@@ -537,10 +567,10 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
                                                                 (search_x0, search_y0),
                                                                 (search_x0+search_w, search_y0+search_h),
                                                                 (255, 255, 255), 2)
-                                    img_bbox = cv2.rectangle(img_bbox,
-                                                                (current_bbox[0], current_bbox[1]),
-                                                                (current_bbox[0] + current_bbox[2], current_bbox[1] + current_bbox[3]),
-                                                                (0, 255, 0), 2)
+                                    # img_bbox = cv2.rectangle(img_bbox,
+                                    #                             (current_bbox[0], current_bbox[1]),
+                                    #                             (current_bbox[0] + current_bbox[2], current_bbox[1] + current_bbox[3]),
+                                    #                             (0, 255, 0), 2)
                                     # img_bbox = cv2.putText(img_bbox, 'frame: '+str(frame), (25,25), cv2.FONT_HERSHEY_SIMPLEX,  
                                     #             1, (0,255,0), 2, cv2.LINE_AA) 
                                     # img_bbox = cv2.putText(img_bbox, 'corr: '+str(mean_corr), (25,50), cv2.FONT_HERSHEY_SIMPLEX,  
@@ -587,6 +617,35 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.bboxes = previous_all_lesion_bboxes
             self.ref_frames = ref_frames
 
+            # Repurpose self.segMask to hold mc results
+            del self.segMask
+            self.segCoverMask = np.zeros((self.numSlices, self.y, self.x, 4))
+            self.segMask = np.zeros((self.numSlices, self.y, self.x))
+            if self.imDrawn == 1: # move ROI to CE
+                xDiff = self.x0_CE - self.x0_bmode
+                yDiff = self.y0_CE - self.y0_bmode
+            elif self.imDrawn == 2:
+                xDiff = 0
+                yDiff = 0
+            for t in range(self.segMask.shape[0]):
+                if self.bboxes[t] != None:
+                    x0, y0, x_len, y_len = self.bboxes[t]
+                    x0 += xDiff
+                    y0 += yDiff
+                    if y0+y_len >= self.segMask.shape[1]:
+                        y_len = self.segMask.shape[1] - y0 - 1
+                    if x0+x_len >= self.segMask.shape[2]:
+                        x_len = self.segMask.shape[2] - x0 - 1
+                    self.segCoverMask[t, y0:y0+y_len, x0:x0+x_len] = [128, 0, 128, 100]
+                    self.segMask[t, y0:y0+y_len, x0:x0+x_len] = 1
+                    x0 += (self.x0_bmode - self.x0_CE) # CE to B-Mode
+                    y0 += (self.y0_bmode - self.y0_CE) # CE to B-Mode
+                    if y0+y_len >= self.segMask.shape[1]:
+                        y_len = self.segMask.shape[1] - y0 - 1
+                    if x0+x_len >= self.segMask.shape[2]:
+                        x_len = self.segMask.shape[2] - x0 - 1
+                    self.segCoverMask[t, y0:y0+y_len, x0:x0+x_len] = [0, 255, 0, 100]
+
             self.updateIm()
             self.acceptGeneratedRoiButton.setHidden(False)
             self.drawRoiButton.setHidden(True)
@@ -595,8 +654,9 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.undoLastPtButton.setHidden(True)
             self.redrawRoiButton.setHidden(True)
             self.fitToRoiButton.setHidden(True)
+            self.acceptConstRoiButton.setHidden(True)
             self.roiFitNoteLabel.setHidden(True)
-            self.saveRoiButton.setHidden(True)
+            self.saveRoiButton.setHidden(False)
             self.acceptGeneratedRoiButton.setCheckable(False)
             self.undoRoiButton.setCheckable(False)
             self.acceptGeneratedRoiButton.clicked.connect(self.moveToTic)
@@ -621,6 +681,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.closeRoiButton.setHidden(True)
         self.redrawRoiButton.setHidden(True)
         self.fitToRoiButton.setHidden(True)
+        self.acceptConstRoiButton.setHidden(True)
         self.backFromDrawButton.setHidden(True)
         self.roiFitNoteLabel.setHidden(True)
         self.drawRoiButton.setCheckable(True)
@@ -631,23 +692,23 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.updateIm()
 
     def restartRoi(self):
-        if self.niftiSegPath is None:
-            self.mcResultsArray = []
-            self.mcImDisplayLabel.clear()
-            self.drawRoiButton.setHidden(False)
-            self.backFromDrawButton.setHidden(False)
-            self.undoLastPtButton.setHidden(False)
-            self.redrawRoiButton.setHidden(False)
-            self.fitToRoiButton.setHidden(False)
-            self.acceptGeneratedRoiButton.setHidden(True)
-            self.undoRoiButton.setHidden(True)
-            self.roiFitNoteLabel.setHidden(False)
-        else:
-            self.acceptGeneratedRoiButton.setHidden(True)
-            self.undoRoiButton.setHidden(True)
-            self.loadRoiButton.setHidden(False)
-            self.newRoiButton.setHidden(False)
-            self.maskCoverImg.fill(0)
+        self.mcResultsArray = []
+        self.mcImDisplayLabel.clear()
+        self.drawRoiButton.setHidden(False)
+        self.backFromDrawButton.setHidden(False)
+        self.undoLastPtButton.setHidden(False)
+        self.redrawRoiButton.setHidden(False)
+        self.fitToRoiButton.setHidden(False)
+        self.acceptConstRoiButton.setHidden(False)
+        self.acceptGeneratedRoiButton.setHidden(True)
+        self.undoRoiButton.setHidden(True)
+        self.roiFitNoteLabel.setHidden(False)
+        self.saveRoiButton.setHidden(True)
+        try:
+            del self.segCoverMask
+        except:
+            pass
+        self.undoLastRoi()
         self.updateIm()
         self.update()
 
@@ -696,7 +757,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.x = self.fullArray.shape[2]
         self.y = self.fullArray.shape[1]
         self.numSlices = self.fullArray.shape[0]
-        self.fullGrayArray = np.mean(self.fullArray, axis=3)
+        self.fullGrayArray = np.array([cv2.cvtColor(self.fullArray[i], cv2.COLOR_BGR2GRAY) for i in range(self.fullArray.shape[0])])
 
         # Eli Prostate Specific Vals
         self.pixelScale = 0.4*0.4*0.4 # mm^3
@@ -745,6 +806,8 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.curTopLineY = 0
         self.curBottomLineY = self.depthScale - 1
 
+        self.fullPath = cePath
+
         # painter = QPainter(self.imCoverLabel.pixmap())
         # self.imCoverLabel.pixmap().fill(Qt.transparent)
         # painter.setPen(Qt.yellow)
@@ -783,9 +846,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.newRoiButton.setHidden(True)
         self.defImBoundsButton.setHidden(False)
         self.defImBoundsButton.clicked.connect(self.startBoundDef)
-        self.fitToRoiButton.clicked.connect(self.acceptRoiNoMc)
-        self.fitToRoiButton.setText("Accept ROI")
-
 
         self.closeRoiButton.clicked.connect(self.acceptPolygon) #called to exit the paint function
         self.undoLastPtButton.clicked.connect(self.undoLastPoint) #deletes last drawn rectangle if on sag or cor slices
@@ -812,9 +872,9 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         self.x = self.fullArray.shape[2]
         self.y = self.fullArray.shape[1]
-        self.fullGrayArray = np.mean(self.fullArray, axis=3)
-        self.fitToRoiButton.setText("Accept ROI")
-        self.fitToRoiButton.clicked.connect(self.acceptRoiNoMc)
+        self.fullGrayArray = np.array([cv2.cvtColor(self.fullArray[i], cv2.COLOR_BGR2GRAY) for i in range(self.fullArray.shape[0])])
+
+        self.fullPath = path
 
         self.imX0 = 350
         self.imX1 = 1151
@@ -1009,7 +1069,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.curSliceSlider.setValue(self.curFrameIndex)
         self.curSliceSlider.valueChanged.connect(self.curSliceSliderValueChanged)
         self.curSliceSpinBox.valueChanged.connect(self.curSliceSpinBoxValueChanged)
-        self.fitToRoiButton.clicked.connect(self.perform_MC)
 
 
         self.drawRoiButton.setCheckable(True)
@@ -1261,17 +1320,17 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.bytesLineMc, _ = self.mcData[:,:,0].strides
             self.qImgMc = QImage(self.mcData, self.x, self.y, self.bytesLineMc, QImage.Format_RGB888)
             self.mcImDisplayLabel.setPixmap(QPixmap.fromImage(self.qImgMc).scaled(self.widthScale, self.depthScale))
+            self.maskCoverImg = np.require(self.segCoverMask[self.curFrameIndex], np.uint8, 'C')
         else:
             self.imData = self.fullArray[self.curFrameIndex]
             self.imData = np.require(self.imData, np.uint8, 'C')
-            self.maskCoverImg = np.require(self.maskCoverImg, np.uint8, 'C')
             self.bytesLineIm, _ = self.imData[:,:,0].strides
-            self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
             self.qImg = QImage(self.imData, self.x, self.y, self.bytesLineIm, QImage.Format_RGB888)
-            self.qImgMask = QImage(self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32)
-
             self.imPlane.setPixmap(QPixmap.fromImage(self.qImg).scaled(self.widthScale, self.depthScale))
-            self.imMaskLayer.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(self.widthScale, self.depthScale))
+            self.maskCoverImg = np.require(self.maskCoverImg, np.uint8, 'C')
+        self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
+        self.qImgMask = QImage(self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32)
+        self.imMaskLayer.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(self.widthScale, self.depthScale))
 
     def updateCrosshair(self):
         if self.xCur < self.imX1 and self.xCur > self.imX0 and self.yCur < self.imY1 and self.yCur > self.imY0:
@@ -1313,9 +1372,9 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
                 elif self.imDrawn == 2:
                     xSpline = np.clip(xSpline, a_min=self.x0_CE+1, a_max=self.x0_CE+self.w_CE-2)
                     ySpline = np.clip(ySpline, a_min=self.y0_CE+1, a_max=self.y0_CE+self.h_CE-2)
-                else:
-                    xSpline = np.clip(xSpline, a_min=1, a_max=self.x-2)
-                    ySpline = np.clip(ySpline, a_min=1, a_max=self.y-2)
+                # else:
+                #     xSpline = np.clip(xSpline, a_min=1, a_max=self.x-2)
+                #     ySpline = np.clip(ySpline, a_min=1, a_max=self.y-2)
                 # for point in self.oldSpline:
                 #     self.maskCoverImg[point[0], point[1]] = [0,0,0,0]
                 self.maskCoverImg.fill(0)
@@ -1395,9 +1454,9 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             elif self.imDrawn == 2:
                 xSpline = np.clip(xSpline, a_min=self.x0_CE+1, a_max=self.x0_CE+self.w_CE-2)
                 ySpline = np.clip(ySpline, a_min=self.y0_CE+1, a_max=self.y0_CE+self.h_CE-2)
-            else:
-                xSpline = np.clip(xSpline, a_min=1, a_max=self.x-2)
-                ySpline = np.clip(ySpline, a_min=1, a_max=self.y-2)
+            # else:
+            #     xSpline = np.clip(xSpline, a_min=1, a_max=self.x-2)
+            #     ySpline = np.clip(ySpline, a_min=1, a_max=self.y-2)
             self.oldSpline = []
             for i in range(len(xSpline)):
                 self.maskCoverImg[ySpline[i]-1:ySpline[i]+2, xSpline[i]-1:xSpline[i]+2] = [0, 0, 255, 255]
@@ -1409,8 +1468,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.curPointsPlottedY = []
             self.redrawRoiButton.setHidden(False)
             self.closeRoiButton.setHidden(True)
-            self.undoLastPtButton.setHidden(True)
-            self.saveRoiButton.setHidden(False)
             self.roiFitNoteLabel.setHidden(False)
             self.drawRoiButton.setChecked(False)
             self.drawRoiButton.setCheckable(False)
@@ -1446,13 +1503,8 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.closeRoiButton.setHidden(False)
             self.roiFitNoteLabel.setHidden(True)
             self.drawRoiButton.setCheckable(True)
-            self.saveRoiButton.setHidden(True)
             self.undoLastPtButton.setHidden(False)
             self.imDrawn = 0
-            try:
-                self.fitToRoiButton.clicked.disconnect()
-            except:
-                pass
             self.updateIm()
             self.update()
 
@@ -1462,15 +1514,16 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         if self.curLeftLineX != -1:
             TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV_no_MC(self.fullGrayArray, self.segMask, times, 24.09)
         else:
-            mcResultsCE = self.fullGrayArray[:, self.y0_CE:self.y0_CE+self.h_CE, self.x0_CE:self.x0_CE+self.w_CE]
-            bboxes = self.bboxes.copy()
-            for i in range(len(bboxes)):
-                if bboxes[i] is not None:
-                    bboxes[i] = (bboxes[i][0]-self.x0_bmode, bboxes[i][1]-self.y0_bmode, bboxes[i][2], bboxes[i][3]) # assumes bmode and CEUS images are same size
+            TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV_no_MC(self.fullGrayArray, self.segMask, times, 24.09)
+            # mcResultsCE = self.fullGrayArray[:, self.y0_CE:self.y0_CE+self.h_CE, self.x0_CE:self.x0_CE+self.w_CE]
+            # bboxes = self.bboxes.copy()
+            # for i in range(len(bboxes)):
+            #     if bboxes[i] is not None:
+            #         bboxes[i] = (bboxes[i][0]-self.x0_bmode, bboxes[i][1]-self.y0_bmode, bboxes[i][2], bboxes[i][3]) # assumes bmode and CEUS images are same size
             #         self.mcResultsArray[i, self.y0_CE + bboxes[i][1]: self.y0_CE + bboxes[i][1] + self.bboxes[i][3], self.x0_CE + bboxes[i][0]: self.x0_CE + bboxes[i][0] + bboxes[i][3]] = [255, 0, 0]
             # self.updateIm()
             # return
-            TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV(mcResultsCE, bboxes, times, 24.09)
+            # TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV(mcResultsCE, bboxes, times, 24.09)
 
         TIC[:,1] /= np.amax(TIC[:,1])
         
@@ -1501,6 +1554,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.ticAnalysisGui.dataFrame = self.dataFrame
         self.ticAnalysisGui.curFrameIndex = self.curFrameIndex
         self.ticAnalysisGui.mcResultsArray = self.mcResultsArray
+        self.ticAnalysisGui.segCoverMask = self.segCoverMask
         self.ticAnalysisGui.x = self.x
         self.ticAnalysisGui.y = self.y
         self.ticAnalysisGui.sliceArray = self.sliceArray
@@ -1521,6 +1575,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.ticAnalysisGui.acceptT0Button.setHidden(True)
         self.ticAnalysisGui.t0Slider.setHidden(True)
         self.ticAnalysisGui.selectT0Button.setHidden(False)
+        self.ticAnalysisGui.automaticT0Button.setHidden(False)
         self.ticAnalysisGui.updateIm()
         self.ticAnalysisGui.show()
         self.hide()

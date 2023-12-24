@@ -149,6 +149,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.pe = None
         self.tp = None
         self.mtt = None
+        self.segCoverMask = None
         # self.tmppv = None
         self.roiArea = None
         self.newData = None
@@ -234,11 +235,18 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             self.imX1 -= xBuffer
         self.imPlane.move(self.imX0, self.imY0)
         self.imPlane.resize(self.widthScale, self.depthScale)
+        self.maskCoverLabel.move(self.imX0, self.imY0)
+        self.maskCoverLabel.resize(self.widthScale, self.depthScale)
 
         self.mcData = np.require(self.mcResultsArray[self.curFrameIndex], np.uint8, 'C')
         self.bytesLine, _ = self.mcData[:,:,0].strides
         self.qImg = QImage(self.mcData, self.x, self.y, self.bytesLine, QImage.Format_RGB888)
         self.imPlane.setPixmap(QPixmap.fromImage(self.qImg).scaled(self.widthScale, self.depthScale))
+
+        self.maskCoverImg = np.require(self.segCoverMask[self.curFrameIndex], np.uint8, 'C')
+        self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
+        self.qImgMask = QImage(self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32)
+        self.maskCoverLabel.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(self.widthScale, self.depthScale))
 
     def setFilenameDisplays(self, imageName):
         self.imagePathInput.setHidden(False)

@@ -2,6 +2,7 @@ from UtcTool2d.selectImage_ui import *
 from UtcTool2d.roiSelection_ui_helper import *
 import os
 import shutil
+from  Parsers.canonBinParser import findPreset
 
 from PyQt5.QtWidgets import QWidget, QApplication
 import platform
@@ -146,6 +147,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
             #     aPhant = aPhant.split("_")[0]
                 
             #     if aPhant < aIm or vPhant < vIm or fPhant < fPhant:
+            #         self.selectImageErrorMsg.setText("ERROR: At least one dimension of phantom data\nsmaller than corresponding dimension\nof image data")
             #         self.selectImageErrorMsg.setHidden(False)
             #         return
 
@@ -157,7 +159,14 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
             if self.machine == "Verasonics":
                 self.roiSelectionGUI.openImageVerasonics(self.imagePathInput.text(), self.phantomPathInput.text())
             elif self.machine == "Canon":
-                self.roiSelectionGUI.openImageCanon(self.imagePathInput.text(), self.phantomPathInput.text())
+                preset1 = findPreset(self.imagePathInput.text())
+                preset2 = findPreset(self.phantomPathInput.text())
+                if preset1 == preset2:
+                    self.roiSelectionGUI.openImageCanon(self.imagePathInput.text(), self.phantomPathInput.text())
+                else:
+                    self.selectImageErrorMsg.setText("ERROR: Presets don't match")
+                    self.selectImageErrorMsg.setHidden(False)
+                    return
             elif self.machine == "Terason":
                 self.roiSelectionGUI.openImageTerason(self.imagePathInput.text(), self.phantomPathInput.text())
             else:
@@ -167,6 +176,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
             self.roiSelectionGUI.machine = self.machine
             self.roiSelectionGUI.dataFrame = self.dataFrame
             self.roiSelectionGUI.lastGui = self
+            self.selectImageErrorMsg.setHidden(True)
             self.hide()
         
     def clearImagePath(self):
