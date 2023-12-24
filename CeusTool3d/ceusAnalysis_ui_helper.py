@@ -661,6 +661,10 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
         self.lastGui.hide()
         self.curSliceSlider.setValue(self.lastGui.curSliceIndex)
+        self.curSliceSlider.setMinimum(0)
+        self.curSliceSlider.setMaximum(len(self.sliceArray)-1)
+        self.curSliceSpinBox.setMinimum(0)
+        self.curSliceSpinBox.setMaximum(self.sliceArray[-1])
         self.curSliceSliderValueChanged()
         self.alphaValueChanged()
         self.show()

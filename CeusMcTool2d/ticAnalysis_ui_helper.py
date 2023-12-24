@@ -99,6 +99,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.dataFrame = None
         self.ticArray = None
         # self.pixelScale = None
+        self.segCoverMask = None
 
         self.fig = plt.figure()
         self.canvas = FigureCanvas(self.fig)
@@ -108,6 +109,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.ax = self.fig.add_subplot(111)
 
         self.selectT0Button.clicked.connect(self.initT0)
+        self.automaticT0Button.clicked.connect(self.deferAutomaticT0)
 
         self.t0Index = -1
         self.selectedPoints = []
@@ -154,8 +156,8 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.numSlices = self.mcResultsArray.shape[0]
         self.imX0 = 370
         self.imX1 = 1141
-        self.imY0 = 80
-        self.imY1 = 341
+        self.imY0 = 10
+        self.imY1 = 351
         xLen = self.imX1 - self.imX0
         yLen = self.imY1 - self.imY0
 
@@ -176,15 +178,23 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
             self.imX1 -= xBuffer
         self.imDisplayLabel.move(self.imX0, self.imY0)
         self.imDisplayLabel.resize(self.widthScale, self.depthScale)  
+        self.maskDisplayLabel.move(self.imX0, self.imY0)
+        self.maskDisplayLabel.resize(self.widthScale, self.depthScale)
 
         self.mcData = np.require(self.mcResultsArray[self.curFrameIndex], np.uint8, 'C')
         self.bytesLineMc, _ = self.mcData[:,:,0].strides
         self.qImgMc = QImage(self.mcData, self.x, self.y, self.bytesLineMc, QImage.Format_RGB888)
         self.imDisplayLabel.setPixmap(QPixmap.fromImage(self.qImgMc).scaled(self.widthScale, self.depthScale))
 
+        self.maskCoverImg = np.require(self.segCoverMask[self.curFrameIndex], np.uint8, 'C')
+        self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
+        self.qImgMask = QImage(self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32)
+        self.maskDisplayLabel.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(self.widthScale, self.depthScale))
+
     def initT0(self):
         self.acceptT0Button.setHidden(False)
         self.selectT0Button.setHidden(True)
+        self.automaticT0Button.setHidden(True)
         self.t0Slider.setHidden(False)
 
         self.t0Slider.setMinimum(int(min(self.ticX[:,0])))
@@ -197,10 +207,29 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.prevLine = self.ax.axvline(x = self.t0Slider.value(), color = 'green', label = 'axvline - full height')
         self.canvas.draw()
 
+    def deferAutomaticT0(self):
+        self.automaticT0Button.setHidden(True)
+        self.selectT0Button.setHidden(True)
+        self.deSelectLastPointButton.setHidden(False)
+        self.deSelectLastPointButton.clicked.connect(self.deselectLast)
+        self.removeSelectedPointsButton.setHidden(False)
+        self.removeSelectedPointsButton.clicked.connect(self.removeSelectedPoints)
+        self.restoreLastPointsButton.setHidden(False)
+        self.restoreLastPointsButton.clicked.connect(self.restoreLastPoints)
+        self.acceptTicButton.setHidden(False)
+        self.t0Index = -1 # enables rectangular selector
+        self.ax.clear()
+        self.graph(self.ticX, self.ticY)
+        try:
+            self.acceptTicButton.clicked.disconnect()
+        except:
+            pass
+        self.acceptTicButton.clicked.connect(self.acceptTICt0)
+
     def graph(self,x,y):
         global ticX, ticY
         # y -= min(y)
-        x[:,0] -= np.min(x[:,0])
+        # x[:,0] -= np.min(x[:,0])
         y = y/np.max(y)
         self.ticX = x
         self.ticY = y
@@ -214,7 +243,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.ax.tick_params('both', pad=0.3, labelsize=7.2)
         plt.xticks(fontsize=8)
         plt.yticks(fontsize=8)
-        plt.xticks(np.arange(0, int(max(self.ticX[:,0]))+10, 10))
+        plt.xticks(np.arange(int(np.min(x[:,0])), int(max(self.ticX[:,0]))+10, 10))
         range = max(x[:,0]) - min(x[:,0])
         self.ax.set_xlim(xmin=min(x[:,0])-(0.05*range), xmax=max(x[:,0])+(0.05*range))
         if self.timeLine != None:
@@ -338,7 +367,10 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         # self.ceusAnalysisGui.lastGui = self
         # self.hide()
 
-    def acceptTIC(self):
+    def acceptTICt0(self):
+        self.acceptTIC(1)
+
+    def acceptTIC(self, autoT0=0):
         del self.ceusAnalysisGui
         self.ceusAnalysisGui = CeusAnalysisGUI()
         self.ceusAnalysisGui.show()
@@ -360,7 +392,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
 
         # Do the fitting
         try:
-            params, popt, wholecurve = lf.data_fit([x, self.ticY], tmppv);
+            params, popt, wholecurve = lf.data_fit([x, self.ticY], tmppv, autoT0);
             self.ceusAnalysisGui.ax.plot(self.ticX[:,0], wholecurve)
             range = max(self.ticX[:,0]) - min(self.ticX[:,0])
             self.ceusAnalysisGui.ax.set_xlim(xmin=min(self.ticX[:,0])-(0.05*range), xmax=max(self.ticX[:,0])+(0.05*range))
@@ -382,6 +414,10 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.ceusAnalysisGui.pe = params[0]
         self.ceusAnalysisGui.tp = params[2]
         self.ceusAnalysisGui.mtt = params[3]
+        if params[4] != 0:
+            self.ceusAnalysisGui.t0Val.setText(str(np.around(params[4], decimals=2)))
+        else:
+            self.ceusAnalysisGui.t0Val.setText(str(np.around(self.ticX[0,0], decimals=2)))
         # self.ceusAnalysisGui.tmppv = tmppv
         self.ceusAnalysisGui.roiArea = self.roiArea
         self.ceusAnalysisGui.curFrameIndex = self.curFrameIndex
@@ -400,6 +436,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.ceusAnalysisGui.w_CE = self.w_CE
         self.ceusAnalysisGui.h_CE = self.h_CE
         self.ceusAnalysisGui.mcResultsArray = self.mcResultsArray
+        self.ceusAnalysisGui.segCoverMask = self.segCoverMask
 
         self.ceusAnalysisGui.curSliceSlider.setMaximum(self.mcResultsArray.shape[0]-1)
         self.ceusAnalysisGui.curSliceSpinBox.setMaximum(self.mcResultsArray.shape[0]-1)

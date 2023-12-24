@@ -339,6 +339,8 @@ def generate_TIC_no_TMPPV_no_MC(window, mask, times, compression):
         tmpwin = window[t]
         bool_mask = np.array(mask[t]).astype(bool)
         numPoints = len(np.where(bool_mask == True)[0])
+        if numPoints == 0:
+            continue
         TIC.append(np.exp(tmpwin[bool_mask]/compression).mean())
         TICtime.append(times[t])
         areas.append(numPoints)

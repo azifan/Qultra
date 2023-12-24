@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import math
+import nibabel as nib
 import scipy.interpolate
 
 class ScParams():
@@ -32,6 +33,13 @@ class SipVolDataStruct():
         self.nLinImage = []
         self.linVol = []
         self.nLinVol = []
+
+class OutImStruct():
+    def __init__(self):
+        self.data = None
+        self.orig = None
+        self.xmap = None
+        self.ymap = None
 
 def readSIPscVDBParams(filename):
     print("Reading SIP scan conversion VDB Params...")
@@ -74,10 +82,9 @@ def readSIPscVDBParams(filename):
     print('Finished reading SIP scan converstion VDB params...')
     return scParams
     
-def readSIP3dInterleavedV5(filename, numberOfPlanes=32, numberOfParams=5, numberOfFrames=1e10):
+def readSIP3dInterleavedV5(filename, numberOfPlanes=32, numberOfParams=5):
     print('Reading interleaved SIP volume data...')
     file = open(filename, "rb")
-    endianness = 'little'
     param = SipVolParams()
     img = SipVolDataStruct()
     while (True):
@@ -169,11 +176,10 @@ def scanConvert3Va(rxLines, lineAngles, planeAngles, beamDist, imgSize, fovSize,
     pixSizeZ = 1/(imgSize[2]-1)
 
     # Create Cartesian grid and convert to polar coordinates
-    xLoc = (np.arange(0,1,1/pixSizeX)-0.5)*fovSize[0]
-    yLoc = (np.arange(0,1,1/pixSizeY)-0.5)*fovSize[1]
-    zLoc = (np.arange(0,1,1/pixSizeZ)-0.5)*fovSize[2]
-
-    Z, X, Y = np.meshgrid(zLoc, xLoc, yLoc)
+    xLoc = (np.arange(0,1+(pixSizeX/2),pixSizeX)-0.5)*fovSize[0]
+    yLoc = (np.arange(0,1+(pixSizeY/2),pixSizeY)-0.5)*fovSize[1]
+    zLoc = np.arange(0,1+(pixSizeZ/2),pixSizeZ)*fovSize[2]
+    Z, X, Y = np.meshgrid(zLoc, xLoc, yLoc, indexing='ij')
 
     # S. Wang: geometry for 3D virtual apex
     # vaElType = 3
@@ -211,46 +217,119 @@ end
     TH = np.arctan2(X, np.sqrt(np.square(Y)+np.square(Z+z0)))
     R = np.sqrt(np.square(X)+np.square(Y)+np.square(Z+z0))*(1-z0/np.sqrt(np.square(Y)+np.square(Z+z0)))
 
-    # Interpolate using cubic interpolation
-    img = scipy.interpolate.griddata(beamDist, np.pi*lineAngles/180, np.pi*planeAngles/180, rxLines, R, TH, PHI, method='cubic')
+    img = scipy.interpolate.interpn((beamDist, np.pi*lineAngles/180, np.pi*planeAngles/180), rxLines, (R, TH, PHI), bounds_error=False, method='linear', fill_value=0)
+    img /= np.amax(img)
+    img *= 255
 
-    return img, xLoc, yLoc, zLoc
+    print("Finished scan converting volume data...")
+
+    return img
 
 
 def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams):
     print("Scan converting volume data...")
 
     #Scan conversion parameter computation -- ported from Shiying's implementation
-    nz, nx, ny = dbEnvDatFullVolSeries[0].shape
+    if len(dbEnvDatFullVolSeries.shape) != 4:
+        numVolumes = 1
+        nz, nx, ny = dbEnvDatFullVolSeries.shape
+    else:
+        numVolumes = dbEnvDatFullVolSeries.shape[0]
+        nz, nx, ny = dbEnvDatFullVolSeries[0].shape
     apexDist = scParams.VDB_2D_ECHO_APEX_TO_SKINLINE # Distance of virtual apex to probe surface in mm
     azimSteerAngleStart = scParams.VDB_2D_ECHO_START_WIDTH_GC*180/np.pi # Azimuth steering angle (start) in degree
     azimSteerAngleEnd = scParams.VDB_2D_ECHO_STOP_WIDTH_GC*180/np.pi # Azimuth steering angle (end) in degree
     rxAngAz = np.linspace(azimSteerAngleStart, azimSteerAngleEnd, nx) # Steering angles in degree
-    elevSteeerAngleStart = scParams.VDB_THREED_START_ELEVATION_ACTUAL*180/np.pi # Elevation steering angle (start) in degree
-    elevSteeerAngleEnd = scParams.VDB_THREED_STOP_ELEVATION_ACTUAL*180/np.pi # Elevation steering angle (end) in degree
-    rxAngEl = np.linspace(elevSteeerAngleStart, elevSteeerAngleEnd, ny) # Steering angles in degree
+    elevSteerAngleStart = scParams.VDB_THREED_START_ELEVATION_ACTUAL*180/np.pi # Elevation steering angle (start) in degree
+    elevSteerAngleEnd = scParams.VDB_THREED_STOP_ELEVATION_ACTUAL*180/np.pi # Elevation steering angle (end) in degree
+    rxAngEl = np.linspace(elevSteerAngleStart, elevSteerAngleEnd, ny) # Steering angles in degree
     DepthMm=scParams.VDB_2D_ECHO_STOP_DEPTH_SIP
     imgDpth = np.linspace(0, DepthMm, nz) # Axial distance in mm
-    volDepth = scParams.VDB_2D_ECHO_STOP_DEPTH_SIP *(abs(math.sin(math.radians(elevSteeerAngleStart))) + abs(math.sin(math.radians(elevSteeerAngleEnd)))) # Elevation (needs validation)
+    volDepth = scParams.VDB_2D_ECHO_STOP_DEPTH_SIP *(abs(math.sin(math.radians(elevSteerAngleStart))) + abs(math.sin(math.radians(elevSteerAngleEnd)))) # Elevation (needs validation)
     volWidth = scParams.VDB_2D_ECHO_STOP_DEPTH_SIP *(abs(math.sin(math.radians(azimSteerAngleStart))) + abs(math.sin(math.radians(azimSteerAngleEnd))))   # Lateral (needs validation)
     volHeight = scParams.VDB_2D_ECHO_STOP_DEPTH_SIP - scParams.VDB_2D_ECHO_START_DEPTH_SIP # Axial (needs validation)
     fovSize   = [volWidth, volDepth, volHeight] # [Lateral, Elevation, Axial]
-    imgSize = round(scParams.PixPerMm*[volWidth, volDepth, volHeight]) # [Lateral, Elevation, Axial]
+    imgSize = np.array(np.round(np.array([volWidth, volDepth, volHeight])*scParams.pixPerMm), dtype=np.uint32) # [Lateral, Elevation, Axial]
 
     # Generate image
     imgOut = []
-    for k in range(dbEnvDatFullVolSeries.shape[0]):
-        rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries[k].shape[1])
-        rxAngsElVec = np.einsum('ikj->ijk', np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries[k].shape[23]))
-        curImgOut, x, y, z = scanConvert3Va(dbEnvDatFullVolSeries[k], rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
-        imgOut.append(curImgOut)
+    if numVolumes > 1:
+        for k in range(numVolumes):
+            rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries[k].shape[1])
+            rxAngsElVec = np.einsum('ikj->ijk', np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries[k].shape[2]))
+            curImgOut = scanConvert3Va(dbEnvDatFullVolSeries[k], rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
+            imgOut.append(curImgOut)
+        imgOut = np.array(imgOut)
+    else:
+        rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries.shape[1])
+        rxAngsElVec = np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries.shape[2])
+        curImgOut = scanConvert3Va(dbEnvDatFullVolSeries, rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
+        imgOut = curImgOut
     
-    return imgOut
+    return imgOut, fovSize
 
+def image4dCeusPostXbr(pathToData, sipFilename):
+    # Input paths/filenames
+    vdbFilename = str(sipFilename.split("_")[0] + "_vdbDump.xml")
+    scParamFilename = str(vdbFilename+"_Extras.txt")
+    
+    # Read in Parameter data (primarily for scan conversion)
+    scParams = readSIPscVDBParams(os.path.join(pathToData, scParamFilename))
+    scParams.NUM_PLANES = 20
+    scParams.pixPerMm = 2.5
 
-filename = "/Volumes/CREST Data/David_S_Data/David_Duncan 4D_SIP_to_SC_Volume/Data/13.56.19_mf_sip_capture_50_2_1_0.raw"
-pathToData = "/Volumes/CREST Data/David_S_Data/David_Duncan 4D_SIP_to_SC_Volume/Data"
-file = "13.56.19_mf_sip_capture_50_2_1_0.raw"
-numberOfPlanes = 20
-readSIPscVDBParams("/Volumes/CREST Data/David_S_Data/David_Duncan 4D_SIP_to_SC_Volume/Data/13.56.19_vdbDump.xml_Extras.txt")
-readSIP3dInterleavedV5(filename, numberOfPlanes)
+    # Read in the interleaved SIP volume data time series (both linear/non-linear parts)
+    sipVolDat = readSIP3dInterleavedV5(os.path.join(pathToData, sipFilename),  scParams.NUM_PLANES)
+    
+    # Scan Conversion of 3D volume time series (Only doing 1 volume here)
+    scSipVolDat = SipVolDataStruct()
+    scSipVolDat.linVol, imgDims = scanConvert3dVolumeSeries(sipVolDat.linVol[0], scParams)
+    scSipVolDat.nLinVol, nLineImgDims = scanConvert3dVolumeSeries(sipVolDat.nLinVol[0], scParams)
+
+    upperLim = 255
+    lowerLim = 145 # trial and error
+    scSipVolDat.nLinVol = np.clip(scSipVolDat.nLinVol, a_min=lowerLim, a_max=upperLim)
+    scSipVolDat.nLinVol -= np.amin(scSipVolDat.nLinVol)
+    scSipVolDat.nLinVol *= int(255/np.amax(scSipVolDat.nLinVol))
+    scSipVolDat.linVol = np.clip(scSipVolDat.linVol, a_min=lowerLim, a_max=upperLim)
+    scSipVolDat.linVol -= np.amin(scSipVolDat.linVol)
+    scSipVolDat.linVol *= int(255/np.amax(scSipVolDat.linVol))
+
+    return scSipVolDat.linVol, scSipVolDat.nLinVol, imgDims # assume linear and non-linear images have same dims
+
+def makeNifti(dataFolder, destinationPath):
+    imarray_org, imarray_bmode_org, imgDims = image4dCeusPostXbr(os.path.dirname(dataFolder), os.path.basename(dataFolder))
+    timeconst = 0 # no framerate for now
+    orgres = [imgDims[0]/imarray_org.shape[2], imgDims[1]/imarray_org.shape[1], imgDims[0]/imarray_org.shape[2]]
+
+    if len(imarray_org.shape) <= 3:
+        imarray_org = np.reshape(imarray_org, (1, imarray_org.shape[0], imarray_org.shape[1], imarray_org.shape[2]))
+        imarray_bmode_org = np.reshape(imarray_bmode_org, (1, imarray_bmode_org.shape[0], imarray_bmode_org.shape[1], imarray_bmode_org.shape[2]))
+
+    imarray_org = imarray_org.astype('uint8')
+    imarray_org = imarray_org.swapaxes(1, 2)
+    imarray_org = np.transpose(imarray_org)
+    imarray_org = imarray_org.swapaxes(0, 2)
+    imarray_bmode_org = imarray_bmode_org.astype('uint8')
+    imarray_bmode_org = imarray_bmode_org.swapaxes(1, 2)
+    imarray_bmode_org = np.transpose(imarray_bmode_org)
+    imarray_bmode_org = imarray_bmode_org.swapaxes(0, 2)
+    
+    affine = np.eye(4)
+    niiarray = nib.Nifti1Image(imarray_org.astype('uint8'), affine)
+    niiarray.header['pixdim'] = [4., orgres[0], orgres[1], orgres[2], timeconst, 0., 0., 0.]
+    outputPath = os.path.join(destinationPath, str(os.path.basename(dataFolder)+'.nii.gz'))
+    nib.save(niiarray, outputPath)
+
+    niiarray = nib.Nifti1Image(imarray_bmode_org.astype('uint8'), affine)
+    niiarray.header['pixdim'] = [4., orgres[0], orgres[1], orgres[2], timeconst, 0., 0., 0.]
+    outputPathBmode = os.path.join(destinationPath, str(os.path.basename(dataFolder)+ '_BMODE_.nii.gz'))
+    nib.save(niiarray, outputPathBmode)
+    return outputPath, outputPathBmode
+
+if __name__ == "__main__":
+    pathToData = "/Volumes/CREST Data/David_S_Data/David_Duncan 4D_SIP_to_SC_Volume/Data"
+    file = "13.56.19_mf_sip_capture_50_2_1_0.raw"
+    numberOfPlanes = 20
+    # image4dCeusPostXbr(pathToData, file)
+    makeNifti(str(pathToData + '/' + file), "hi")

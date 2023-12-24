@@ -102,6 +102,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.closeRoiButton.setHidden(True)
         self.newVoiBackButton.setHidden(True)
         self.voiAdviceLabel.setHidden(True)
+        self.toggleButton.setHidden(True)
 
         self.sliceSpinBoxChanged = False
         self.sliceSliderChanged = False
@@ -113,6 +114,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.tmppv = None
         self.dataFrame = None
         self.fullPath = None
+        self.bmode4dIm = None
 
         self.voiAlphaSpinBox.setMinimum(0)
         self.voiAlphaSpinBox.setMaximum(255)
@@ -181,7 +183,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         for point in self.pointsPlotted:
             segMask[point[0], point[1], point[2], frame] = 1
 
-        affine = np.eye(4)
+        affine = np.eye(5)
         niiarray = nib.Nifti1Image(segMask.astype('uint8'), affine)
         niiarray.header['descrip'] = self.imagePathInput.text()
         outputPath = os.path.join(fileDestination, name)
@@ -380,8 +382,18 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.changeAxialSlices()
         self.changeSagSlices()
         self.changeCorSlices()
+    
+    def toggleIms(self):
+        if self.toggleButton.isChecked():
+            self.data4dImg = self.bmode4dIm
+        else:
+            self.data4dImg = self.OGData4dImg
+        self.changeAxialSlices()
+        self.changeSagSlices()
+        self.changeCorSlices()
+        self.updateCrosshair()
 
-    def openImage(self):        
+    def openImage(self, bmodePath):        
         self.nibImg = nib.load(self.inputTextPath, mmap=False)
         self.dataNibImg = self.nibImg.get_fdata()
         self.dataNibImg = self.dataNibImg.astype(np.uint8)
@@ -392,6 +404,12 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.x, self.y, self.z, self.numSlices = self.data4dImg.shape
         self.maskCoverImg = np.zeros([self.x, self.y, self.z,4])
         self.curSliceSlider.setMaximum(self.numSlices-1)
+
+        if bmodePath is not None:
+            self.bmode4dIm = nib.load(bmodePath, mmap=False).get_fdata().astype(np.uint8)
+            self.toggleButton.setHidden(False)
+            self.toggleButton.setCheckable(True)
+            self.toggleButton.clicked.connect(self.toggleIms)
 
         self.header = self.nibImg.header['pixdim'] # [dims, voxel dims (3 vals), timeconst, 0, 0, 0], assume mm/pix
         self.sliceArray = np.round([i*self.timeconst for i in range(1, self.OGData4dImg.shape[3]+1)], decimals=2)

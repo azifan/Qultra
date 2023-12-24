@@ -53,8 +53,8 @@
   <widget class="QPushButton" name="chooseNiftiImageFileButton">
    <property name="geometry">
     <rect>
-     <x>622</x>
-     <y>380</y>
+     <x>620</x>
+     <y>300</y>
      <width>131</width>
      <height>41</height>
     </rect>
@@ -75,7 +75,7 @@
    <property name="geometry">
     <rect>
      <x>650</x>
-     <y>330</y>
+     <y>260</y>
      <width>201</width>
      <height>31</height>
     </rect>
@@ -91,7 +91,7 @@
    <property name="geometry">
     <rect>
      <x>760</x>
-     <y>380</y>
+     <y>300</y>
      <width>131</width>
      <height>41</height>
     </rect>
@@ -319,9 +319,9 @@
   <widget class="QLabel" name="selectNiftiImageLabel">
    <property name="geometry">
     <rect>
-     <x>610</x>
-     <y>250</y>
-     <width>271</width>
+     <x>590</x>
+     <y>210</y>
+     <width>331</width>
      <height>51</height>
     </rect>
    </property>
@@ -333,7 +333,7 @@
 }</string>
    </property>
    <property name="text">
-    <string>Select NIFTI Image: (.nii,  .nii.gz)</string>
+    <string>Select NIFTI CEUS Image: (.nii,  .nii.gz)</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -406,7 +406,7 @@
 }</string>
    </property>
    <property name="text">
-    <string>Destination for Converted NIFTI:</string>
+    <string>Destination for Converted NIFTIs:</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -807,6 +807,143 @@
 }</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="philipsOptionButton">
+   <property name="geometry">
+    <rect>
+     <x>630</x>
+     <y>470</y>
+     <width>251</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Phillips</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="selectNiftiBmodeLabel">
+   <property name="geometry">
+    <rect>
+     <x>530</x>
+     <y>340</y>
+     <width>451</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 18px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Select NIFTI B-Mode Image: (.nii,  .nii.gz) (OPTIONAL)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="textInteractionFlags">
+    <set>Qt::NoTextInteraction</set>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="niftiBmodePathInput">
+   <property name="geometry">
+    <rect>
+     <x>650</x>
+     <y>390</y>
+     <width>201</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {
+	background-color: rgb(249, 249, 249);
+	color: black;
+}</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="chooseNiftiBmodeFileButton">
+   <property name="geometry">
+    <rect>
+     <x>620</x>
+     <y>430</y>
+     <width>131</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Choose File</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="clearNiftiBmodeFileButton">
+   <property name="geometry">
+    <rect>
+     <x>760</x>
+     <y>430</y>
+     <width>131</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Clear Path</string>
+   </property>
+  </widget>
+  <zorder>selectDataLabel</zorder>
+  <zorder>generateImageButton</zorder>
+  <zorder>selectImageErrorMsg</zorder>
+  <zorder>selectNiftiImageOptionButton</zorder>
+  <zorder>selectXmlFolderImageOptionButton</zorder>
+  <zorder>xmlImagePathInput</zorder>
+  <zorder>clearXmlImageFolderButton</zorder>
+  <zorder>chooseXmlImageFolderButton</zorder>
+  <zorder>niftiImageDestinationPath</zorder>
+  <zorder>clearNiftiImageDestinationButton</zorder>
+  <zorder>niftiImageDestinationButton</zorder>
+  <zorder>imageBackButton</zorder>
+  <zorder>selectXmlFolderImageLabel</zorder>
+  <zorder>niftiDestinationImageLabel</zorder>
+  <zorder>sidebar</zorder>
+  <zorder>analysisParamsSidebar</zorder>
+  <zorder>backButton</zorder>
+  <zorder>frameRateLabel</zorder>
+  <zorder>confirmFrameRateButton</zorder>
+  <zorder>frameRateValue</zorder>
+  <zorder>philipsOptionButton</zorder>
+  <zorder>selectNiftiImageLabel</zorder>
+  <zorder>niftiImagePathInput</zorder>
+  <zorder>clearNiftiImageFileButton</zorder>
+  <zorder>chooseNiftiImageFileButton</zorder>
+  <zorder>selectNiftiBmodeLabel</zorder>
+  <zorder>niftiBmodePathInput</zorder>
+  <zorder>chooseNiftiBmodeFileButton</zorder>
+  <zorder>clearNiftiBmodeFileButton</zorder>
  </widget>
  <resources/>
  <connections/>
