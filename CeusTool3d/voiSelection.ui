@@ -1454,6 +1454,9 @@ QPushButton:checked {
    <property name="text">
     <string>Toggle B-Mode/CEUS</string>
    </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
   </widget>
  </widget>
  <resources/>
