@@ -1,7 +1,8 @@
-from CeusTool3d.saveVoi_ui import *
+from CeusTool3d.saveVoi_ui import Ui_saveVoi
 import os
 import re
 from PyQt5.QtWidgets import QWidget, QFileDialog
+
 
 class SaveVoiGUI(Ui_saveVoi, QWidget):
     def __init__(self):
@@ -16,20 +17,27 @@ class SaveVoiGUI(Ui_saveVoi, QWidget):
         self.saveVoiButton.clicked.connect(self.saveVoi)
 
     def chooseFolder(self):
-        folderName = QFileDialog.getExistingDirectory(None, 'Select Directory')
-        if folderName != '':
+        folderName = QFileDialog.getExistingDirectory(None, "Select Directory")
+        if folderName != "":
             self.newFolderPathInput.setText(folderName)
 
     def clearFolder(self):
         self.newFolderPathInput.clear()
-    
+
     def saveVoi(self):
         if os.path.exists(self.newFolderPathInput.text()):
-            if not (self.newFileNameInput.text().endswith(".nii.gz") and (not bool(re.search(r"\s", self.newFileNameInput.text())))):
+            if not (
+                self.newFileNameInput.text().endswith(".nii.gz")
+                and (not bool(re.search(r"\s", self.newFileNameInput.text())))
+            ):
                 self.fileNameWarningLabel.setHidden(True)
                 self.fileNameErrorLabel.setHidden(False)
                 return
-            self.voiSelectionGUI.saveVoi(self.newFolderPathInput.text(), self.newFileNameInput.text(), self.voiSelectionGUI.curSliceIndex)
+            self.voiSelectionGUI.saveVoi(
+                self.newFolderPathInput.text(),
+                self.newFileNameInput.text(),
+                self.voiSelectionGUI.curSliceIndex,
+            )
             self.dataSavedSuccessfullyLabel.setHidden(False)
             self.newFileNameInput.setHidden(True)
             self.newFileNameLabel.setHidden(True)

@@ -1,7 +1,5 @@
-from UtcTool2d.psGraphDisplay_ui import *
-import os
-import csv
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QFileDialog
+from UtcTool2d.psGraphDisplay_ui import Ui_psGraphWidget
+from PyQt5.QtWidgets import QWidget, QHBoxLayout
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
@@ -20,3 +18,4 @@ class PsGraphDisplay(Ui_psGraphWidget, QWidget):
         self.ax.set_xlabel("Frequency (MHz)", fontsize=8)
         self.ax.set_ylabel("Power (dB)", fontsize=8)
         self.horizontalLayout.addWidget(self.canvas)
+

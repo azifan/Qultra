@@ -1,111 +1,142 @@
-from CeusMcTool2d.ceusAnalysis_ui import *
-from CeusMcTool2d.exportData_ui_helper import *
+from CeusMcTool2d.ceusAnalysis_ui import Ui_ceusAnalysis
+from CeusMcTool2d.exportData_ui_helper import ExportDataGUI
 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout
-from PyQt5.QtGui import QPixmap, QPainter, QImage
-from PyQt5.QtCore import QLine, Qt
+from PyQt5.QtGui import QPixmap, QImage
 
 import platform
+
 system = platform.system()
+
 
 class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
 
-        if system == 'Windows':
-            self.imageSelectionLabelSidebar.setStyleSheet("""QLabel {
+        if system == "Windows":
+            self.imageSelectionLabelSidebar.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.imageLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.imageLabel.setStyleSheet(
+                """QLabel {
                 font-size: 13px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.imagePathInput.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.imagePathInput.setStyleSheet(
+                """QLabel {
                 font-size: 11px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
-            }""")
-            self.roiSidebarLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.roiSidebarLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.analysisParamsLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.analysisParamsLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight:bold;
-            }""")
-            self.ticAnalysisLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.ticAnalysisLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.rfAnalysisLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.rfAnalysisLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.aucLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.aucLabel.setStyleSheet(
+                """QLabel {
                 color: white;
                 background-color: rgba(0,0,0,0);
                 font-size: 13px;
-            }""")
-            self.aucVal.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.aucVal.setStyleSheet(
+                """QLabel {
                 color: white;
                 background-color: rgba(0,0,0,0);
                 font-size: 13px;
-            }""")
-            self.peLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.peLabel.setStyleSheet(
+                """QLabel {
                 color: white;
                 background-color: rgba(0,0,0,0);
                 font-size: 13px;
-            }""")
-            self.peVal.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.peVal.setStyleSheet(
+                """QLabel {
                 color: white;
                 background-color: rgba(0,0,0,0);
                 font-size: 13px;
-            }""")
-            self.mttLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.mttLabel.setStyleSheet(
+                """QLabel {
                 color: white;
                 background-color: rgba(0,0,0,0);
                 font-size: 13px;
-            }""")
-            self.mttVal.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.mttVal.setStyleSheet(
+                """QLabel {
                 color: white;
                 background-color: rgba(0,0,0,0);
                 font-size: 13px;
-            }""")
-            self.tpLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.tpLabel.setStyleSheet(
+                """QLabel {
                 color: white;
                 background-color: rgba(0,0,0,0);
                 font-size: 13px;
-            }""")
-            self.tpVal.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.tpVal.setStyleSheet(
+                """QLabel {
                 color: white;
                 background-color: rgba(0,0,0,0);
                 font-size: 13px;
-            # }""")
+            # }"""
+            )
             # self.tmppvLabel.setStyleSheet("""QLabel {
             #     color: white;
             #     background-color: rgba(0,0,0,0);
@@ -116,16 +147,20 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             #     background-color: rgba(0,0,0,0);
             #     font-size: 13px;
             # }""")
-            self.voiVolumeLabel.setStyleSheet("""QLabel {
+            self.voiVolumeLabel.setStyleSheet(
+                """QLabel {
                 color: white;
                 background-color: rgba(0,0,0,0);
                 font-size: 13px;
-            }""")
-            self.voiVolumeVal.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.voiVolumeVal.setStyleSheet(
+                """QLabel {
                 color: white;
                 background-color: rgba(0,0,0,0);
                 font-size: 13px;
-            }""")
+            }"""
+            )
 
         self.mcResultsArray = None
         self.curFrameIndex = None
@@ -162,7 +197,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.ax.set_xlabel("Time (s)", fontsize=4, labelpad=0.5)
         self.ax.set_ylabel("Signal Amplitude", fontsize=4, labelpad=0.5)
         self.ax.set_title("Time Intensity Curve (TIC)", fontsize=5, pad=1.5)
-        self.ax.tick_params('both', pad=0.3, labelsize=3.6)
+        self.ax.tick_params("both", pad=0.3, labelsize=3.6)
         plt.xticks(fontsize=3)
         plt.yticks(fontsize=3)
         # self.aucParamap = None
@@ -195,18 +230,22 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
     def saveData(self):
         if self.newData is None:
-            self.newData = {"Patient": self.imagePathInput.text(), "Area Under Curve (AUC)": self.auc, \
-                            "Peak Enhancement (PE)": self.pe, "Time to Peak (TP)": self.tp, \
-                            "Mean Transit Time (MTT)": self.mtt, "ROI Area (mm^2)": self.roiArea}
+            self.newData = {
+                "Patient": self.imagePathInput.text(),
+                "Area Under Curve (AUC)": self.auc,
+                "Peak Enhancement (PE)": self.pe,
+                "Time to Peak (TP)": self.tp,
+                "Mean Transit Time (MTT)": self.mtt,
+                "ROI Area (mm^2)": self.roiArea,
+            }
             self.dataFrame = self.dataFrame.append(self.newData, ignore_index=True)
-
 
     def backToLastScreen(self):
         self.lastGui.dataFrame = self.dataFrame
         self.lastGui.fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.1)
         self.lastGui.show()
         self.hide()
-    
+
     def updateIm(self):
         self.x = self.mcResultsArray.shape[2]
         self.y = self.mcResultsArray.shape[1]
@@ -219,18 +258,18 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         yLen = self.imY1 - self.imY0
 
         quotient = self.x / self.y
-        if quotient > (xLen/yLen):
+        if quotient > (xLen / yLen):
             self.widthScale = xLen
             self.depthScale = int(self.widthScale / quotient)
             emptySpace = yLen - self.depthScale
-            yBuffer = int(emptySpace/2)
+            yBuffer = int(emptySpace / 2)
             self.imY0 += yBuffer
             self.imY1 -= yBuffer
         else:
             self.widthScale = int(yLen * quotient)
             self.depthScale = yLen
             emptySpace = xLen - self.widthScale
-            xBuffer = int(emptySpace/2)
+            xBuffer = int(emptySpace / 2)
             self.imX0 += xBuffer
             self.imX1 -= xBuffer
         self.imPlane.move(self.imX0, self.imY0)
@@ -238,20 +277,30 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.maskCoverLabel.move(self.imX0, self.imY0)
         self.maskCoverLabel.resize(self.widthScale, self.depthScale)
 
-        self.mcData = np.require(self.mcResultsArray[self.curFrameIndex], np.uint8, 'C')
-        self.bytesLine, _ = self.mcData[:,:,0].strides
-        self.qImg = QImage(self.mcData, self.x, self.y, self.bytesLine, QImage.Format_RGB888)
-        self.imPlane.setPixmap(QPixmap.fromImage(self.qImg).scaled(self.widthScale, self.depthScale))
+        self.mcData = np.require(self.mcResultsArray[self.curFrameIndex], np.uint8, "C")
+        self.bytesLine, _ = self.mcData[:, :, 0].strides
+        self.qImg = QImage(
+            self.mcData, self.x, self.y, self.bytesLine, QImage.Format_RGB888
+        )
+        self.imPlane.setPixmap(
+            QPixmap.fromImage(self.qImg).scaled(self.widthScale, self.depthScale)
+        )
 
-        self.maskCoverImg = np.require(self.segCoverMask[self.curFrameIndex], np.uint8, 'C')
-        self.bytesLineMask, _ = self.maskCoverImg[:,:,0].strides
-        self.qImgMask = QImage(self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32)
-        self.maskCoverLabel.setPixmap(QPixmap.fromImage(self.qImgMask).scaled(self.widthScale, self.depthScale))
+        self.maskCoverImg = np.require(
+            self.segCoverMask[self.curFrameIndex], np.uint8, "C"
+        )
+        self.bytesLineMask, _ = self.maskCoverImg[:, :, 0].strides
+        self.qImgMask = QImage(
+            self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32
+        )
+        self.maskCoverLabel.setPixmap(
+            QPixmap.fromImage(self.qImgMask).scaled(self.widthScale, self.depthScale)
+        )
 
     def setFilenameDisplays(self, imageName):
         self.imagePathInput.setHidden(False)
-        
-        imFile = imageName.split('/')[-1]
+
+        imFile = imageName.split("/")[-1]
 
         self.imagePathInput.setText(imFile)
         self.inputTextPath = imageName
@@ -268,8 +317,10 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.updateIm()
         self.update()
 
+
 if __name__ == "__main__":
     import sys
+
     app = QApplication(sys.argv)
     # selectWindow = QWidget()
     ui = CeusAnalysisGUI()
