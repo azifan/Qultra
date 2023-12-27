@@ -1,19 +1,21 @@
-from UtcTool2d.selectImage_ui import *
-from UtcTool2d.roiSelection_ui_helper import *
-import os
-import shutil
-from  Parsers.canonBinParser import findPreset
+from UtcTool2d.selectImage_ui import Ui_selectImage
+from UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
+from Parsers.canonBinParser import findPreset
 
-from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
+import shutil
+import os
+import matplotlib.pyplot as plt
 import platform
 
 system = platform.system()
 
+
 def selectImageHelper(pathInput, fileExts):
-    if not os.path.exists(pathInput.text()): # check if file path is manually typed
+    if not os.path.exists(pathInput.text()):  # check if file path is manually typed
         # NOTE: .bin is currently not supported
-        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = fileExts)
-        if fileName != '': # If valid file is chosen
+        fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter=fileExts)
+        if fileName != "":  # If valid file is chosen
             pathInput.setText(fileName)
         else:
             return
@@ -24,68 +26,86 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         super().__init__()
         self.setupUi(self)
 
-        if system == 'Windows':
-            self.roiSidebarLabel.setStyleSheet("""QLabel { 
-                font-size: 18px; 
-                color: rgb(255, 255, 255); 
-                background-color: rgba(255, 255, 255, 0); 
-                border: 0px; 
-                font-weight: bold; 
-            }""")
-            self.imageSelectionLabelSidebar.setStyleSheet("""QLabel {
+        if system == "Windows":
+            self.roiSidebarLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.imageLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.imageSelectionLabelSidebar.setStyleSheet(
+                """QLabel {
+                font-size: 18px;
+                color: rgb(255, 255, 255);
+                background-color: rgba(255, 255, 255, 0);
+                border: 0px;
+                font-weight: bold;
+            }"""
+            )
+            self.imageLabel.setStyleSheet(
+                """QLabel {
                 font-size: 13px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.phantomLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.phantomLabel.setStyleSheet(
+                """QLabel {
                 font-size: 13px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.imageFilenameDisplay.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.imageFilenameDisplay.setStyleSheet(
+                """QLabel {
                 font-size: 11px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
-            }""")
-            self.phantomFilenameDisplay.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.phantomFilenameDisplay.setStyleSheet(
+                """QLabel {
                 font-size: 11px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
-            }""")
-            self.analysisParamsLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.analysisParamsLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight:bold;
-            }""")
-            self.rfAnalysisLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.rfAnalysisLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight:bold;
-            }""")
-            self.exportResultsLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.exportResultsLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight:bold;
-            }""")
+            }"""
+            )
 
         self.chooseImageFileButton.setHidden(True)
         self.choosePhantomFileButton.setHidden(True)
@@ -129,7 +149,9 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.hide()
 
     def moveToRoiSelection(self):
-        if os.path.exists(self.imagePathInput.text()) and os.path.exists(self.phantomPathInput.text()):
+        if os.path.exists(self.imagePathInput.text()) and os.path.exists(
+            self.phantomPathInput.text()
+        ):
             # if self.imagePathInput.text().endswith('.rfd') and self.phantomPathInput.text().endswith('.rfd'):
             #     imageName = self.imagePathInput.text().split('/')[-1]
             #     phantomName = self.phantomPathInput.text().split('/')[-1]
@@ -145,30 +167,39 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
             #     fPhant = fPhant.split("_")[0]
             #     aPhant = phantomName.split("FpA")[1]
             #     aPhant = aPhant.split("_")[0]
-                
+
             #     if aPhant < aIm or vPhant < vIm or fPhant < fPhant:
             #         self.selectImageErrorMsg.setText("ERROR: At least one dimension of phantom data\nsmaller than corresponding dimension\nof image data")
             #         self.selectImageErrorMsg.setHidden(False)
             #         return
 
-            if self.roiSelectionGUI != None:
+            if self.roiSelectionGUI is not None:
                 plt.close(self.roiSelectionGUI.figure)
             del self.roiSelectionGUI
             self.roiSelectionGUI = RoiSelectionGUI()
-            self.roiSelectionGUI.setFilenameDisplays(self.imagePathInput.text().split('/')[-1], self.phantomPathInput.text().split('/')[-1])
+            self.roiSelectionGUI.setFilenameDisplays(
+                self.imagePathInput.text().split("/")[-1],
+                self.phantomPathInput.text().split("/")[-1],
+            )
             if self.machine == "Verasonics":
-                self.roiSelectionGUI.openImageVerasonics(self.imagePathInput.text(), self.phantomPathInput.text())
+                self.roiSelectionGUI.openImageVerasonics(
+                    self.imagePathInput.text(), self.phantomPathInput.text()
+                )
             elif self.machine == "Canon":
                 preset1 = findPreset(self.imagePathInput.text())
                 preset2 = findPreset(self.phantomPathInput.text())
                 if preset1 == preset2:
-                    self.roiSelectionGUI.openImageCanon(self.imagePathInput.text(), self.phantomPathInput.text())
+                    self.roiSelectionGUI.openImageCanon(
+                        self.imagePathInput.text(), self.phantomPathInput.text()
+                    )
                 else:
                     self.selectImageErrorMsg.setText("ERROR: Presets don't match")
                     self.selectImageErrorMsg.setHidden(False)
                     return
             elif self.machine == "Terason":
-                self.roiSelectionGUI.openImageTerason(self.imagePathInput.text(), self.phantomPathInput.text())
+                self.roiSelectionGUI.openImageTerason(
+                    self.imagePathInput.text(), self.phantomPathInput.text()
+                )
             else:
                 print("ERROR: Machine match not found")
                 return
@@ -178,7 +209,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
             self.roiSelectionGUI.lastGui = self
             self.selectImageErrorMsg.setHidden(True)
             self.hide()
-        
+
     def clearImagePath(self):
         self.imagePathInput.clear()
 
@@ -209,10 +240,12 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.imagePathLabel.setText("Input Path to Image file\n (.mat)")
         self.phantomPathLabel.setText("Input Path to Phantom file\n (.mat)")
 
-        self.machine = 'Terason'
-        self.fileExts = '*.mat'
+        self.machine = "Terason"
+        self.fileExts = "*.mat"
 
-    def canonClicked(self): # Move user to screen to select individual files to generate image
+    def canonClicked(
+        self,
+    ):  # Move user to screen to select individual files to generate image
         self.chooseImagePrep()
         self.selectDataLabel.setHidden(False)
         self.imagePathLabelCanon.setHidden(False)
@@ -220,10 +253,12 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.chooseImageFileButton.setHidden(False)
         self.choosePhantomFileButton.setHidden(False)
 
-        self.machine = 'Canon'
-        self.fileExts = '*.bin'
+        self.machine = "Canon"
+        self.fileExts = "*.bin"
 
-    def verasonicsClicked(self): # Move user to screen to select individual files to generate image
+    def verasonicsClicked(
+        self,
+    ):  # Move user to screen to select individual files to generate image
         self.chooseImagePrep()
         self.selectDataLabel.setHidden(False)
         self.imagePathLabelVerasonics.setHidden(False)
@@ -231,8 +266,8 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.chooseImageFileButton.setHidden(False)
         self.choosePhantomFileButton.setHidden(False)
 
-        self.machine = 'Verasonics'
-        self.fileExts = '*.mat'
+        self.machine = "Verasonics"
+        self.fileExts = "*.mat"
 
     def selectImageFile(self):
         # Create folder to store ROI drawings
@@ -248,11 +283,11 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.selectImageErrorMsg.setHidden(True)
 
 
-
-
 if __name__ == "__main__":
     import sys
+
     app = QApplication(sys.argv)
     ui = SelectImageGUI_UtcTool2dIQ()
     ui.show()
     sys.exit(app.exec_())
+

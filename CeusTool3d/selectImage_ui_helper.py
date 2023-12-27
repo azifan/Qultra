@@ -1,21 +1,26 @@
-from CeusTool3d.selectImage_ui import *
-from CeusTool3d.voiSelection_ui_helper import *
+from CeusTool3d.selectImage_ui import Ui_selectImage
+from CeusTool3d.voiSelection_ui_helper import VoiSelectionGUI
+import Parsers.philips3dCeus as phil
+import Utils.utils as ut
 
 import os
 import shutil
-import Utils.utils as ut
-import Parsers.philips3dCeus as phil
+import nibabel as nib
 
-from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
 
 import platform
+
 system = platform.system()
 
+
 def selectImageHelper(pathInput):
-    if not os.path.exists(pathInput.text()): # check if file path is manually typed
+    if not os.path.exists(pathInput.text()):  # check if file path is manually typed
         # NOTE: .bin is currently not supported
-        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.rf *.mat')
-        if fileName != '': # If valid file is chosen
+        fileName, _ = QFileDialog.getOpenFileName(
+            None, "Open File", filter="*.rf *.mat"
+        )
+        if fileName != "":  # If valid file is chosen
             pathInput.setText(fileName)
         else:
             return
@@ -27,55 +32,69 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         super().__init__()
         self.setupUi(self)
 
-        if system == 'Windows':
-            self.imageSelectionLabelSidebar.setStyleSheet("""QLabel {
+        if system == "Windows":
+            self.imageSelectionLabelSidebar.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.imageLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.imageLabel.setStyleSheet(
+                """QLabel {
                 font-size: 13px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.imageFilenameDisplay.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.imageFilenameDisplay.setStyleSheet(
+                """QLabel {
                 font-size: 11px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
-            }""")
-            self.roiSidebarLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.roiSidebarLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.analysisParamsLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.analysisParamsLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight:bold;
-            }""")
-            self.ticAnalysisLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.ticAnalysisLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.rfAnalysisLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.rfAnalysisLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
+            }"""
+            )
 
         self.xmlImagePathInput.setHidden(True)
         self.imageFilenameDisplay.setHidden(True)
@@ -116,10 +135,16 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.chooseNiftiImageFileButton.clicked.connect(self.getNiftiImagePath)
         self.chooseNiftiBmodeFileButton.clicked.connect(self.getNiftiBmodePath)
         self.clearNiftiBmodeFileButton.clicked.connect(self.clearNiftiBmodePath)
-        self.niftiImageDestinationButton.clicked.connect(self.getNiftiImageDestinationPath)
+        self.niftiImageDestinationButton.clicked.connect(
+            self.getNiftiImageDestinationPath
+        )
         self.clearNiftiImageFileButton.clicked.connect(self.clearNiftiImagePath)
-        self.clearNiftiImageDestinationButton.clicked.connect(self.clearNiftiImageDestinationPath)
-        self.clearXmlImageFolderButton.clicked.connect(self.clearXmlImageDestinationPath)
+        self.clearNiftiImageDestinationButton.clicked.connect(
+            self.clearNiftiImageDestinationPath
+        )
+        self.clearXmlImageFolderButton.clicked.connect(
+            self.clearXmlImageDestinationPath
+        )
         self.backButton.clicked.connect(self.backToWelcomeScreen)
 
     def backToWelcomeScreen(self):
@@ -128,42 +153,45 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.hide()
 
     def getNiftiImagePath(self):
-        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.nii *.nii.gz')
-        if fileName != '':
+        fileName, _ = QFileDialog.getOpenFileName(
+            None, "Open File", filter="*.nii *.nii.gz"
+        )
+        if fileName != "":
             self.niftiImagePathInput.setText(fileName)
 
     def getNiftiBmodePath(self):
-        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.nii *.nii.gz')
-        if fileName != '':
+        fileName, _ = QFileDialog.getOpenFileName(
+            None, "Open File", filter="*.nii *.nii.gz"
+        )
+        if fileName != "":
             self.niftiBmodePathInput.setText(fileName)
 
     def clearNiftiImagePath(self):
-        self.niftiImagePathInput.setText('')
-    
+        self.niftiImagePathInput.setText("")
+
     def clearNiftiBmodePath(self):
-        self.niftiBmodePathInput.setText('')
+        self.niftiBmodePathInput.setText("")
 
     def getNiftiImageDestinationPath(self):
-        fileName = QFileDialog.getExistingDirectory(None, 'Select Directory')
-        if fileName != '':
+        fileName = QFileDialog.getExistingDirectory(None, "Select Directory")
+        if fileName != "":
             self.niftiImageDestinationPath.setText(fileName)
 
     def clearNiftiImageDestinationPath(self):
-        self.niftiImageDestinationPath.setText('')
+        self.niftiImageDestinationPath.setText("")
 
     def getXmlImageDestinationPath(self):
-        fileName = QFileDialog.getExistingDirectory(None, 'Select Directory')
-        if fileName != '':
+        fileName = QFileDialog.getExistingDirectory(None, "Select Directory")
+        if fileName != "":
             self.xmlImagePathInput.setText(fileName)
 
     def getPhilipsFilePath(self):
-        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.raw')
-        if fileName != '':
+        fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter="*.raw")
+        if fileName != "":
             self.xmlImagePathInput.setText(fileName)
 
     def clearXmlImageDestinationPath(self):
-        self.xmlImagePathInput.setText('')
-        
+        self.xmlImagePathInput.setText("")
 
     def backFromNiftiImage(self):
         self.selectNiftiImageOptionButton.setHidden(False)
@@ -214,7 +242,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.imageBackButton.clicked.disconnect()
 
         self.imageNifti = 0
-    
+
     def selectNiftiImageOption(self):
         self.selectNiftiImageOptionButton.setHidden(True)
         self.selectXmlFolderImageOptionButton.setHidden(True)
@@ -233,7 +261,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
 
         self.imageBackButton.clicked.connect(self.backFromNiftiImage)
 
-        self.imageNifti = 1 # NIFTI image already exists
+        self.imageNifti = 1  # NIFTI image already exists
 
     def selectXmlImageOption(self):
         self.selectNiftiImageOptionButton.setHidden(True)
@@ -256,12 +284,11 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.imageBackButton.clicked.connect(self.backFromXmlImage)
         try:
             self.chooseXmlImageFolderButton.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         self.chooseXmlImageFolderButton.clicked.connect(self.getXmlImageDestinationPath)
 
-
-        self.imageNifti = 2 # NIFTI image doesn't exist yet
+        self.imageNifti = 2  # NIFTI image doesn't exist yet
 
     def selectPhilipsImageOption(self):
         self.selectNiftiImageOptionButton.setHidden(True)
@@ -284,11 +311,11 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.imageBackButton.clicked.connect(self.backFromXmlImage)
         try:
             self.chooseXmlImageFolderButton.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         self.chooseXmlImageFolderButton.clicked.connect(self.getPhilipsFilePath)
 
-        self.imageNifti = 3 # NIFTI image doesn't exist yet
+        self.imageNifti = 3  # NIFTI image doesn't exist yet
 
     def confirmFrameRate(self):
         self.timeconst = self.frameRateValue.value()
@@ -303,20 +330,39 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
             if not confirmation:
                 self.imagePath = ""
                 self.bmodePath = ""
-                if self.imageNifti == 1 and os.path.exists(self.niftiImagePathInput.text()):
+                if self.imageNifti == 1 and os.path.exists(
+                    self.niftiImagePathInput.text()
+                ):
                     self.imagePath = self.niftiImagePathInput.text()
                 if self.imageNifti == 1 and len(self.niftiBmodePathInput.text()):
                     if os.path.exists(self.niftiBmodePathInput.text()):
                         self.bmodePath = self.niftiBmodePathInput.text()
                     else:
                         return
-                if self.imageNifti == 2 and os.path.exists(self.niftiImageDestinationPath.text()) and os.path.isdir(self.niftiImageDestinationPath.text()) and os.path.exists(self.xmlImagePathInput.text()):
-                    self.imagePath = ut.xml2nifti(self.xmlImagePathInput.text(), self.niftiImageDestinationPath.text())
-                if self.imageNifti == 3 and os.path.exists(self.niftiImageDestinationPath.text()) and os.path.exists(self.xmlImagePathInput.text()):
-                    self.imagePath, self.bmodePath = phil.makeNifti(self.xmlImagePathInput.text(), self.niftiImageDestinationPath.text())
+                if (
+                    self.imageNifti == 2
+                    and os.path.exists(self.niftiImageDestinationPath.text())
+                    and os.path.isdir(self.niftiImageDestinationPath.text())
+                    and os.path.exists(self.xmlImagePathInput.text())
+                ):
+                    self.imagePath = ut.xml2nifti(
+                        self.xmlImagePathInput.text(),
+                        self.niftiImageDestinationPath.text(),
+                    )
+                if (
+                    self.imageNifti == 3
+                    and os.path.exists(self.niftiImageDestinationPath.text())
+                    and os.path.exists(self.xmlImagePathInput.text())
+                ):
+                    self.imagePath, self.bmodePath = phil.makeNifti(
+                        self.xmlImagePathInput.text(),
+                        self.niftiImageDestinationPath.text(),
+                    )
             if self.imagePath != "":
                 if self.timeconst is None:
-                    self.timeconst = nib.load(self.imagePath, mmap=False).header['pixdim'][4]
+                    self.timeconst = nib.load(self.imagePath, mmap=False).header[
+                        "pixdim"
+                    ][4]
                 if not self.timeconst:
                     self.generateImageButton.setHidden(True)
                     self.frameRateLabel.setHidden(False)
@@ -327,7 +373,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
                 del self.voiSelectionGui
                 self.voiSelectionGui = VoiSelectionGUI()
                 self.voiSelectionGui.dataFrame = self.dataFrame
-                self.voiSelectionGui.timeconst = 1/self.timeconst
+                self.voiSelectionGui.timeconst = 1 / self.timeconst
                 self.voiSelectionGui.setFilenameDisplays(self.imagePath)
                 if self.bmodePath != "":
                     self.voiSelectionGui.openImage(self.bmodePath)
@@ -338,7 +384,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
                 self.hide()
             else:
                 return
-        
+
     def clearImagePath(self):
         self.imagePathInput.clear()
 
@@ -355,7 +401,9 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.generateImageButton.setHidden(False)
         self.selectImageMethodLabel.setHidden(True)
 
-    def fileOptionSelected(self): # Move user to screen to select individual files to generate image
+    def fileOptionSelected(
+        self,
+    ):  # Move user to screen to select individual files to generate image
         self.chooseImagePrep()
         self.selectDataLabel.setHidden(False)
         self.imagePathLabel.setHidden(False)
@@ -365,7 +413,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
 
         self.choosingIndividualFiles = True
 
-    def folderOptionSelected(self): 
+    def folderOptionSelected(self):
         # Move user to screen to select folders to find compatible files to generate image
         self.chooseImagePrep()
         self.selectDataLabel.setHidden(False)
@@ -393,13 +441,13 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         selectImageHelper(self.phantomPathInput)
 
 
-
-
 if __name__ == "__main__":
     import sys
+
     app = QApplication(sys.argv)
     # selectWindow = QWidget()
     ui = SelectImageGUI_CeusTool3d()
     # ui.selectImage.show()
     ui.show()
     sys.exit(app.exec_())
+

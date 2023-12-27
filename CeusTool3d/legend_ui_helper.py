@@ -1,6 +1,6 @@
-from CeusTool3d.legend_ui import *
+from CeusTool3d.legend_ui import Ui_legend
 import numpy as np
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QFileDialog, QApplication
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QApplication
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
@@ -20,14 +20,19 @@ class LegendDisplay(Ui_legend, QWidget):
 
     def truncate_colormap(self, cmap, minval=0.0, maxval=1.0, n=100):
         import matplotlib.colors as colors
+
         new_cmap = colors.LinearSegmentedColormap.from_list(
-            'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
-            cmap(np.linspace(minval, maxval, n)))
+            "trunc({n},{a:.2f},{b:.2f})".format(n=cmap.name, a=minval, b=maxval),
+            cmap(np.linspace(minval, maxval, n)),
+        )
         return new_cmap
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import sys
+
     welcomeApp = QApplication(sys.argv)
     welcomeUI = LegendDisplay()
     welcomeUI.show()
     sys.exit(welcomeApp.exec())
+

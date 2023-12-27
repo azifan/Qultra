@@ -1,8 +1,9 @@
-from UtcTool2d.loadRoi_ui import *
+from UtcTool2d.loadRoi_ui import Ui_loadRoi
 import os
 import csv
 
 from PyQt5.QtWidgets import QWidget, QFileDialog
+
 
 class LoadRoiGUI(Ui_loadRoi, QWidget):
     def __init__(self):
@@ -20,17 +21,17 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
         self.chooseRoiGUI.show()
 
     def chooseFile(self):
-        fileName, _ = QFileDialog.getOpenFileName(None, 'Open file', filter = '*.csv')
-        if fileName != '':
+        fileName, _ = QFileDialog.getOpenFileName(None, "Open file", filter="*.csv")
+        if fileName != "":
             self.roiPathInput.setText(fileName)
 
     def clearFile(self):
         self.roiPathInput.clear()
-    
+
     def getRoiPath(self):
         if os.path.exists(self.roiPathInput.text()):
-            imageName = ''
-            with open(self.roiPathInput.text(), mode='r') as csvfile:
+            imageName = ""
+            with open(self.roiPathInput.text(), mode="r") as csvfile:
                 reader = csv.reader(csvfile)
                 line_count = 0
                 for row in reader:
@@ -38,16 +39,29 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
                         imageName = row[0]
                         roiType = row[1]
                         if roiType == "Freehand":
-                            self.chooseRoiGUI.pointsPlottedX = row[2][1:-1].split(',')
-                            self.chooseRoiGUI.pointsPlottedX = [int(num) for num in self.chooseRoiGUI.pointsPlottedX]
-                            self.chooseRoiGUI.pointsPlottedY = row[3][1:-1].split(',')
-                            self.chooseRoiGUI.pointsPlottedY = [int(num) for num in self.chooseRoiGUI.pointsPlottedY]
-                            self.chooseRoiGUI.acceptLoadedRoiButton.clicked.connect(self.chooseRoiGUI.acceptROI)
+                            self.chooseRoiGUI.pointsPlottedX = row[2][1:-1].split(",")
+                            self.chooseRoiGUI.pointsPlottedX = [
+                                int(num) for num in self.chooseRoiGUI.pointsPlottedX
+                            ]
+                            self.chooseRoiGUI.pointsPlottedY = row[3][1:-1].split(",")
+                            self.chooseRoiGUI.pointsPlottedY = [
+                                int(num) for num in self.chooseRoiGUI.pointsPlottedY
+                            ]
+                            self.chooseRoiGUI.acceptLoadedRoiButton.clicked.connect(
+                                self.chooseRoiGUI.acceptROI
+                            )
                         else:
-                            self.chooseRoiGUI.AnalysisInfo.rectCoords = row[4][1:-1].split(',')
-                            self.chooseRoiGUI.AnalysisInfo.rectCoords = [int(num) for num in self.chooseRoiGUI.AnalysisInfo.rectCoords]
+                            self.chooseRoiGUI.AnalysisInfo.rectCoords = row[4][
+                                1:-1
+                            ].split(",")
+                            self.chooseRoiGUI.AnalysisInfo.rectCoords = [
+                                int(num)
+                                for num in self.chooseRoiGUI.AnalysisInfo.rectCoords
+                            ]
                             self.chooseRoiGUI.plotPatch()
-                            self.chooseRoiGUI.acceptLoadedRoiButton.clicked.connect(self.chooseRoiGUI.acceptRect)
+                            self.chooseRoiGUI.acceptLoadedRoiButton.clicked.connect(
+                                self.chooseRoiGUI.acceptRect
+                            )
                         break
                     line_count += 1
             if imageName != self.chooseRoiGUI.imagePathInput.text():

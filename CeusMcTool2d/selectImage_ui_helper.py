@@ -1,16 +1,16 @@
-from CeusMcTool2d.selectImage_ui import *
-from CeusMcTool2d.roiSelection_ui_helper import *
+from CeusMcTool2d.selectImage_ui import Ui_selectImage
+from CeusMcTool2d.roiSelection_ui_helper import RoiSelectionGUI
 
-import os
 from pathlib import Path
-import Utils.utils as ut
 import pandas as pd
-import openpyxl
 
-from PyQt5.QtWidgets import QWidget, QApplication, QHeaderView, QTableWidgetItem
+from PyQt5.QtWidgets import QWidget, QApplication, QHeaderView, QTableWidgetItem, QFileDialog
+from PyQt5.QtCore import Qt
 
 import platform
+
 system = platform.system()
+
 
 class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
     def __init__(self):
@@ -18,55 +18,69 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         super().__init__()
         self.setupUi(self)
 
-        if system == 'Windows':
-            self.imageSelectionLabelSidebar.setStyleSheet("""QLabel {
+        if system == "Windows":
+            self.imageSelectionLabelSidebar.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.imageLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.imageLabel.setStyleSheet(
+                """QLabel {
                 font-size: 13px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.imageFilenameDisplay.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.imageFilenameDisplay.setStyleSheet(
+                """QLabel {
                 font-size: 11px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
-            }""")
-            self.roiSidebarLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.roiSidebarLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.analysisParamsLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.analysisParamsLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight:bold;
-            }""")
-            self.ticAnalysisLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.ticAnalysisLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
-            self.rfAnalysisLabel.setStyleSheet("""QLabel {
+            }"""
+            )
+            self.rfAnalysisLabel.setStyleSheet(
+                """QLabel {
                 font-size: 18px;
                 color: rgb(255, 255, 255);
                 background-color: rgba(255, 255, 255, 0);
                 border: 0px;
                 font-weight: bold;
-            }""")
+            }"""
+            )
 
         self.imageFilenameDisplay.setHidden(True)
         self.selectImageErrorMsg.setHidden(True)
@@ -96,13 +110,16 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
 
         header = self.imagesScrollArea.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header.setStyleSheet("""
+        header.setStyleSheet(
+            """
         QHeaderView::section{
             background-color: white;
             font-size: 15px;
             color: black;
-        }""")
-        self.imagesScrollArea.verticalHeader().setStyleSheet("""
+        }"""
+        )
+        self.imagesScrollArea.verticalHeader().setStyleSheet(
+            """
         QHeaderView::section{
             background-color: white;
             font-size: 15px;
@@ -113,7 +130,8 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
             font-size: 14px;
             color: black
             font-weight: bold;
-        }""")
+        }"""
+        )
 
         self.imageNifti = 0
 
@@ -130,7 +148,7 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         self.dicomButton.clicked.connect(self.dicomSelected)
         self.aviButton.clicked.connect(self.aviSelected)
         self.clearAviButton.clicked.connect(self.aviPath.clear)
-    
+
     def moveToFileChoice(self):
         self.selectFormatLabel.setHidden(True)
         self.niftiButton.setHidden(True)
@@ -139,7 +157,7 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
 
         self.selectDataLabel.setHidden(False)
         self.findImagesButton.setHidden(False)
-    
+
     def niftiSelected(self):
         self.moveToFileChoice()
         self.selectNiftiBmodeLabel.setHidden(False)
@@ -151,14 +169,13 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         self.clearNiftiBmodeButton.setHidden(False)
         self.clearNiftiCeButton.setHidden(False)
 
-        self.format = 'Nifti'
+        self.format = "Nifti"
 
         self.chooseNiftiBmodeButton.clicked.connect(self.getNiftiBmodePath)
         self.chooseNiftiCeButton.clicked.connect(self.getNiftiCePath)
         self.clearNiftiBmodeButton.clicked.connect(self.niftiBmodeInput.clear)
         self.clearNiftiCeButton.clicked.connect(self.niftiCeInput.clear)
         self.findImagesButton.clicked.connect(self.moveToRoiSelection)
-
 
     def aviSelected(self):
         self.moveToFileChoice()
@@ -168,7 +185,7 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         self.selectAviLabel.setHidden(False)
         self.findImagesButton.setText("Open Image")
 
-        self.format = 'Avi'
+        self.format = "Avi"
 
         self.chooseAviButton.clicked.connect(self.getAviPath)
         self.clearNiftiBmodeButton.clicked.connect(self.aviPath.clear)
@@ -181,7 +198,7 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         self.spreadsheetPath.setHidden(False)
         self.selectSpreadsheeetLabel.setHidden(False)
 
-        self.format = 'Dicom'
+        self.format = "Dicom"
         self.findImagesButton.clicked.connect(self.listImages)
 
     def undoSpreadsheetEntry(self):
@@ -210,23 +227,23 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
             # unhidden = list(set(self.df.columns) - set(hiddenCols))
             # self.df = self.df[unhidden]
 
-            self.df = pd.read_excel(self.spreadsheetPath.text(), 'Sheet1')
-            patients = self.df['patient_code'].to_string(index=False)
-            scans = self.df['cleaned_path']
+            self.df = pd.read_excel(self.spreadsheetPath.text(), "Sheet1")
+            patients = self.df["patient_code"].to_string(index=False)
+            scans = self.df["cleaned_path"]
             patients = patients.splitlines()
             self.patients = []
             self.scans = []
             self.xcelIndices = []
             for i in range(len(scans)):
-                path = str(scans[i]).split('/')
+                path = str(scans[i]).split("/")
                 try:
                     fileName = path[-1]
                     folder = path[-2]
-                    if fileName.endswith('.dcm') and folder == 'DICOM_cine':
+                    if fileName.endswith(".dcm") and folder == "DICOM_cine":
                         self.patients.append(patients[i])
                         self.scans.append(fileName[:-4])
                         self.xcelIndices.append(i)
-                except:
+                except (AttributeError, NameError, IndexError):
                     continue
             # self.scans = [str(scan).split('/')[-1][:-4] for scan in scans]
 
@@ -247,41 +264,54 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 self.imagesScrollArea.setItem(i, 0, item)
 
-
     def backToWelcomeScreen(self):
         self.welcomeGui.ceus2dMcData = self.dataFrame
         self.welcomeGui.show()
         self.hide()
 
     def getNiftiBmodePath(self):
-        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.nii *.nii.gz')
-        if fileName != '':
+        fileName, _ = QFileDialog.getOpenFileName(
+            None, "Open File", filter="*.nii *.nii.gz"
+        )
+        if fileName != "":
             self.niftiBmodeInput.setText(fileName)
 
     def getNiftiCePath(self):
-        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.nii *.nii.gz')
-        if fileName != '':
+        fileName, _ = QFileDialog.getOpenFileName(
+            None, "Open File", filter="*.nii *.nii.gz"
+        )
+        if fileName != "":
             self.niftiCeInput.setText(fileName)
 
     def getAviPath(self):
-        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.avi')
-        if fileName != '':
+        fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter="*.avi")
+        if fileName != "":
             self.aviPath.setText(fileName)
 
     def getSpreadsheetPath(self):
-        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.xlsx')
-        if fileName != '':
+        fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter="*.xlsx")
+        if fileName != "":
             self.spreadsheetPath.setText(fileName)
 
     def clearSpreadsheetPath(self):
-        self.spreadsheetPath.setText('')
+        self.spreadsheetPath.setText("")
 
     def moveToRoiSelection(self):
-        if (len(self.spreadsheetPath.text()) > 0 and len(self.imagesScrollArea.selectedIndexes()) == 1) or (len(self.niftiBmodeInput.text()) > 0 and len(self.niftiCeInput.text()) > 0) or (len(self.aviPath.text())>0):
+        if (
+            (
+                len(self.spreadsheetPath.text()) > 0
+                and len(self.imagesScrollArea.selectedIndexes()) == 1
+            )
+            or (
+                len(self.niftiBmodeInput.text()) > 0
+                and len(self.niftiCeInput.text()) > 0
+            )
+            or (len(self.aviPath.text()) > 0)
+        ):
             del self.roiSelectionGui
             self.roiSelectionGui = RoiSelectionGUI()
             self.roiSelectionGui.dataFrame = self.dataFrame
-            if self.format == 'Dicom':
+            if self.format == "Dicom":
                 xcel_dir = Path(self.spreadsheetPath.text())
                 xcel_dir = xcel_dir.parent.absolute()
                 self.roiSelectionGui.df = self.df
@@ -289,9 +319,11 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
                 index = self.imagesScrollArea.selectedIndexes()[0].row()
                 self.roiSelectionGui.setFilenameDisplays(self.scans[index])
                 self.roiSelectionGui.openDicomImage(index, xcel_dir)
-            elif self.format == 'Nifti':
+            elif self.format == "Nifti":
                 self.roiSelectionGui.setFilenameDisplays(self.niftiBmodeInput.text())
-                self.roiSelectionGui.openNiftiImage(self.niftiBmodeInput.text(), self.niftiCeInput.text())
+                self.roiSelectionGui.openNiftiImage(
+                    self.niftiBmodeInput.text(), self.niftiCeInput.text()
+                )
             else:
                 self.roiSelectionGui.setFilenameDisplays(self.aviPath.text())
                 self.roiSelectionGui.openAviImage(self.aviPath.text())
@@ -299,11 +331,14 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
             self.roiSelectionGui.show()
             self.hide()
 
+
 if __name__ == "__main__":
     import sys
+
     app = QApplication(sys.argv)
     # selectWindow = QWidget()
     ui = SelectImageGUI_CeusMcTool2d()
     # ui.selectImage.show()
     ui.show()
     sys.exit(app.exec_())
+
