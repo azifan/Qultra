@@ -1143,16 +1143,20 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.drawRoiButton.clicked.connect(self.startRoiDraw)
 
     def openDicomImage(self, index, xcel_dir):
-        self.CE_side = self.df.loc[
-            self.xcelIndices[index], "CE_window_left(l)_or_right(r)"
-        ]
-        self.cineRate = self.df.loc[self.xcelIndices[index], "CineRate"]
-        self.index = index
-        self.xcel_dir = xcel_dir
+        if index > -1:
+            self.CE_side = self.df.loc[
+                self.xcelIndices[index], "CE_window_left(l)_or_right(r)"
+            ]
+            self.cineRate = self.df.loc[self.xcelIndices[index], "CineRate"]
+            self.index = index
+            self.xcel_dir = xcel_dir
 
-        self.fullPath = os.path.join(
-            xcel_dir, self.df.loc[self.xcelIndices[index], "cleaned_path"]
-        )
+            self.fullPath = os.path.join(
+                xcel_dir, self.df.loc[self.xcelIndices[index], "cleaned_path"]
+            )
+        else:
+            self.fullPath = xcel_dir
+
         ds = dicom.dcmread(self.fullPath)
         ar = ds.pixel_array
 
@@ -1161,56 +1165,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.x = self.fullArray.shape[2]
         self.y = self.fullArray.shape[1]
         self.numSlices = self.fullArray.shape[0]
-
-        self.x0_bmode, self.x0_CE, self.w_bmode, self.w_CE = find_x0_bmode_CE(
-            ds, self.CE_side, ar.shape[2]
-        )
-        manufacturer = ds.Manufacturer
-        model = ds.ManufacturerModelName
-        imBoundariesPath = os.path.join("CeusMcTool2d", "imBoundaries.json")
-
-        try:
-            self.y0_bmode = int(ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0)
-            self.h_bmode = int(
-                ds.SequenceOfUltrasoundRegions[0].RegionLocationMaxY1
-                - ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0
-                + 1
-            )
-            with open(imBoundariesPath, "r") as fp:
-                imDimsHashTable = json.load(fp)
-            try:
-                relativeImDims = imDimsHashTable[", ".join((manufacturer, model))]
-            except (NameError, KeyError):
-                imDimsHashTable[", ".join((manufacturer, model))] = [
-                    self.x0_bmode / self.x,
-                    self.y0_bmode / self.y,
-                    self.w_bmode / self.x,
-                    self.h_bmode / self.y,
-                ]
-                os.remove(imBoundariesPath)
-                with open(imBoundariesPath, "w") as fp:
-                    json.dump(imDimsHashTable, fp, sort_keys=True, indent=4)
-        except (FileNotFoundError, NameError, ValueError, AttributeError, IndexError, KeyError):
-            with open(imBoundariesPath, "r") as fp:
-                imDimsHashTable = json.load(fp)
-            try:
-                relativeImDims = imDimsHashTable[", ".join((manufacturer, model))]
-            except (NameError, ValueError, IndexError, FileNotFoundError, KeyError):
-                print("Transducer model and data format not supported!")
-                return
-            self.y0_bmode = round(relativeImDims[1] * self.y)
-            self.w_bmode = round(relativeImDims[2] * self.x)
-            self.h_bmode = round(relativeImDims[3] * self.y)
-            self.x0_bmode = round(relativeImDims[0] * self.x)
-            if self.CE_side == "r":
-                self.x0_CE = self.x0_bmode + self.w_bmode
-            else:
-                self.x0_CE = (
-                    self.x0_bmode - self.w_bmode
-                )  # assumes CE and bmode have same width
-            self.w_CE = self.w_bmode
-        self.y0_CE = self.y0_bmode
-        self.h_CE = self.h_bmode
 
         self.imX0 = 350
         self.imX1 = 1151
@@ -1234,55 +1188,122 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             xBuffer = int(emptySpace / 2)
             self.imX0 += xBuffer
             self.imX1 -= xBuffer
-        self.imPlane.move(self.imX0, self.imY0)
-        self.imPlane.resize(self.widthScale, self.depthScale)
-        self.imMaskLayer.move(self.imX0, self.imY0)
-        self.imMaskLayer.resize(self.widthScale, self.depthScale)
-        self.imCoverLabel.move(self.imX0, self.imY0)
-        self.imCoverLabel.resize(self.widthScale, self.depthScale)
-        self.mcImDisplayLabel.move(self.imX0, self.imY0)
-        self.mcImDisplayLabel.resize(self.widthScale, self.depthScale)
 
-        self.imCoverPixmap = QPixmap(self.widthScale, self.depthScale)
-        self.imCoverPixmap.fill(Qt.transparent)
-        self.imCoverLabel.setPixmap(self.imCoverPixmap)
+        try:
+            self.x0_bmode, self.x0_CE, self.w_bmode, self.w_CE = find_x0_bmode_CE(
+                ds, self.CE_side, ar.shape[2]
+            )
+            manufacturer = ds.Manufacturer
+            model = ds.ManufacturerModelName
+            imBoundariesPath = os.path.join("CeusMcTool2d", "imBoundaries.json")
 
-        painter = QPainter(self.imCoverLabel.pixmap())
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
-        painter.setPen(Qt.yellow)
-        xScale = self.widthScale / self.x
-        yScale = self.depthScale / self.y
-        self.bmodeStartX = self.imX0 + int(xScale * self.x0_bmode)
-        self.bmodeEndX = self.bmodeStartX + int(xScale * self.w_bmode)
-        self.bmodeStartY = self.imY0 + int(yScale * self.y0_bmode)
-        self.bmodeEndY = self.bmodeStartY + int(yScale * self.h_bmode)
-        self.ceStartX = self.imX0 + int(xScale * self.x0_CE)
-        self.ceEndX = self.ceStartX + int(xScale * self.w_CE)
-        self.ceStartY = self.imY0 + int(yScale * self.y0_CE)
-        self.ceEndY = self.ceStartY + int(yScale * self.h_CE)
-        painter.drawRect(
-            int(self.x0_bmode * xScale),
-            int(self.y0_bmode * yScale),
-            int(self.w_bmode * xScale),
-            int(self.h_bmode * yScale),
-        )
-        painter.drawRect(
-            int(self.x0_CE * xScale),
-            int(self.y0_CE * yScale),
-            int(self.w_CE * xScale),
-            int(self.h_CE * yScale),
-        )
-        painter.end()
-        self.update()
+            try:
+                self.y0_bmode = int(ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0)
+                self.h_bmode = int(
+                    ds.SequenceOfUltrasoundRegions[0].RegionLocationMaxY1
+                    - ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0
+                    + 1
+                )
+                with open(imBoundariesPath, "r") as fp:
+                    imDimsHashTable = json.load(fp)
+                try:
+                    relativeImDims = imDimsHashTable[", ".join((manufacturer, model))]
+                except (NameError, KeyError):
+                    imDimsHashTable[", ".join((manufacturer, model))] = [
+                        self.x0_bmode / self.x,
+                        self.y0_bmode / self.y,
+                        self.w_bmode / self.x,
+                        self.h_bmode / self.y,
+                    ]
+                    os.remove(imBoundariesPath)
+                    with open(imBoundariesPath, "w") as fp:
+                        json.dump(imDimsHashTable, fp, sort_keys=True, indent=4)
+            except (FileNotFoundError, NameError, ValueError, AttributeError, IndexError, KeyError):
+                with open(imBoundariesPath, "r") as fp:
+                    imDimsHashTable = json.load(fp)
+                try:
+                    relativeImDims = imDimsHashTable[", ".join((manufacturer, model))]
+                except (NameError, ValueError, IndexError, FileNotFoundError, KeyError):
+                    print("Transducer model and data format not supported!")
+                    return
+                self.y0_bmode = round(relativeImDims[1] * self.y)
+                self.w_bmode = round(relativeImDims[2] * self.x)
+                self.h_bmode = round(relativeImDims[3] * self.y)
+                self.x0_bmode = round(relativeImDims[0] * self.x)
+                if self.CE_side == "r":
+                    self.x0_CE = self.x0_bmode + self.w_bmode
+                else:
+                    self.x0_CE = (
+                        self.x0_bmode - self.w_bmode
+                    )  # assumes CE and bmode have same width
+                self.w_CE = self.w_bmode
+            self.y0_CE = self.y0_bmode
+            self.h_CE = self.h_bmode
+
+            self.imPlane.move(self.imX0, self.imY0)
+            self.imPlane.resize(self.widthScale, self.depthScale)
+            self.imMaskLayer.move(self.imX0, self.imY0)
+            self.imMaskLayer.resize(self.widthScale, self.depthScale)
+            self.imCoverLabel.move(self.imX0, self.imY0)
+            self.imCoverLabel.resize(self.widthScale, self.depthScale)
+            self.mcImDisplayLabel.move(self.imX0, self.imY0)
+            self.mcImDisplayLabel.resize(self.widthScale, self.depthScale)
+
+            self.imCoverPixmap = QPixmap(self.widthScale, self.depthScale)
+            self.imCoverPixmap.fill(Qt.transparent)
+            self.imCoverLabel.setPixmap(self.imCoverPixmap)
+
+            painter = QPainter(self.imCoverLabel.pixmap())
+            self.imCoverLabel.pixmap().fill(Qt.transparent)
+            painter.setPen(Qt.yellow)
+            xScale = self.widthScale / self.x
+            yScale = self.depthScale / self.y
+            self.bmodeStartX = self.imX0 + int(xScale * self.x0_bmode)
+            self.bmodeEndX = self.bmodeStartX + int(xScale * self.w_bmode)
+            self.bmodeStartY = self.imY0 + int(yScale * self.y0_bmode)
+            self.bmodeEndY = self.bmodeStartY + int(yScale * self.h_bmode)
+            self.ceStartX = self.imX0 + int(xScale * self.x0_CE)
+            self.ceEndX = self.ceStartX + int(xScale * self.w_CE)
+            self.ceStartY = self.imY0 + int(yScale * self.y0_CE)
+            self.ceEndY = self.ceStartY + int(yScale * self.h_CE)
+            painter.drawRect(
+                int(self.x0_bmode * xScale),
+                int(self.y0_bmode * yScale),
+                int(self.w_bmode * xScale),
+                int(self.h_bmode * yScale),
+            )
+            painter.drawRect(
+                int(self.x0_CE * xScale),
+                int(self.y0_CE * yScale),
+                int(self.w_CE * xScale),
+                int(self.h_CE * yScale),
+            )
+            painter.end()
+            self.update()
+
+            self.sliceArray = np.round(
+                [i * (1 / self.cineRate) for i in range(self.numSlices)], decimals=2
+            ).astype(np.int32)
+
+        except AttributeError:
+            self.loadRoiButton.setHidden(True)
+            self.newRoiButton.setHidden(True)
+            self.defImBoundsButton.setHidden(False)
+            self.defImBoundsButton.clicked.connect(self.startBoundDef)
+            self.cineRate = ds.CineRate
+
+            self.imCoverPixmap = QPixmap(self.widthScale, self.depthScale)
+            self.imCoverPixmap.fill(Qt.transparent)
+            self.imCoverLabel.setPixmap(self.imCoverPixmap)
+
+            self.curLeftLineX = 0
+            self.curRightLineX = self.widthScale - 1
+            self.curTopLineY = 0
+            self.curBottomLineY = self.depthScale - 1
 
         self.maskCoverImg = np.zeros([self.y, self.x, 4])
-
         self.curSliceSlider.setMaximum(self.numSlices - 1)
         self.curSliceSpinBox.setMaximum(self.numSlices - 1)
-
-        self.sliceArray = np.round(
-            [i * (1 / self.cineRate) for i in range(self.numSlices)], decimals=2
-        ).astype(np.int32)
 
         self.curSliceTotal.setText(str(self.numSlices - 1))
 
