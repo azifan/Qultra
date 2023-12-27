@@ -295,11 +295,11 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         quotient = (self.maxX - self.minX) / (self.maxY - self.minY)
         if quotient > (341 / 231):
             self.widthScale = 341
-            self.depthScale = self.widthScale / (
+            self.depthScale = int(self.widthScale / (
                 (self.maxX - self.minX) / (self.maxY - self.minY)
-            )
+            ))
         else:
-            self.widthScale = 231 * quotient
+            self.widthScale = int(231 * quotient)
             self.depthScale = 231
 
         self.xLen = round(self.maxX - self.minX)

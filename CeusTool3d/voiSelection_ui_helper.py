@@ -1388,4 +1388,3 @@ if __name__ == "__main__":
     # ui.selectImage.show()
     ui.show()
     sys.exit(app.exec_())
-

@@ -1009,7 +1009,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         self.curSliceTotal.setText(str(self.numSlices - 1))
 
-        self.curSliceSpinBox.setValue(self.sliceArray[self.curFrameIndex])
+        self.curSliceSpinBox.setValue(self.curFrameIndex)
         self.curSliceSlider.setValue(self.curFrameIndex)
         self.curSliceSlider.valueChanged.connect(self.curSliceSliderValueChanged)
         self.curSliceSpinBox.valueChanged.connect(self.curSliceSpinBoxValueChanged)
@@ -1109,7 +1109,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         self.curSliceTotal.setText(str(self.numSlices - 1))
 
-        self.curSliceSpinBox.setValue(self.sliceArray[self.curFrameIndex])
+        self.curSliceSpinBox.setValue(self.curFrameIndex)
         self.curSliceSlider.setValue(self.curFrameIndex)
         self.curSliceSlider.valueChanged.connect(self.curSliceSliderValueChanged)
         self.curSliceSpinBox.valueChanged.connect(self.curSliceSpinBoxValueChanged)
@@ -1286,7 +1286,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         self.curSliceTotal.setText(str(self.numSlices - 1))
 
-        self.curSliceSpinBox.setValue(self.sliceArray[self.curFrameIndex])
+        self.curSliceSpinBox.setValue(self.curFrameIndex)
         self.curSliceSlider.setValue(self.curFrameIndex)
         self.curSliceSlider.valueChanged.connect(self.curSliceSliderValueChanged)
         self.curSliceSpinBox.valueChanged.connect(self.curSliceSpinBoxValueChanged)

@@ -766,7 +766,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 [], [], marker="o", markersize=3, markerfacecolor="red"
             )
 
-            [PsGraphDisplayGUI.ax.lines.pop() for i in range(2)]
+            [PsGraphDisplayGUI.ax.lines.pop() for _ in range(2)]
             mbfPoint.remove()
             PsGraphDisplayGUI.figure.legend().remove()
 
@@ -960,7 +960,7 @@ def onSelect(event):  # Update ROI window selected after computation
             event.inaxes.add_patch(rect)
     if coloredROI is not None:
         event.inaxes.add_patch(coloredROI)
-        [PsGraphDisplayGUI.ax.lines.pop() for i in range(2)]
+        [PsGraphDisplayGUI.ax.lines.pop() for _ in range(2)]
         mbfPoint.remove()
         a = ss[selectedROI]
         b = si[selectedROI]
@@ -1153,4 +1153,3 @@ def calculateSpline(xpts, ypts):  # 2D spline interpolation
         tck, _ = interpolate.splprep(cv.T, s=0.0, k=3)
     x, y = np.array(interpolate.splev(np.linspace(0, 1, 1000), tck))
     return x, y
-

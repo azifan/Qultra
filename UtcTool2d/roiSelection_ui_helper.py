@@ -499,11 +499,11 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         quotient = self.ImDisplayInfo.width / self.ImDisplayInfo.depth
         if quotient > (721 / 501):
             self.AnalysisInfo.roiWidthScale = 721
-            self.AnalysisInfo.roiDepthScale = self.AnalysisInfo.roiWidthScale / (
+            self.AnalysisInfo.roiDepthScale = int(self.AnalysisInfo.roiWidthScale / (
                 self.ImDisplayInfo.width / self.ImDisplayInfo.depth
-            )
+            ))
         else:
-            self.AnalysisInfo.roiWidthScale = 501 * quotient
+            self.AnalysisInfo.roiWidthScale = int(501 * quotient)
             self.AnalysisInfo.roiDepthScale = 501
         self.maskCoverImg = np.zeros(
             [501, 721, 4]
