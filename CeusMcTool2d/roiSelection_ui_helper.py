@@ -1300,8 +1300,8 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.curRightLineX = self.widthScale - 1
             self.curTopLineY = 0
             self.curBottomLineY = self.depthScale - 1
-            self.maskCoverImg = np.zeros([self.y, self.x, 4])
 
+        self.maskCoverImg = np.zeros([self.y, self.x, 4])
         self.curSliceSlider.setMaximum(self.numSlices - 1)
         self.curSliceSpinBox.setMaximum(self.numSlices - 1)
 
