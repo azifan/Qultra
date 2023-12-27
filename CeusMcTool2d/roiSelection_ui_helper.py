@@ -161,7 +161,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
     def startSaveRoi(self):
         try:
             del self.saveRoiGUI
-        except NameError:
+        except AttributeError:
             pass
         self.saveRoiGUI = SaveRoiGUI()
         self.saveRoiGUI.roiSelectionGUI = self
@@ -216,7 +216,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
     def loadPreloadedRoi(self):
         try:
             self.niftiSegPath = self.df.loc[self.index, "nifti_segmentation_path"]
-        except (NameError, IndexError):
+        except KeyError:
             return
         mask = (
             nib.load(os.path.join(self.xcel_dir, self.niftiSegPath), mmap=False)
@@ -858,7 +858,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.saveRoiButton.setHidden(True)
         try:
             del self.segCoverMask
-        except NameError:
+        except AttributeError:
             pass
         self.undoLastRoi()
         self.updateIm()
@@ -1180,7 +1180,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
                 imDimsHashTable = json.load(fp)
             try:
                 relativeImDims = imDimsHashTable[", ".join((manufacturer, model))]
-            except NameError:
+            except (NameError, KeyError):
                 imDimsHashTable[", ".join((manufacturer, model))] = [
                     self.x0_bmode / self.x,
                     self.y0_bmode / self.y,
@@ -1190,12 +1190,12 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
                 os.remove(imBoundariesPath)
                 with open(imBoundariesPath, "w") as fp:
                     json.dump(imDimsHashTable, fp, sort_keys=True, indent=4)
-        except (FileNotFoundError, NameError, ValueError, AttributeError, IndexError):
+        except (FileNotFoundError, NameError, ValueError, AttributeError, IndexError, KeyError):
             with open(imBoundariesPath, "r") as fp:
                 imDimsHashTable = json.load(fp)
             try:
                 relativeImDims = imDimsHashTable[", ".join((manufacturer, model))]
-            except (NameError, ValueError, IndexError, FileNotFoundError):
+            except (NameError, ValueError, IndexError, FileNotFoundError, KeyError):
                 print("Transducer model and data format not supported!")
                 return
             self.y0_bmode = round(relativeImDims[1] * self.y)
@@ -1282,7 +1282,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         self.sliceArray = np.round(
             [i * (1 / self.cineRate) for i in range(self.numSlices)], decimals=2
-        )
+        ).astype(np.int32)
 
         self.curSliceTotal.setText(str(self.numSlices - 1))
 
@@ -1460,7 +1460,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         try:
             self.horizontalSlider.valueChanged.disconnect()
             self.acceptBoundsButton.clicked.disconnect()
-        except AttributeError:
+        except TypeError:
             pass
         self.horizontalSlider.valueChanged.connect(self.leftChangedX)
         self.acceptBoundsButton.clicked.connect(self.moveToRightBoundDef)
@@ -1991,7 +1991,7 @@ def find_x0_bmode_CE(ds, CE_side, width):
                 regions[0].RegionLocationMinX0
             )
             w_CE = w_bmode
-        except (AttributeError, ValueError, NameError):
+        except (AttributeError, ValueError, NameError, IndexError):
             print("computing x0_bmode and x0_CE by width/2")
             x0_bmode = 0
             x0_CE = int(width / 2)
@@ -2008,7 +2008,7 @@ def find_x0_bmode_CE(ds, CE_side, width):
                 regions[0].RegionLocationMinX0
             )
             w_CE = w_bmode
-        except (AttributeError, ValueError, NameError):
+        except (AttributeError, ValueError, NameError, IndexError):
             print("computing x0_bmode and x0_CE by width/2")
             x0_CE = 0
             x0_bmode = int(width / 2)

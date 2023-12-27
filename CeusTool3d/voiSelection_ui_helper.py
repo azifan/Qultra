@@ -200,7 +200,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         for point in self.pointsPlotted:
             segMask[point[0], point[1], point[2], frame] = 1
 
-        affine = np.eye(5)
+        affine = np.eye(4)
         niiarray = nib.Nifti1Image(segMask.astype("uint8"), affine)
         niiarray.header["descrip"] = self.imagePathInput.text()
         outputPath = os.path.join(fileDestination, name)
@@ -1249,7 +1249,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                     mask[int(splineX[j]), int(splineY[j]), i] = 1
                 filledMask = binary_fill_holes(mask[:, :, i])
                 mask[:, :, i] = binary_fill_holes(mask[:, :, i])
-                maskPoints = np.array(np.where(filledMask is True))
+                maskPoints = np.array(np.where(filledMask > 0))
                 for j in range(len(maskPoints[0])):
                     self.maskCoverImg[maskPoints[0][j], maskPoints[1][j], i] = [
                         0,

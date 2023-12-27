@@ -353,7 +353,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
             elif self.ImDisplayInfo.numSamplesDrOut != -1:
                 print("No preset found!")
-        except AttributeError:
+        except (AttributeError, UnboundLocalError):
             pass
 
         self.figure.subplots_adjust(
@@ -474,7 +474,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         try:
             self.ImDisplayInfo.numSamplesDrOut = imgInfoStruct.numSamplesDrOut
             self.RefDisplayInfo.numSamplesDrOut = refInfoStruct.numSamplesDrOut
-        except AttributeError:
+        except (AttributeError, UnboundLocalError):
             self.ImDisplayInfo.numSamplesDrOut = -1
             self.RefDisplayInfo.numSamplesDrOut = -1
         self.ImDisplayInfo.centerFrequency = imgInfoStruct.centerFrequency
@@ -537,7 +537,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         try:
             self.AnalysisInfo.scImRawData = imgDataStruct.scRF
             self.AnalysisInfo.scPhantomRawData = imgDataStruct.scRF
-        except AttributeError:
+        except (AttributeError, UnboundLocalError):
             pass
 
         self.qIm.mirrored().save(
@@ -677,7 +677,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 elif self.ImDisplayInfo.numSamplesDrOut != -1:
                     print("Preset not found!")
                     return
-            except AttributeError:
+            except (AttributeError, UnboundLocalError):
                 pass
 
             self.ax.plot(
@@ -688,7 +688,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                     [], [], marker="o", markersize=3, markerfacecolor="red"
                 )
                 image.figure.canvas.mpl_disconnect(self.cid)
-            except (AttributeError, ValueError):
+            except AttributeError:
                 image = 0  # do nothing. Means we're loading ROI
 
             try:
@@ -716,7 +716,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
                 elif self.ImDisplayInfo.numSamplesDrOut != -1:
                     print("No preset found!")
-            except AttributeError:
+            except (AttributeError, UnboundLocalError):
                 pass
 
             self.figure.subplots_adjust(
@@ -801,7 +801,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 return
             if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
                 return
-        except AttributeError:
+        except (AttributeError, UnboundLocalError):
             pass
 
         self.pointsPlottedX.append(int(event.xdata))
@@ -889,7 +889,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 print("Preset not found!")
                 return
 
-        except AttributeError:
+        except (AttributeError, UnboundLocalError):
             pass
 
         self.AnalysisInfo.rectCoords = [

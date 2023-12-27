@@ -35,8 +35,7 @@ class SaveRoiGUI(Ui_saveRoi, QWidget):
                 return
             self.roiSelectionGUI.saveRoi(
                 self.newFolderPathInput.text(),
-                self.newFileNameInput.text(),
-                self.roiSelectionGUI.curFrameIndex,
+                self.newFileNameInput.text()
             )
             self.dataSavedSuccessfullyLabel.setHidden(False)
             self.newFileNameInput.setHidden(True)

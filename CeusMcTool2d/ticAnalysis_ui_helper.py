@@ -251,7 +251,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.graph(self.ticX, self.ticY)
         try:
             self.acceptTicButton.clicked.disconnect()
-        except AttributeError:
+        except TypeError:
             pass
         self.acceptTicButton.clicked.connect(self.acceptTICt0)
 

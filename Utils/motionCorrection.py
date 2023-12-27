@@ -333,7 +333,7 @@ def cut_ROI200(full_array, bboxes, window_loc):
 #                 bool_mask[y, x0] = True
 #                 bool_mask[y, x0 + x_len - 1] = True
 #             bool_mask = binary_fill_holes(bool_mask)
-#             numPoints = len(np.where(bool_mask is True)[0])
+#             numPoints = len(np.where(bool_mask > 0)[0])
 #             TIC.append(np.exp(tmpwin[bool_mask] / compression).mean() * pixelScale)
 #             TICtime.append(times[t])
 #             areas.append(pixelScale * numPoints)
@@ -371,7 +371,7 @@ def generate_TIC_no_TMPPV(window, bboxes, times, compression):
             #     bool_mask[y, x0] = True
             #     bool_mask[y, x0+x_len] = True
             # bool_mask = binary_fill_holes(bool_mask)
-            numPoints = len(np.where(bool_mask is True)[0])
+            numPoints = len(np.where(bool_mask > 0)[0])
             TIC.append(np.exp(tmpwin[bool_mask] / compression).mean())
             TICtime.append(times[t])
             areas.append(numPoints)
@@ -395,7 +395,7 @@ def generate_TIC_no_TMPPV_no_MC(window, mask, times, compression):
     for t in range(0, mask.shape[0]):
         tmpwin = window[t]
         bool_mask = np.array(mask[t]).astype(bool)
-        numPoints = len(np.where(bool_mask is True)[0])
+        numPoints = len(np.where(bool_mask > 0)[0])
         if numPoints == 0:
             continue
         TIC.append(np.exp(tmpwin[bool_mask] / compression).mean())

@@ -284,7 +284,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.imageBackButton.clicked.connect(self.backFromXmlImage)
         try:
             self.chooseXmlImageFolderButton.clicked.disconnect()
-        except AttributeError:
+        except TypeError:
             pass
         self.chooseXmlImageFolderButton.clicked.connect(self.getXmlImageDestinationPath)
 
@@ -311,7 +311,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.imageBackButton.clicked.connect(self.backFromXmlImage)
         try:
             self.chooseXmlImageFolderButton.clicked.disconnect()
-        except AttributeError:
+        except TypeError:
             pass
         self.chooseXmlImageFolderButton.clicked.connect(self.getPhilipsFilePath)
 
