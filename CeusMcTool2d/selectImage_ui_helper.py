@@ -3,6 +3,7 @@ from CeusMcTool2d.roiSelection_ui_helper import RoiSelectionGUI
 
 from pathlib import Path
 import pandas as pd
+import os
 
 from PyQt5.QtWidgets import QWidget, QApplication, QHeaderView, QTableWidgetItem, QFileDialog
 from PyQt5.QtCore import Qt
@@ -145,15 +146,17 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         self.backButton.clicked.connect(self.backToWelcomeScreen)
         self.undoSpreadsheetButton.clicked.connect(self.undoSpreadsheetEntry)
         self.niftiButton.clicked.connect(self.niftiSelected)
-        self.dicomButton.clicked.connect(self.dicomSelected)
+        self.dicomExcelButton.clicked.connect(self.dicomExcelSelected)
+        self.dicomDirectButton.clicked.connect(self.dicomDirectSelected)
         self.aviButton.clicked.connect(self.aviSelected)
         self.clearAviButton.clicked.connect(self.aviPath.clear)
 
     def moveToFileChoice(self):
         self.selectFormatLabel.setHidden(True)
         self.niftiButton.setHidden(True)
-        self.dicomButton.setHidden(True)
+        self.dicomExcelButton.setHidden(True)
         self.aviButton.setHidden(True)
+        self.dicomDirectButton.setHidden(True)
 
         self.selectDataLabel.setHidden(False)
         self.findImagesButton.setHidden(False)
@@ -191,15 +194,26 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         self.clearNiftiBmodeButton.clicked.connect(self.aviPath.clear)
         self.findImagesButton.clicked.connect(self.moveToRoiSelection)
 
-    def dicomSelected(self):
+    def dicomExcelSelected(self):
         self.moveToFileChoice()
         self.chooseSpreadsheetFileButton.setHidden(False)
         self.clearSpreadsheetFileButton.setHidden(False)
         self.spreadsheetPath.setHidden(False)
         self.selectSpreadsheeetLabel.setHidden(False)
 
-        self.format = "Dicom"
+        self.format = "DicomExcel"
         self.findImagesButton.clicked.connect(self.listImages)
+
+    def dicomDirectSelected(self):
+        self.moveToFileChoice()
+        self.chooseSpreadsheetFileButton.setHidden(False)
+        self.clearSpreadsheetFileButton.setHidden(False)
+        self.spreadsheetPath.setHidden(False)
+        self.selectSpreadsheeetLabel.setHidden(False)
+        self.selectSpreadsheeetLabel.setText("Select DICOM Image (.dcm)")
+
+        self.format = "DicomDirect"
+        self.findImagesButton.clicked.connect(self.moveToRoiSelection)
 
     def undoSpreadsheetEntry(self):
         self.imagesScrollArea.clearContents()
@@ -289,7 +303,10 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
             self.aviPath.setText(fileName)
 
     def getSpreadsheetPath(self):
-        fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter="*.xlsx")
+        if self.format == "DicomExcel":
+            fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter="*.xlsx")
+        else:
+            fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter="*.dcm")
         if fileName != "":
             self.spreadsheetPath.setText(fileName)
 
@@ -307,11 +324,15 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
                 and len(self.niftiCeInput.text()) > 0
             )
             or (len(self.aviPath.text()) > 0)
+            or (
+                os.path.exists(self.spreadsheetPath.text())
+                and self.spreadsheetPath.text().endswith('.dcm')
+            )
         ):
             del self.roiSelectionGui
             self.roiSelectionGui = RoiSelectionGUI()
             self.roiSelectionGui.dataFrame = self.dataFrame
-            if self.format == "Dicom":
+            if self.format == "DicomExcel":
                 xcel_dir = Path(self.spreadsheetPath.text())
                 xcel_dir = xcel_dir.parent.absolute()
                 self.roiSelectionGui.df = self.df
@@ -319,6 +340,9 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
                 index = self.imagesScrollArea.selectedIndexes()[0].row()
                 self.roiSelectionGui.setFilenameDisplays(self.scans[index])
                 self.roiSelectionGui.openDicomImage(index, xcel_dir)
+            elif self.format == "DicomDirect":
+                self.roiSelectionGui.setFilenameDisplays(self.spreadsheetPath.text())
+                self.roiSelectionGui.openDicomImage(-1, self.spreadsheetPath.text())
             elif self.format == "Nifti":
                 self.roiSelectionGui.setFilenameDisplays(self.niftiBmodeInput.text())
                 self.roiSelectionGui.openNiftiImage(
@@ -341,4 +365,3 @@ if __name__ == "__main__":
     # ui.selectImage.show()
     ui.show()
     sys.exit(app.exec_())
-

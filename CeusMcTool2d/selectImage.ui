@@ -642,7 +642,7 @@ QTableWidget::item {
     <string>NIFTI</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="dicomButton">
+  <widget class="QPushButton" name="dicomExcelButton">
    <property name="geometry">
     <rect>
      <x>610</x>
@@ -660,7 +660,7 @@ QTableWidget::item {
 }</string>
    </property>
    <property name="text">
-    <string>DICOM</string>
+    <string>DICOM via Excel</string>
    </property>
   </widget>
   <widget class="QLabel" name="selectNiftiBmodeLabel">
@@ -934,6 +934,27 @@ QTableWidget::item {
    </property>
    <property name="text">
     <string>Choose File</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="dicomDirectButton">
+   <property name="geometry">
+    <rect>
+     <x>610</x>
+     <y>600</y>
+     <width>281</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Direct DICOM</string>
    </property>
   </widget>
  </widget>
