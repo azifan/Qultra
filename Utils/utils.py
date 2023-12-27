@@ -293,7 +293,7 @@ def read_xmlraw_image_func(filename):
                     + float(tval[10:12]) * 60
                     + float(tval[8:10]) * 3600
                 )
-            except (NameError, IndexError):
+            except (NameError, IndexError, ValueError):
                 pass
 
     x = np.fromfile(fff, dtype=np.uint8)
@@ -522,4 +522,3 @@ def xml2nifti(folderPath, fileDestination):
     outputPath = os.path.join(fileDestination, str(name + ".nii.gz"))
     nib.save(niiarray, outputPath)
     return outputPath
-
