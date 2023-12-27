@@ -763,12 +763,8 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             del self.segMask
             self.segCoverMask = np.zeros((self.numSlices, self.y, self.x, 4))
             self.segMask = np.zeros((self.numSlices, self.y, self.x))
-            if self.imDrawn == 1:  # move ROI to CE
-                xDiff = self.x0_CE - self.x0_bmode
-                yDiff = self.y0_CE - self.y0_bmode
-            elif self.imDrawn == 2:
-                xDiff = 0
-                yDiff = 0
+            xDiff = self.x0_CE - self.x0_bmode
+            yDiff = self.y0_CE - self.y0_bmode
             for t in range(self.segMask.shape[0]):
                 if self.bboxes[t] is not None:
                     x0, y0, x_len, y_len = self.bboxes[t]
@@ -1041,6 +1037,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         if not ret:
             print("No data in video file!")
             return
+        firstFrame = cv2.cvtColor(firstFrame, cv2.COLOR_RGB2BGR)
         self.fullArray = np.zeros(
             (self.numSlices, firstFrame.shape[0], firstFrame.shape[1], 3)
         ).astype(firstFrame.dtype)
@@ -1050,6 +1047,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             if not ret:
                 print("Video data ended prematurely!")
                 return
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             self.fullArray[i] = frame
 
         self.x = self.fullArray.shape[2]
@@ -1281,10 +1279,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             painter.end()
             self.update()
 
-            self.sliceArray = np.round(
-                [i * (1 / self.cineRate) for i in range(self.numSlices)], decimals=2
-            ).astype(np.int32)
-
         except AttributeError:
             self.loadRoiButton.setHidden(True)
             self.newRoiButton.setHidden(True)
@@ -1301,6 +1295,9 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.curTopLineY = 0
             self.curBottomLineY = self.depthScale - 1
 
+        self.sliceArray = np.round(
+            [i * (1 / self.cineRate) for i in range(self.numSlices)], decimals=2
+        ).astype(np.int32)
         self.maskCoverImg = np.zeros([self.y, self.x, 4])
         self.curSliceSlider.setMaximum(self.numSlices - 1)
         self.curSliceSpinBox.setMaximum(self.numSlices - 1)

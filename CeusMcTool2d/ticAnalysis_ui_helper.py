@@ -126,7 +126,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.selectT0Button.clicked.connect(self.initT0)
         self.automaticT0Button.clicked.connect(self.deferAutomaticT0)
 
-        self.t0Index = -1
+        self.t0Index = -2
         self.selectedPoints = []
         self.frontPointsX = []
         self.frontPointsY = []
@@ -230,7 +230,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.t0Slider.setValue(0)
         if self.prevLine is not None:
             self.prevLine.remove()
-            self.t0Index = -1
+            self.t0Index = -2
         self.prevLine = self.ax.axvline(
             x=self.t0Slider.value(), color="green", label="axvline - full height"
         )
@@ -282,7 +282,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.1)
         self.fig.canvas.mpl_connect("pick_event", self.selectPoint)
 
-        if self.t0Index > -1:
+        if self.t0Index > -2:
             self.mask = np.zeros(self.ticX[:, 0].shape, dtype=bool)
             self.selector = RectangleSelector(
                 self.ax,
@@ -524,7 +524,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.acceptTicButton.setHidden(False)
         self.acceptTicButton.clicked.connect(self.acceptTIC)
 
-        if self.t0Index == -1:
+        if self.t0Index == -2:
             for i in range(len(self.ticX[:, 0])):
                 if self.ticX[:, 0][i] > self.t0Slider.value():
                     break
@@ -682,4 +682,3 @@ def convertArToCmap(cmapName, intensities):
             ] + [255]
 
     return cmapArray
-

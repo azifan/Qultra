@@ -306,7 +306,7 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         if self.format == "DicomExcel":
             fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter="*.xlsx")
         else:
-            fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter="*.dcm")
+            fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter="*.dcm, *.DCM")
         if fileName != "":
             self.spreadsheetPath.setText(fileName)
 
@@ -326,7 +326,10 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
             or (len(self.aviPath.text()) > 0)
             or (
                 os.path.exists(self.spreadsheetPath.text())
-                and self.spreadsheetPath.text().endswith('.dcm')
+                and (
+                    self.spreadsheetPath.text().endswith('.dcm')
+                    or self.spreadsheetPath.text().endswith('.DCM')
+                )
             )
         ):
             del self.roiSelectionGui
