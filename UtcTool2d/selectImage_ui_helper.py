@@ -239,6 +239,8 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
 
 
         self.imArray, self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = rfdParser.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation)
+        self.initialImgRf = self.imgDataStruct.rf
+        self.initialRefRf = self.refDataStruct.rf
         self.frame = 0
         self.imData = np.array(self.imArray[self.frame]).reshape(self.imArray.shape[1], self.imArray.shape[2])
         self.imData = np.require(self.imData,np.uint8,'C')
@@ -300,11 +302,10 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.plotPreviewFrame()
 
     def acceptFrame(self):
-        self.imArray = self.imData
-        self.imgDataStruct.bMode = self.imArray
-        self.imgDataStruct.rf = self.imgDataStruct.rf[self.frame]
-        self.refDataStruct.rf = self.refDataStruct.rf[0]
-        self.roiSelectionGUI.processImage(self.imArray, self.imgDataStruct, self.refDataStruct, self.imgInfoStruct, self.refInfoStruct)
+        self.imgDataStruct.bMode = self.imData
+        self.imgDataStruct.rf = self.initialImgRf[self.frame]
+        self.refDataStruct.rf = self.initialRefRf[0]
+        self.roiSelectionGUI.processImage(self.imData, self.imgDataStruct, self.refDataStruct, self.imgInfoStruct, self.refInfoStruct)
         self.roiSelectionGUI.lastGui = self
         self.roiSelectionGUI.show()
         self.hide()
