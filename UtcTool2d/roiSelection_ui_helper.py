@@ -469,6 +469,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def processImage(
         self, imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
     ):
+        if self.AnalysisInfo.computeSpecWindows is None: # currently means we're using Siemens RF data
+            self.AnalysisInfo.computeSpecWindows = computeSpecWindowsRF
+
         self.ImDisplayInfo.depth = imgInfoStruct.depth
         self.ImDisplayInfo.width = imgInfoStruct.width
         try:

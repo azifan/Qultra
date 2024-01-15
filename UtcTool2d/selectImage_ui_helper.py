@@ -1,12 +1,15 @@
 from UtcTool2d.selectImage_ui import Ui_selectImage
 from UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
 from Parsers.canonBinParser import findPreset
+import Parsers.siemensRfdParser as rfdParser
 
 from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
+from PyQt5.QtGui import QImage, QPixmap
 import shutil
 import os
 import matplotlib.pyplot as plt
 import platform
+import numpy as np
 
 system = platform.system()
 
@@ -126,6 +129,13 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.phantomPathLabelVerasonics.setHidden(True)
         self.imagePathLabel.setHidden(True)
         self.phantomPathLabel.setHidden(True)
+        self.acceptFrameButton.setHidden(True)
+        self.totalFramesLabel.setHidden(True)
+        self.ofFramesLabel.setHidden(True)
+        self.curFrameSlider.setHidden(True)
+        self.curFrameLabel.setHidden(True)
+        self.imPreview.setHidden(True)
+        self.selectFrameLabel.setHidden(True)
 
         self.welcomeGui = None
         self.roiSelectionGUI = None
@@ -135,6 +145,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
 
         self.terasonButton.clicked.connect(self.terasonClicked)
         self.canonButton.clicked.connect(self.canonClicked)
+        self.siemensButton.clicked.connect(self.siemensClicked)
         # self.verasonicsButton.clicked.connect(self.verasonicsClicked)
         self.chooseImageFileButton.clicked.connect(self.selectImageFile)
         self.choosePhantomFileButton.clicked.connect(self.selectPhantomFile)
@@ -200,6 +211,11 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
                 self.roiSelectionGUI.openImageTerason(
                     self.imagePathInput.text(), self.phantomPathInput.text()
                 )
+            elif self.machine == "Siemens":
+                self.openSiemensImage()
+                self.roiSelectionGUI.machine = self.machine
+                self.roiSelectionGUI.dataFrame = self.dataFrame
+                return
             else:
                 print("ERROR: Machine match not found")
                 return
@@ -209,6 +225,96 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
             self.roiSelectionGUI.lastGui = self
             self.selectImageErrorMsg.setHidden(True)
             self.hide()
+
+    def openSiemensImage(self):
+        imageFilePath = self.imagePathInput.text()
+        phantomFilePath = self.phantomPathInput.text()
+
+        tmpLocation = imageFilePath.split("/")
+        dataFileName = tmpLocation[-1]
+        dataFileLocation = imageFilePath[:len(imageFilePath)-len(dataFileName)]
+        tmpPhantLocation = phantomFilePath.split("/")
+        phantFileName = tmpPhantLocation[-1]
+        phantFileLocation = phantomFilePath[:len(phantomFilePath)-len(phantFileName)]
+
+
+        self.imArray, self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = rfdParser.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation)
+        self.frame = 0
+        self.imData = np.array(self.imArray[self.frame]).reshape(self.imArray.shape[1], self.imArray.shape[2])
+        self.imData = np.require(self.imData,np.uint8,'C')
+        self.bytesLine = self.imData.strides[0]
+        self.arHeight = self.imData.shape[0]
+        self.arWidth = self.imData.shape[1]
+        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8)
+
+        quotient = self.imgInfoStruct.width / self.imgInfoStruct.depth
+        if quotient > (721/501):
+            self.widthScale = 721
+            self.depthScale = self.widthScale / (self.imgInfoStruct.width/self.imgInfoStruct.depth)
+        else:
+            self.widthScale = 501 * quotient
+            self.depthScale = 501
+        self.yBorderMin = 110 + ((501 - self.depthScale)/2)
+        self.yBorderMax = 611 - ((501 - self.depthScale)/2)
+        self.xBorderMin = 410 + ((721 - self.widthScale)/2)
+        self.xBorderMax = 1131 - ((721 - self.widthScale)/2)
+
+        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
+
+        self.totalFramesLabel.setHidden(False)
+        self.ofFramesLabel.setHidden(False)
+        self.curFrameSlider.setHidden(False)
+        self.curFrameLabel.setHidden(False)
+        self.imPreview.setHidden(False)
+        self.selectFrameLabel.setHidden(False)
+        self.imagePathInput.setHidden(True)
+        self.phantomPathInput.setHidden(True)
+        self.clearImagePathButton.setHidden(True)
+        self.clearPhantomPathButton.setHidden(True)
+        self.generateImageButton.setHidden(True)
+        self.selectImageMethodLabel.setHidden(True)
+        self.canonButton.setHidden(True)
+        self.verasonicsButton.setHidden(True)
+        self.terasonButton.setHidden(True)
+        self.philipsButton.setHidden(True)
+        self.siemensButton.setHidden(True)
+        self.chooseImageFileButton.setHidden(True)
+        self.choosePhantomFileButton.setHidden(True)
+        self.imagePathLabel.setHidden(True)
+        self.phantomPathLabel.setHidden(True)
+        self.selectDataLabel.setHidden(True)
+        self.acceptFrameButton.setHidden(False)
+
+        self.curFrameSlider.setMinimum(0)
+        self.curFrameSlider.setMaximum(self.imArray.shape[0]-1)
+        self.curFrameLabel.setText("0")
+        self.totalFramesLabel.setText(str(self.imArray.shape[0]-1))
+        self.curFrameSlider.valueChanged.connect(self.frameChanged)
+        self.acceptFrameButton.clicked.connect(self.acceptFrame)
+
+        self.update()    
+    
+    def frameChanged(self):
+        self.frame = self.curFrameSlider.value()
+        self.curFrameLabel.setText(str(self.frame))
+        self.plotPreviewFrame()
+
+    def acceptFrame(self):
+        self.imArray = self.imData
+        self.imgDataStruct.bMode = self.imArray
+        self.imgDataStruct.rf = self.imgDataStruct.rf[self.frame]
+        self.refDataStruct.rf = self.refDataStruct.rf[0]
+        self.roiSelectionGUI.processImage(self.imArray, self.imgDataStruct, self.refDataStruct, self.imgInfoStruct, self.refInfoStruct)
+        self.roiSelectionGUI.lastGui = self
+        self.roiSelectionGUI.show()
+        self.hide()
+
+    def plotPreviewFrame(self):
+        self.imData = np.array(self.imArray[self.frame]).reshape(self.imArray.shape[1], self.imArray.shape[2])
+        self.imData = np.require(self.imData,np.uint8,'C')
+        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8)
+        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
+        self.update()
 
     def clearImagePath(self):
         self.imagePathInput.clear()
@@ -242,6 +348,20 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
 
         self.machine = "Terason"
         self.fileExts = "*.mat"
+
+    def siemensClicked(self):
+        self.chooseImagePrep()
+        self.selectDataLabel.setHidden(False)
+        self.imagePathLabel.setHidden(False)
+        self.phantomPathLabel.setHidden(False)
+        self.chooseImageFileButton.setHidden(False)
+        self.choosePhantomFileButton.setHidden(False)
+
+        self.imagePathLabel.setText("Input Path to Image file\n (.rfd)")
+        self.phantomPathLabel.setText("Input Path to Phantom file\n (.rfd)")
+
+        self.machine = "Siemens"
+        self.fileExts = "*.rfd"
 
     def canonClicked(
         self,
