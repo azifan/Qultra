@@ -382,7 +382,8 @@ def readFileImg(Info, focus):
     FileHeader = readHeader(str(Info.filepath+Info.filename))
     if Info.filename == 'uri_SpV2232_VpF512_FpA90_20210129103529.rfd':
         # Custom phantom optimization for Thyroid project
-        data = extractFrameData(file_obj, FileHeader, 51)
+        data, _ = extractFrameData(file_obj, FileHeader, 51)
+        data = data.reshape((1, data.shape[0], data.shape[1]))
     else:
         data = np.zeros([len(FileHeader.idx1.frame), int(FileHeader.rfbd.numSamplesPerVector-FileHeader.strf.vectorHeaderLengthBytes/2), \
                         int(FileHeader.csh0.numVectorsPerStreamFrame)]).astype(np.int16)
