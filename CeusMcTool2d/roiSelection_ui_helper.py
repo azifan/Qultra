@@ -216,7 +216,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
     def loadPreloadedRoi(self):
         try:
             self.niftiSegPath = self.df.loc[self.index, "nifti_segmentation_path"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return
         mask = (
             nib.load(os.path.join(self.xcel_dir, self.niftiSegPath), mmap=False)
