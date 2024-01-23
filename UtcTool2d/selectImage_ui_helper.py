@@ -146,7 +146,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.terasonButton.clicked.connect(self.terasonClicked)
         self.canonButton.clicked.connect(self.canonClicked)
         self.siemensButton.clicked.connect(self.siemensClicked)
-        # self.verasonicsButton.clicked.connect(self.verasonicsClicked)
+        self.verasonicsButton.clicked.connect(self.verasonicsClicked)
         self.chooseImageFileButton.clicked.connect(self.selectImageFile)
         self.choosePhantomFileButton.clicked.connect(self.selectPhantomFile)
         self.clearImagePathButton.clicked.connect(self.clearImagePath)
