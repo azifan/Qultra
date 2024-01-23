@@ -843,7 +843,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 "Peak Enhancement (PE)": self.pe,
                 "Time to Peak (TP)": self.tp,
                 "Mean Transit Time (MTT)": self.mtt,
-                "TMPPV": self.tmppv,
+                "Normalization Factor": self.normFact,
                 "VOI Volume (mm^3)": self.voxelScale,
             }
             self.dataFrame = self.dataFrame.append(self.newData, ignore_index=True)
@@ -921,8 +921,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         # self.curSliceSlider.setMaximum(len(self.sliceArray)-1)
         # self.curSliceSpinBox.setMaximum(len(self.sliceArray)-1)
 
-        tmppv = np.max(self.lastGui.ticY)
-        self.lastGui.ticY = self.lastGui.ticY / tmppv
+        normFact = np.max(self.lastGui.ticY)
+        self.lastGui.ticY = self.lastGui.ticY / normFact
         x = self.lastGui.ticX[:, 0] - np.min(self.lastGui.ticX[:, 0])
 
         # Bunch of checks
@@ -936,7 +936,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         # Do the fitting
         try:
             params, _, wholecurve = lf.data_fit(
-                [x, self.lastGui.ticY], tmppv, autoT0
+                [x, self.lastGui.ticY], normFact, autoT0
             )
             self.ax.plot(self.lastGui.ticX[:, 0], wholecurve)
             range = max(self.lastGui.ticX[:, 0]) - min(self.lastGui.ticX[:, 0])
@@ -948,8 +948,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             print("RunTimeError")
             params = np.array(
                 [
-                    np.max(self.lastGui.ticY) * tmppv,
-                    np.trapz(self.lastGui.ticY * tmppv, x=self.lastGui.ticX[:, 0]),
+                    np.max(self.lastGui.ticY) * normFact,
+                    np.trapz(self.lastGui.ticY * normFact, x=self.lastGui.ticX[:, 0]),
                     self.lastGui.ticX[-1, 0],
                     np.argmax(self.lastGui.ticY),
                     np.max(self.lastGui.ticX[:, 0]) * 2,
@@ -958,13 +958,13 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             )
         self.fig.subplots_adjust(left=0.1, right=0.97, top=0.85, bottom=0.25)
         self.canvas.draw()
-        self.lastGui.ticY *= tmppv
+        self.lastGui.ticY *= normFact
 
         self.aucVal.setText(str(np.around(params[1], decimals=3)))
         self.peVal.setText(str(np.around(params[0], decimals=3)))
         self.tpVal.setText(str(np.around(params[2], decimals=2)))
         self.mttVal.setText(str(np.around(params[3], decimals=2)))
-        self.tmppvVal.setText(str(np.around(tmppv, decimals=1)))
+        self.tmppvVal.setText(str(np.around(normFact, decimals=1)))
         if params[4] != 0:
             self.t0Val.setText(str(np.around(params[4], decimals=2)))
         else:
@@ -974,7 +974,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.pe = params[0]
         self.tp = params[2]
         self.mtt = params[3]
-        self.tmppv = tmppv
+        self.normFact = normFact
         self.dataFrame = self.lastGui.dataFrame
 
         self.lastGui.hide()

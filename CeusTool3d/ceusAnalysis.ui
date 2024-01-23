@@ -1382,7 +1382,7 @@ QPushButton:checked {
 }</string>
    </property>
    <property name="text">
-    <string>TMPPV:</string>
+    <string>Norm:</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
