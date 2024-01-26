@@ -653,16 +653,16 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         avMBF = a * median + b
         windowFreqs /= 1000000  # Hz -> MHz
         x /= 1000000  # Hz -> MHz
-        PsGraphDisplayGUI.ax.vlines(
-            [
-                self.AnalysisInfo.lowBandFreq / 1000000,
-                self.AnalysisInfo.upBandFreq / 1000000,
-            ],
-            ymin=np.amin(windowNPSs),
-            ymax=np.amax(windowNPSs),
-            colors="purple",
-            label="Band Lims",
-        )
+        # PsGraphDisplayGUI.ax.vlines(
+        #     [
+        #         self.AnalysisInfo.lowBandFreq / 1000000,
+        #         self.AnalysisInfo.upBandFreq / 1000000,
+        #     ],
+        #     ymin=np.amin(windowNPSs),
+        #     ymax=np.amax(windowNPSs),
+        #     colors="purple",
+        #     label="Band Lims",
+        # )
         for i in range(len(windowNPSs)):
             PsGraphDisplayGUI.ax.plot(
                 windowFreqs, windowNPSs[i], c="blue", alpha=0.2, zorder=1
@@ -670,10 +670,10 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         PsGraphDisplayGUI.ax.plot(
             windowFreqs, np.mean(windowNPSs, axis=0), c="red", zorder=10, label="NPS"
         )
-        PsGraphDisplayGUI.ax.plot(x, y, c="orange", zorder=11, label="LOBF")
-        mbfPoint = PsGraphDisplayGUI.ax.scatter(
-            median / 1000000, avMBF, marker="o", zorder=12, c="green", label="MBF"
-        )
+        # PsGraphDisplayGUI.ax.plot(x, y, c="orange", zorder=11, label="LOBF")
+        # mbfPoint = PsGraphDisplayGUI.ax.scatter(
+        #     median / 1000000, avMBF, marker="o", zorder=12, c="green", label="MBF"
+        # )
         PsGraphDisplayGUI.figure.subplots_adjust(
             left=0.16, right=0.98, bottom=0.2, top=0.98
         )

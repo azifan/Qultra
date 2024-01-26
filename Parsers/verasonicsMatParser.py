@@ -37,6 +37,12 @@ class DataOutputStruct():
 
 class InfoStruct():
     def __init__(self):
+        self.minFrequency = 0
+        self.maxFrequency = 15000000
+        self.lowBandFreq = 3000000 #Hz
+        self.upBandFreq = 4500000 #Hz
+        self.centerFrequency = 4000000 #Hz #TODO
+
         self.studyMode = None
         self.filename = None
         self.filepath = None
@@ -65,8 +71,6 @@ class InfoStruct():
         self.dynRange = None
         self.yOffset = None
         self.xOffset = None
-        self.lowBandFreq = None
-        self.upBandFreq = None
         self.gain = None
         self.rxGain = None
         self.userGain = None
@@ -142,12 +146,12 @@ def readFileInfo(filename, filepath, input):
     # Info.samples = input["pt"][0][0]
     # Info.lines = np.array(input["rf_data_all_fund"]).shape[0]
     Info.depthOffset = 0.04 # probeStruct.transmitoffset
-    Info.depth = 0.16 #?
-    Info.width = 70 #?
-    Info.rxFrequency = 20000000
-    Info.samplingFrequency = 20000000
-    Info.txFrequency = 3200000
-    Info.centerFrequency = 3200000
+    Info.depth = 40 #mm
+    Info.width = 48 #mm
+    Info.rxFrequency = 31250000
+    Info.samplingFrequency = 31250000
+    Info.txFrequency = 7500000 #7812500
+    Info.centerFrequency = 7500000 #7812500
     Info.targetFOV = 0
     Info.numFocalZones = 1
     # Info.numFrames = input["NumFrame"][0][0]
@@ -160,8 +164,6 @@ def readFileInfo(filename, filepath, input):
     Info.dynRange = 55
     Info.yOffset = 0
     Info.xOffset = 0
-    Info.lowBandFreq = 1000000
-    Info.upBandFreq = 6000000
     Info.gain = 0
     Info.rxGain = 0
     Info.userGain = 0
@@ -211,8 +213,8 @@ def readFileImg(Info, input):
     Data.scBmode = bmode
     Info.maxval = np.amax(bmode)
 
-    Info.height = 126.8344
-    Info.width = Info.height*bmode.shape[0]/bmode.shape[1]
+    # Info.height = 126.8344
+    # Info.width = Info.height*bmode.shape[0]/bmode.shape[1]
     Info.lateralRes = Info.width/bmode.shape[0]
     Info.axialRes = Info.height/bmode.shape[1]
 
