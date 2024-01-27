@@ -43,7 +43,7 @@ pip install wheel setuptools pip --upgrade
 ### Windows
 
 ```shell
-git clone https://github.com/TUL-Dev/QusTools.git
+git clone https://github.com/TUL-Dev/QuantUS.git
 cd QusTools
 pip install --upgrade pip
 python3.9 -m pip install virtualenv
