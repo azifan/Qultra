@@ -376,6 +376,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         (imArray, imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct,) = vera.getImage(
             dataFileName, dataFileLocation, phantFileName, phantFileLocation
         )
+        self.AnalysisInfo.verasonics = True
 
         self.AnalysisInfo.computeSpecWindows = computeSpecWindowsIQ
 

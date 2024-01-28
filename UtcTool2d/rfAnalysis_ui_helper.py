@@ -31,6 +31,7 @@ class AnalysisInfo:
         self.rectCoords = []
         self.computeSpecWindows = None
         self.frame = None
+        self.verasonics = False
 
         self.imRawData = None
         self.phantomRawData = None
@@ -638,6 +639,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.AnalysisInfo.upBandFreq,
             self.AnalysisInfo.samplingFreq,
             self.AnalysisInfo.frame,
+            self.AnalysisInfo.verasonics
         )
         minMBF = min(mbf)
         maxMBF = max(mbf)
@@ -653,16 +655,16 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         avMBF = a * median + b
         windowFreqs /= 1000000  # Hz -> MHz
         x /= 1000000  # Hz -> MHz
-        # PsGraphDisplayGUI.ax.vlines(
-        #     [
-        #         self.AnalysisInfo.lowBandFreq / 1000000,
-        #         self.AnalysisInfo.upBandFreq / 1000000,
-        #     ],
-        #     ymin=np.amin(windowNPSs),
-        #     ymax=np.amax(windowNPSs),
-        #     colors="purple",
-        #     label="Band Lims",
-        # )
+        PsGraphDisplayGUI.ax.vlines(
+            [
+                self.AnalysisInfo.lowBandFreq / 1000000,
+                self.AnalysisInfo.upBandFreq / 1000000,
+            ],
+            ymin=np.amin(windowNPSs),
+            ymax=np.amax(windowNPSs),
+            colors="purple",
+            label="Band Lims",
+        )
         for i in range(len(windowNPSs)):
             PsGraphDisplayGUI.ax.plot(
                 windowFreqs, windowNPSs[i], c="blue", alpha=0.2, zorder=1

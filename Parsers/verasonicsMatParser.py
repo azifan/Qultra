@@ -39,9 +39,9 @@ class InfoStruct():
     def __init__(self):
         self.minFrequency = 0
         self.maxFrequency = 15000000
-        self.lowBandFreq = 3000000 #Hz
-        self.upBandFreq = 4500000 #Hz
-        self.centerFrequency = 4000000 #Hz #TODO
+        self.lowBandFreq = 3500000 #Hz
+        self.upBandFreq = 10250000 #Hz
+        self.centerFrequency = 6875000 #Hz
 
         self.studyMode = None
         self.filename = None
@@ -150,8 +150,8 @@ def readFileInfo(filename, filepath, input):
     Info.width = 48 #mm
     Info.rxFrequency = 31250000
     Info.samplingFrequency = 31250000
-    Info.txFrequency = 7500000 #7812500
-    Info.centerFrequency = 7500000 #7812500
+    Info.txFrequency = 6875000 #7812500
+    Info.centerFrequency = 6875000 #7812500
     Info.targetFOV = 0
     Info.numFocalZones = 1
     # Info.numFrames = input["NumFrame"][0][0]

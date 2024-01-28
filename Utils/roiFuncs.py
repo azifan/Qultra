@@ -227,6 +227,7 @@ def computeSpecWindowsIQ(
     imgUpBandFreq,
     imgSamplingFreq,
     frame,
+    verasonics=False,
 ):
     # Set some flags
     db6LowF = imgLowBandFreq  # .txFrequency - 3000000, hardcoded
@@ -270,12 +271,16 @@ def computeSpecWindowsIQ(
         [f, ps] = computePowerSpec(
             imgWindow, f0, f1, fs
         )  # initially had round(img_gain), but since not used in function, we left it out
-        [f, rPS] = computePowerSpec(
-            refWindow, f0, f1, fs
-        )  # Same as above, except for round(ref_gain)
+        if not verasonics:
+            [f, rPS] = computePowerSpec(
+                refWindow, f0, f1, fs
+            )
+        else:
+            [f, rPS] = np.load('Parsers/verasonics_phantom_ps.npy')
+            f *= 1000000
         # [f, ps] = eng.computePowerSpec(matlab.double(np.ascontiguousarray(imgWindow)), matlab.double(f0), matlab.double(f1), matlab.double(fs), 0, nargout=2)
         # [f, rPS] = eng.computePowerSpec(matlab.double(np.ascontiguousarray(refWindow)), matlab.double(f0), matlab.double(f1), matlab.double(fs), 0, nargout=2)
-        nps = np.asarray(ps) #- np.asarray(rPS)  # SUBTRACTION method: log data
+        nps = np.asarray(ps) - np.asarray(rPS)  # SUBTRACTION method: log data
         # import matplotlib.pyplot as plt
         # fig, ax = plt.subplots()
         # ax.scatter(f,ps)
@@ -324,6 +329,7 @@ def computeSpecWindowsRF(
     imgSamplingFreq,
     frame,
     phantName=None,
+    verasonics=False
 ):
     # Set some flags
     db6LowF = imgLowBandFreq  # .txFrequency - 3000000, hardcoded
@@ -375,7 +381,7 @@ def computeSpecWindowsRF(
         [f, rPS] = computePowerSpec(
             refWindow, f0, f1, fs
         )  # Same as above, except for round(ref_gain)
-        nps = np.asarray(ps) #- np.asarray(rPS)  # SUBTRACTION method: log data
+        nps = np.asarray(ps) - np.asarray(rPS)  # SUBTRACTION method: log data
         # import matplotlib.pyplot as plt
         # fig, ax = plt.subplots()
         # ax.scatter(f,ps)
