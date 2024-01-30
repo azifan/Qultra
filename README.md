@@ -44,7 +44,7 @@ pip install wheel setuptools pip --upgrade
 
 ```shell
 git clone https://github.com/TUL-Dev/QuantUS.git
-cd QusTools
+cd QuantUS
 pip install --upgrade pip
 python3.9 -m pip install virtualenv
 virtualenv --python="python3.9" venv
