@@ -696,22 +696,6 @@ QPushButton:checked {
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
    </property>
   </widget>
-  <widget class="QFrame" name="ticDisplay">
-   <property name="geometry">
-    <rect>
-     <x>620</x>
-     <y>560</y>
-     <width>401</width>
-     <height>171</height>
-    </rect>
-   </property>
-   <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
-   </property>
-  </widget>
   <widget class="QLabel" name="aucVal">
    <property name="geometry">
     <rect>
@@ -769,7 +753,7 @@ QPushButton:checked {
   <widget class="QLabel" name="resultsLabel">
    <property name="geometry">
     <rect>
-     <x>670</x>
+     <x>700</x>
      <y>510</y>
      <width>361</width>
      <height>51</height>
@@ -968,6 +952,289 @@ background-color: rgba(255, 255, 255, 0);</string>
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
+  <widget class="QPushButton" name="showTicButton">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>590</y>
+     <width>411</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Show TIC</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="loadParamapButton">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>650</y>
+     <width>411</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Load Parametric Map</string>
+   </property>
+  </widget>
+  <widget class="QFrame" name="ticDisplay">
+   <property name="geometry">
+    <rect>
+     <x>620</x>
+     <y>560</y>
+     <width>401</width>
+     <height>171</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="ticBackButton">
+   <property name="geometry">
+    <rect>
+     <x>1040</x>
+     <y>700</y>
+     <width>121</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Back</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="peParamapButton">
+   <property name="geometry">
+    <rect>
+     <x>820</x>
+     <y>590</y>
+     <width>191</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>PE</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="aucParamapButton">
+   <property name="geometry">
+    <rect>
+     <x>600</x>
+     <y>590</y>
+     <width>191</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>AUC</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="mttParamapButton">
+   <property name="geometry">
+    <rect>
+     <x>600</x>
+     <y>650</y>
+     <width>191</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>MTT</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="tpParamapButton">
+   <property name="geometry">
+    <rect>
+     <x>820</x>
+     <y>650</y>
+     <width>191</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>TP</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="backFromParamapButton">
+   <property name="geometry">
+    <rect>
+     <x>710</x>
+     <y>695</y>
+     <width>191</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Back</string>
+   </property>
+  </widget>
+  <widget class="QFrame" name="legend">
+   <property name="geometry">
+    <rect>
+     <x>1030</x>
+     <y>560</y>
+     <width>141</width>
+     <height>171</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
+   </property>
+  </widget>
+  <zorder>ticDisplay</zorder>
+  <zorder>curSliceLabel</zorder>
+  <zorder>curSliceSlider</zorder>
+  <zorder>curSliceOfLabel</zorder>
+  <zorder>sidebar</zorder>
+  <zorder>analysisParamsSidebar</zorder>
+  <zorder>backButton</zorder>
+  <zorder>curSliceSpinBox</zorder>
+  <zorder>constructRoiLabel</zorder>
+  <zorder>ceCoverLabel</zorder>
+  <zorder>peVal</zorder>
+  <zorder>tpLabel</zorder>
+  <zorder>voiVolumeVal</zorder>
+  <zorder>mttLabel</zorder>
+  <zorder>tpVal</zorder>
+  <zorder>voiVolumeLabel</zorder>
+  <zorder>aucVal</zorder>
+  <zorder>peLabel</zorder>
+  <zorder>resultsLabel</zorder>
+  <zorder>mttVal</zorder>
+  <zorder>aucLabel</zorder>
+  <zorder>curSliceTotal</zorder>
+  <zorder>imPlane</zorder>
+  <zorder>t0Label</zorder>
+  <zorder>t0Val</zorder>
+  <zorder>maskCoverLabel</zorder>
+  <zorder>showTicButton</zorder>
+  <zorder>loadParamapButton</zorder>
+  <zorder>ticBackButton</zorder>
+  <zorder>peParamapButton</zorder>
+  <zorder>aucParamapButton</zorder>
+  <zorder>mttParamapButton</zorder>
+  <zorder>tpParamapButton</zorder>
+  <zorder>backFromParamapButton</zorder>
+  <zorder>legend</zorder>
  </widget>
  <resources/>
  <connections/>
