@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Select Region of Interest</string>
+   <string>CEUS Analysis</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget {
@@ -344,7 +344,7 @@
      </property>
     </widget>
    </widget>
-   <widget class="QPushButton" name="saveDataButton">
+   <widget class="QPushButton" name="genParamapButton">
     <property name="geometry">
      <rect>
       <x>150</x>
@@ -368,7 +368,7 @@ QPushButton:checked {
 }</string>
     </property>
     <property name="text">
-     <string>Save Data</string>
+     <string>Generate Paramap</string>
     </property>
    </widget>
    <widget class="QPushButton" name="exportDataButton">
@@ -1200,6 +1200,27 @@ QPushButton:checked {
     <enum>QFrame::Raised</enum>
    </property>
   </widget>
+  <widget class="QPushButton" name="saveDataButton">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>630</y>
+     <width>131</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Save Data</string>
+   </property>
+  </widget>
   <zorder>ticDisplay</zorder>
   <zorder>curSliceLabel</zorder>
   <zorder>curSliceSlider</zorder>
@@ -1235,6 +1256,7 @@ QPushButton:checked {
   <zorder>tpParamapButton</zorder>
   <zorder>backFromParamapButton</zorder>
   <zorder>legend</zorder>
+  <zorder>saveDataButton</zorder>
  </widget>
  <resources/>
  <connections/>
