@@ -16,7 +16,6 @@ warnings.filterwarnings("ignore", message="divide by zero encountered in log")
 warnings.filterwarnings("ignore", message="invalid value encountered in divide")
 warnings.filterwarnings("ignore", message="overflow encountered in divide")
 warnings.filterwarnings("ignore", message="overflow encountered in exp")
-warnings.filterwarnings("ignore", message="+[CATransaction synchronize] called within transaction")
 
 def data_fit(TIC, normalizer, timeconst):
     #Fitting function
