@@ -1,11 +1,13 @@
 from CeusMcTool2d.ceusAnalysis_ui import Ui_ceusAnalysis
 from CeusMcTool2d.exportData_ui_helper import ExportDataGUI
+from CeusMcTool2d.genParamap_ui_helper import GenParamapGUI, ParamapInputs
 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.colors as colors
 import nibabel as nib
+import os
 
 from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout, QFileDialog
 from PyQt5.QtGui import QPixmap, QImage
@@ -195,8 +197,12 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.mtt = None
         self.segCoverMask = None
         # self.tmppv = None
+        self.genParamapGUI = None
         self.roiArea = None
         self.newData = None
+        self.axRes, self.latRes, self.cineRate, self.fullPath, self.mc = None, None, None, None, None
+
+
         self.fig = plt.figure()
         self.canvas = FigureCanvas(self.fig)
         self.horizLayout = QHBoxLayout(self.ticDisplay)
@@ -238,7 +244,6 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.figure_leg = plt.figure()
         self.canvas_leg = FigureCanvas(self.figure_leg)
-        self.ax_leg = self.figure_leg.add_subplot(111)
         self.horizontalLayout.addWidget(self.canvas_leg)
         self.curAlpha = 255
 
@@ -259,8 +264,10 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.backButton.clicked.connect(self.backToLastScreen)
         self.exportDataButton.clicked.connect(self.moveToExport)
         self.saveDataButton.clicked.connect(self.saveData)
+        self.genParamapButton.clicked.connect(self.startGenParamap)
 
     def showAuc(self):
+        self.figure_leg.clear()
         if self.aucParamapButton.isChecked():
             self.peParamapButton.setChecked(False)
             self.tpParamapButton.setChecked(False)
@@ -268,9 +275,9 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
             self.curParamap = 1
             self.cmap = plt.get_cmap("viridis").colors
+            self.ax_leg = self.figure_leg.add_subplot(111)
 
             arr = np.linspace(0,100,1000).reshape((1000,1))
-            self.ax_leg.clear()
             new_cmap1 = truncate_colormap(plt.get_cmap("viridis"))
             self.ax_leg.imshow(arr, aspect='auto', cmap=new_cmap1, origin='lower')
             self.ax_leg.tick_params(axis='y', labelsize=5, pad=0.4)
@@ -283,7 +290,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                         self.minAuc + ((self.maxAuc - self.minAuc) / 4), decimals=1
                     ),
                     np.round(
-                        self.minAuc + ((self.maxAuc - self.minAuc) / 4), decimals=1
+                        self.minAuc + (2*(self.maxAuc - self.minAuc) / 4), decimals=1
                     ),
                     np.round(
                         self.minAuc + (3 * (self.maxAuc - self.minAuc) / 4), decimals=1
@@ -320,11 +327,11 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 ]
         else:
             self.curParamap = 0
-            self.ax_leg.clear()
             self.canvas_leg.draw()
         self.updateIm()
 
     def showPe(self):
+        self.figure_leg.clear()
         if self.peParamapButton.isChecked():
             self.aucParamapButton.setChecked(False)
             self.tpParamapButton.setChecked(False)
@@ -332,9 +339,9 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
             self.curParamap = 2
             self.cmap = plt.get_cmap("magma").colors
+            self.ax_leg = self.figure_leg.add_subplot(111)
 
             arr = np.linspace(0,100,1000).reshape((1000,1))
-            self.ax_leg.clear()
             new_cmap1 = truncate_colormap(plt.get_cmap("magma"))
             self.ax_leg.imshow(arr, aspect='auto', cmap=new_cmap1, origin='lower')
             self.ax_leg.tick_params(axis='y', labelsize=5, pad=0.4)
@@ -347,7 +354,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                         self.minPe + ((self.maxPe - self.minPe) / 4), decimals=1
                     ),
                     np.round(
-                        self.minPe + ((self.maxPe - self.minPe) / 4), decimals=1
+                        self.minPe + (2*(self.maxPe - self.minPe) / 4), decimals=1
                     ),
                     np.round(
                         self.minPe + (3 * (self.maxPe - self.minPe) / 4), decimals=1
@@ -384,11 +391,11 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 ]
         else:
             self.curParamap = 0
-            self.ax_leg.clear()
             self.canvas_leg.draw()
         self.updateIm()
     
     def showTp(self):
+        self.figure_leg.clear()
         if self.tpParamapButton.isChecked():
             self.peParamapButton.setChecked(False)
             self.aucParamapButton.setChecked(False)
@@ -396,9 +403,9 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
             self.curParamap = 3
             self.cmap = plt.get_cmap("plasma").colors
+            self.ax_leg = self.figure_leg.add_subplot(111)
 
             arr = np.linspace(0,100,1000).reshape((1000,1))
-            self.ax_leg.clear()
             new_cmap1 = truncate_colormap(plt.get_cmap("plasma"))
             self.ax_leg.imshow(arr, aspect='auto', cmap=new_cmap1, origin='lower')
             self.ax_leg.tick_params(axis='y', labelsize=5, pad=0.4)
@@ -411,7 +418,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                         self.minTp + ((self.maxTp - self.minTp) / 4), decimals=1
                     ),
                     np.round(
-                        self.minTp + ((self.maxTp - self.minTp) / 4), decimals=1
+                        self.minTp + (2*(self.maxTp - self.minTp) / 4), decimals=1
                     ),
                     np.round(
                         self.minTp + (3 * (self.maxTp - self.minTp) / 4), decimals=1
@@ -435,9 +442,10 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                         color = self.cmap[125]
                     else:
                         color = self.cmap[
-                            int(
+                            min(int(
                                 (255 / (self.maxTp - self.minTp))
                                 * (tpVal - self.minTp)
+                            ), 255
                             )
                         ]
                 self.paramap[point[0], point[1]] = [
@@ -448,11 +456,11 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 ]
         else:
             self.curParamap = 0
-            self.ax_leg.clear()
             self.canvas_leg.draw()
         self.updateIm()
 
     def showMtt(self):
+        self.figure_leg.clear()
         if self.mttParamapButton.isChecked():
             self.peParamapButton.setChecked(False)
             self.tpParamapButton.setChecked(False)
@@ -460,9 +468,9 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             
             self.curParamap = 4
             self.cmap = plt.get_cmap("cividis").colors
+            self.ax_leg = self.figure_leg.add_subplot(111)
 
             arr = np.linspace(0,100,1000).reshape((1000,1))
-            self.ax_leg.clear()
             new_cmap1 = truncate_colormap(plt.get_cmap("cividis"))
             self.ax_leg.imshow(arr, aspect='auto', cmap=new_cmap1, origin='lower')
             self.ax_leg.tick_params(axis='y', labelsize=5, pad=0.4)
@@ -475,7 +483,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                         self.minMtt + ((self.maxMtt - self.minMtt) / 4), decimals=1
                     ),
                     np.round(
-                        self.minMtt + ((self.maxMtt - self.minMtt) / 4), decimals=1
+                        self.minMtt + (2*(self.maxMtt - self.minMtt) / 4), decimals=1
                     ),
                     np.round(
                         self.minMtt + (3 * (self.maxMtt - self.minMtt) / 4), decimals=1
@@ -512,10 +520,61 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 ]
         else:
             self.curParamap = 0
-            self.figure_leg.clear()
             self.canvas_leg.draw()
         self.updateIm()
     
+    def startGenParamap(self):
+        try:
+            del self.genParamapGUI
+        except AttributeError:
+            pass
+
+        if self.mc:
+            print("Parametric map generation is not supported on motion compensation segmentation")
+            return # no supported yet
+
+        inputs = ParamapInputs()
+        inputs.image = np.transpose(self.mcResultsArray, axes=(2,1,0,3))
+        inputs.mc = self.mc
+        inputs.seg_mask = np.transpose(np.sum(self.segCoverMask, axis=3))
+        inputs.seg_mask[:,self.y0_bmode:self.y0_bmode+self.h_bmode] = 0
+
+        if self.axRes != -1:
+            inputs.res0, inputs.res1 = self.axRes, self.latRes
+        else: # default to mm/pix res for ax and lat
+            inputs.res0, inputs.res1 = 1, 1
+
+        inputs.timeConst = 1/self.cineRate
+
+        self.genParamapGUI = GenParamapGUI(inputs)
+
+        if self.axRes == -1: # default to mm/pix res for ax and lat
+            self.genParamapGUI.imageDepthLabel.setText("CE Image Depth (pix)")
+            self.genParamapGUI.imageWidthLabel.setText("CE Image Width (pix)")
+            self.genParamapGUI.axWinSizeLabel.setText("Axial Window Size (pix)")
+            self.genParamapGUI.latWinSizeLabel.setText("Lat Window Size (pix)")
+        
+        imWidth = abs(self.latRes)*(self.w_CE)
+        imDepth = abs(self.axRes)*(self.h_CE)
+        self.genParamapGUI.imageDepthVal.setText(str(np.round(imDepth, decimals=2)))
+        self.genParamapGUI.imageWidthVal.setText(str(np.round(imWidth, decimals=2)))
+
+        self.genParamapGUI.axWinSizeVal.setValue(imDepth/50)
+        self.genParamapGUI.latWinSizeVal.setValue(imWidth/50)
+        self.genParamapGUI.axOverlapVal.setValue(50)
+        self.genParamapGUI.latOverlapVal.setValue(50)
+
+        dir, filename = os.path.split(self.fullPath)
+        ext = os.path.splitext(self.fullPath)[-1]
+        filename = filename[: (-1 * len(ext))]
+        if filename.endswith(".nii"):
+            filename = filename[:-4]
+        path = os.path.join(dir, "nifti_paramaps_QUANTUS")
+        self.genParamapGUI.newFolderPathInput.setText(path)
+        self.genParamapGUI.newFileNameInput.setText(str(filename + ".nii.gz"))
+        if not os.path.exists(path):
+            os.mkdir(path)
+        self.genParamapGUI.show()
     
 
     def loadParamaps(self):
@@ -526,7 +585,9 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             nibIm = nib.load(fileName)
             self.masterParamap = nibIm.get_fdata().astype(np.double)
             self.masterParamap = np.transpose(self.masterParamap, axes=(1,0,2))
-            if self.masterParamap.shape[0] != self.mcResultsArray.shape[1]: # for separate CEUS and NIfTI
+            if self.masterParamap.shape[0] == self.mcResultsArray.shape[2]:
+                self.masterParamap = np.transpose(self.masterParamap, axes=(1,0,2))
+            if self.masterParamap.shape[0] < self.mcResultsArray.shape[1]: # for separate CEUS and NIfTI
                 self.masterParamap = np.pad(self.masterParamap, [(0, (self.mcResultsArray.shape[1]-self.masterParamap.shape[0])), (0,0), (0,0)], mode='constant', constant_values=0)
         else:
             return
@@ -547,7 +608,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.maxMtt = 0
         self.minMtt = 99999999
         if len(self.masterParamap.shape) == 3: # constant ROI
-            xlist, ylist, _ = np.where(self.segCoverMask[self.curFrameIndex] > 0)
+            xlist, ylist = np.where(np.sum(self.segCoverMask[self.curFrameIndex,self.y0_CE:self.y0_CE+self.h_CE,:], axis=2) > 0)
             self.pointsPlotted = np.transpose([xlist, ylist])
         else: #MC ROI
             return # implement once MC paramap can be run without running out of memory
@@ -722,15 +783,26 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
     def saveData(self):
         if self.newData is None:
-            self.newData = {
-                "Patient": self.imagePathInput.text(),
-                "Area Under Curve (AUC)": self.auc,
-                "Peak Enhancement (PE)": self.pe,
-                "Time to Peak (TP)": self.tp,
-                "Mean Transit Time (MTT)": self.mtt,
-                "ROI Area (mm^2)": self.roiArea,
-            }
-            self.dataFrame = self.dataFrame.append(self.newData, ignore_index=True)
+            if self.axRes != -1:
+                self.newData = {
+                    "Patient": self.imagePathInput.text(),
+                    "Area Under Curve (AUC)": self.auc,
+                    "Peak Enhancement (PE)": self.pe,
+                    "Time to Peak (TP)": self.tp,
+                    "Mean Transit Time (MTT)": self.mtt,
+                    "ROI Area (mm^2)": self.roiArea*self.axRes*self.latRes,
+                }
+                self.dataFrame = self.dataFrame.append(self.newData, ignore_index=True)
+            else:
+                self.newData = {
+                    "Patient": self.imagePathInput.text(),
+                    "Area Under Curve (AUC)": self.auc,
+                    "Peak Enhancement (PE)": self.pe,
+                    "Time to Peak (TP)": self.tp,
+                    "Mean Transit Time (MTT)": self.mtt,
+                    "ROI Area (mm^2)": self.roiArea,
+                }
+                self.dataFrame = self.dataFrame.append(self.newData, ignore_index=True)
 
     def backToLastScreen(self):
         self.lastGui.dataFrame = self.dataFrame

@@ -113,8 +113,10 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.h_CE = None
         self.dataFrame = None
         self.ticArray = None
-        # self.pixelScale = None
         self.segCoverMask = None
+        self.mc = False
+
+        self.axRes, self.latRes, self.cineRate, self.fullPath = None, None, None, None
 
         self.fig = plt.figure()
         self.canvas = FigureCanvas(self.fig)
@@ -335,79 +337,6 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.imagePathInput.setText(imFile)
         self.inputTextPath = imageName
 
-    # def selectT0(self):
-    #     if self.t0Index == -1:
-    #         for i in range(len(self.ticX[:,0])):
-    #             if self.ticX[:,1][i] > self.t0Slider.value():
-    #                 break
-    #         self.t0Index = i
-    # t0 = self.ticX[self.t0Index,0]
-
-    # ticArray = self.ticArray[:,:,self.t0Index:,:]
-    # ticParamap = mc.generateParamap(ticArray)
-    # aucParamap = convertArToCmap('viridis', ticParamap[:,:,0])
-    # peParamap = convertArToCmap('plasma', ticParamap[:,:,1])
-    # mttParamap = convertArToCmap('autumn', ticParamap[:,:,2])
-    # tpParamap = convertArToCmap('winter', ticParamap[:,:,3])
-    # tmppvParamap = convertArToCmap('autumn', ticParamap[:,:,4])
-    # del self.ceusAnalysisGui
-    # self.ceusAnalysisGui = CeusAnalysisGUI()
-    # self.ceusAnalysisGui.show()
-    # self.ceusAnalysisGui.ticParamap = ticParamap
-    # avAuc = np.mean(ticParamap[:,:,0].flatten())
-    # avPe = np.mean(ticParamap[:,:,1].flatten())
-    # avMtt = np.mean(ticParamap[:,:,2].flatten())
-    # avTp = np.mean(ticParamap[:,:,3].flatten())
-    # avTmppv = np.mean(ticParamap[:,:,4].flatten())
-    # self.ceusAnalysisGui.setFilenameDisplays(self.imagePathInput.text())
-    # self.ceusAnalysisGui.aucVal.setText(str(np.around(avAuc, decimals=3)))
-    # self.ceusAnalysisGui.peVal.setText(str(np.around(avPe, decimals=3)))
-    # self.ceusAnalysisGui.tpVal.setText(str(np.around(avTp, decimals=2)))
-    # self.ceusAnalysisGui.mttVal.setText(str(np.around(avMtt, decimals=2)))
-    # self.ceusAnalysisGui.tmppvVal.setText(str(np.around(avTmppv, decimals=1)))
-    # self.ceusAnalysisGui.voiVolumeVal.setText(str(np.around(self.pixelScale*(ticParamap.shape[0]+ticParamap.shape[1]), decimals=1)))
-    # self.ceusAnalysisGui.aucParamap = aucParamap
-    # self.ceusAnalysisGui.peParamap = peParamap
-    # self.ceusAnalysisGui.tpParamap = tpParamap
-    # self.ceusAnalysisGui.mttParamap = mttParamap
-    # self.ceusAnalysisGui.tmppvParamap = tmppvParamap
-    # self.ceusAnalysisGui.auc = avAuc
-    # self.ceusAnalysisGui.pe = avPe
-    # self.ceusAnalysisGui.tp = avTp
-    # self.ceusAnalysisGui.mtt = avMtt
-    # self.ceusAnalysisGui.tmppv = avTmppv
-    # self.ceusAnalysisGui.roiArea = self.roiArea
-    # self.ceusAnalysisGui.mcResultsBmode = self.mcResultsBmode
-    # self.ceusAnalysisGui.mcResultsCE = self.mcResultsCE
-    # self.ceusAnalysisGui.curFrameIndex = self.curFrameIndex
-    # self.ceusAnalysisGui.xCur = self.xCur
-    # self.ceusAnalysisGui.yCur = self.yCur
-    # self.ceusAnalysisGui.x = self.x
-    # self.ceusAnalysisGui.y = self.y
-    # self.ceusAnalysisGui.dataFrame = self.dataFrame
-    # self.ceusAnalysisGui.sliceArray = self.sliceArray
-    # self.ceusAnalysisGui.x0_bmode = self.x0_bmode
-    # self.ceusAnalysisGui.y0_bmode = self.y0_bmode
-    # self.ceusAnalysisGui.w_bmode = self.w_bmode
-    # self.ceusAnalysisGui.h_bmode = self.h_bmode
-    # self.ceusAnalysisGui.x0_CE = self.x0_CE
-    # self.ceusAnalysisGui.y0_CE = self.y0_CE
-    # self.ceusAnalysisGui.w_CE = self.w_CE
-    # self.ceusAnalysisGui.h_CE = self.h_CE
-    # self.ceusAnalysisGui.curSliceSpinBox.setValue(self.sliceArray[self.curFrameIndex])
-    # self.ceusAnalysisGui.curSliceSlider.setValue(self.curFrameIndex)
-    # self.ceusAnalysisGui.curSliceTotal.setText(str(self.mcResultsBmode.shape[0]-1))
-    # self.ceusAnalysisGui.totalSecondsLabel.setText(str(self.sliceArray[-1]))
-    # self.ceusAnalysisGui.curSliceSlider.setMaximum(self.mcResultsBmode.shape[0]-1)
-    # self.ceusAnalysisGui.curSliceSpinBox.setMaximum(self.mcResultsBmode.shape[0]-1)
-
-    # self.ceusAnalysisGui.updateBmode()
-    # self.ceusAnalysisGui.updateCE()
-    # self.ceusAnalysisGui.show()
-    # self.ceusAnalysisGui.curSliceSlider.setValue(self.curFrameIndex)
-    # self.ceusAnalysisGui.lastGui = self
-    # self.hide()
-
     def acceptTICt0(self):
         self.acceptTIC(1)
 
@@ -462,9 +391,17 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.ceusAnalysisGui.tpVal.setText(str(np.around(params[2], decimals=2)))
         self.ceusAnalysisGui.mttVal.setText(str(np.around(params[3], decimals=2)))
         # self.ceusAnalysisGui.tmppvVal.setText(str(np.around(tmppv, decimals=1)))
-        self.ceusAnalysisGui.voiVolumeVal.setText(
-            str(np.around(self.roiArea, decimals=1))
-        )
+        if self.axRes != -1:
+            self.ceusAnalysisGui.voiVolumeVal.setText(
+                str(np.around(self.roiArea*self.axRes*self.latRes, decimals=1))
+            )
+            self.ceusAnalysisGui.voiVolumeLabel.setText("ROI Area\n(mm^2)")
+        else:
+            self.ceusAnalysisGui.voiVolumeVal.setText(
+                str(np.around(self.roiArea, decimals=1))
+            )
+            self.ceusAnalysisGui.voiVolumeLabel.setText("ROI Area\n(Pix)")
+
         self.ceusAnalysisGui.auc = params[1]
         self.ceusAnalysisGui.pe = params[0]
         self.ceusAnalysisGui.tp = params[2]
@@ -476,6 +413,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
                 str(np.around(self.ticX[0, 0], decimals=2))
             )
         # self.ceusAnalysisGui.tmppv = tmppv
+        self.ceusAnalysisGui.mc = self.mc
         self.ceusAnalysisGui.roiArea = self.roiArea
         self.ceusAnalysisGui.curFrameIndex = self.curFrameIndex
         self.ceusAnalysisGui.xCur = self.xCur
@@ -494,6 +432,8 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.ceusAnalysisGui.h_CE = self.h_CE
         self.ceusAnalysisGui.mcResultsArray = self.mcResultsArray
         self.ceusAnalysisGui.segCoverMask = self.segCoverMask
+        self.ceusAnalysisGui.axRes, self.ceusAnalysisGui.latRes = self.axRes, self.latRes
+        self.ceusAnalysisGui.cineRate, self.ceusAnalysisGui.fullPath = self.cineRate, self.fullPath
 
         self.ceusAnalysisGui.curSliceSlider.setMaximum(self.mcResultsArray.shape[0] - 1)
         self.ceusAnalysisGui.curSliceSpinBox.setMaximum(

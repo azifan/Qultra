@@ -139,14 +139,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.curLeftLineX = -1
 
         self.imDrawn = 0
-
-        # self.bmodeCoverPixmap = QPixmap(381, 351)
-        # self.bmodeCoverPixmap.fill(Qt.transparent)
-        # self.bmodeCoverLabel.setPixmap(self.bmodeCoverPixmap)
-
-        # self.ceCoverPixmap = QPixmap(381, 351)
-        # self.ceCoverPixmap.fill(Qt.transparent)
-        # self.ceCoverLabel.setPixmap(self.ceCoverPixmap)
+        self.axRes, self.latRes, self.cineRate, self.fullPath, self.mc = -1, -1, None, None, False
 
         self.setMouseTracking(True)
 
@@ -178,12 +171,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.saveRoiGUI.show()
 
     def saveRoi(self, fileDestination, name):  # frame):
-        # segMask = np.zeros([self.numSlices, self.y, self.x])
-        # self.pointsPlotted = [*set(self.pointsPlotted)]
-        # for point in self.pointsPlotted:
-        #     segMask[frame, point[1], point[0]] = 1
-        # segMask[frame] = binary_fill_holes(segMask[frame])
-
         affine = np.eye(4)
         niiarray = nib.Nifti1Image(np.transpose(self.segMask).astype("uint8"), affine)
         niiarray.header["descrip"] = self.imagePathInput.text()
@@ -794,6 +781,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
                         100,
                     ]
 
+            self.mc = True
             self.updateIm()
             self.acceptGeneratedRoiButton.setHidden(False)
             self.drawRoiButton.setHidden(True)
@@ -870,23 +858,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.curSliceSpinBox.setValue(self.curFrameIndex)
         self.updateIm()
 
-    def openNiftiImage(self, bmodePath, cePath):  # NOT FUNCTIONAL
-        # bmodeFile = nib.load(bmodePath)
-        # ceFile = nib.load(cePath)
-
-        # bmodePixDims = bmodeFile.header['pixdim']
-        # cePixDims = ceFile.header['pixdim']
-        # # self.pixelScale = bmodePixDims[0]*bmodePixDims[1]*bmodePixDims[2] # mm^3
-
-        # self.bmode = bmodeFile.get_fdata(caching='unchanged')
-        # self.contrastEnhanced = ceFile.get_fdata(caching='unchanged')
-        # print(self.bmode.shape)
-        # print(self.contrastEnhanced.shape)
-        # self.bmode = self.bmode.reshape((self.bmode.shape[0], self.bmode.shape[1], self.bmode.shape[2], self.bmode.shape[4]))
-        # self.contrastEnhanced = self.contrastEnhnaced.reshape((self.contrastEnhanced.shape[0], self.contrastEnhanced.shape[1], self.contrastEnhanced.shape[2], self.contrastEnhanced.shape[4]))
-
-        # self.bmode = np.mean(self.bmode, axis=3)
-        # self.contrastEnhanced = np.mean(self.contrastEnhanced, axis=3)
+    def openNiftiImage(self, bmodePath, cePath):
         bmodeFile = nib.load(bmodePath)
         bmode = np.array(bmodeFile.get_fdata(caching="unchanged")).astype(np.uint8)
         del bmodeFile
@@ -930,8 +902,8 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         )
 
         # Eli Prostate Specific Vals
-        self.pixelScale = 0.4 * 0.4 * 0.4  # mm^3
-        self.cineRate = 30  # frames/sec
+        self.axRes, self.latRes = 0.4, 0.4 # mm/pixel (hard-coded for Prostate Project)
+        self.cineRate = 30  # frames/sec (hard-coded for Prostate Project)
 
         self.maskCoverImg = np.zeros([self.y, self.x, 4])
         self.mask = np.zeros([self.y, self.x])
@@ -1909,15 +1881,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV_no_MC(
                 self.fullGrayArray, self.segMask, times, 24.09
             )
-            # mcResultsCE = self.fullGrayArray[:, self.y0_CE:self.y0_CE+self.h_CE, self.x0_CE:self.x0_CE+self.w_CE]
-            # bboxes = self.bboxes.copy()
-            # for i in range(len(bboxes)):
-            #     if bboxes[i] is not None:
-            #         bboxes[i] = (bboxes[i][0]-self.x0_bmode, bboxes[i][1]-self.y0_bmode, bboxes[i][2], bboxes[i][3]) # assumes bmode and CEUS images are same size
-            #         self.mcResultsArray[i, self.y0_CE + bboxes[i][1]: self.y0_CE + bboxes[i][1] + self.bboxes[i][3], self.x0_CE + bboxes[i][0]: self.x0_CE + bboxes[i][0] + bboxes[i][3]] = [255, 0, 0]
-            # self.updateIm()
-            # return
-            # TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV(mcResultsCE, bboxes, times, 24.09)
 
         TIC[:, 1] /= np.amax(TIC[:, 1])
 
@@ -1934,7 +1897,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.ticAnalysisGui.ax.clear()
         self.ticAnalysisGui.ticX = []
         self.ticAnalysisGui.ticY = []
-        # self.ticAnalysisGui.pixelScale = self.pixelScale
         self.ticAnalysisGui.removedPointsX = []
         self.ticAnalysisGui.removedPointsY = []
         self.ticAnalysisGui.selectedPoints = []
@@ -1945,7 +1907,15 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
     def moveToTic(self):
         self.ticAnalysisGui.timeLine = None
         self.computeTic()
+
+        self.ticAnalysisGui.fullPath = self.fullPath
+        self.ticAnalysisGui.cineRate, self.ticAnalysisGui.axRes, self.ticAnalysisGui.latRes = self.cineRate, self.axRes, self.latRes
         self.ticAnalysisGui.dataFrame = self.dataFrame
+        self.ticAnalysisGui.mc = self.mc
+        self.ticAnalysisGui.w_CE, self.ticAnalysisGui.h_CE = self.w_CE, self.h_CE
+        self.ticAnalysisGui.w_bmode, self.ticAnalysisGui.h_bmode = self.w_bmode, self.h_bmode
+        self.ticAnalysisGui.x0_CE, self.ticAnalysisGui.x0_bmode = self.x0_CE, self.x0_bmode
+        self.ticAnalysisGui.y0_CE, self.ticAnalysisGui.y0_bmode = self.y0_CE, self.y0_bmode
         self.ticAnalysisGui.curFrameIndex = self.curFrameIndex
         self.ticAnalysisGui.mcResultsArray = self.mcResultsArray
         self.ticAnalysisGui.segCoverMask = self.segCoverMask
