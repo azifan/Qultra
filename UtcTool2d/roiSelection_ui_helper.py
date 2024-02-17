@@ -351,8 +351,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 self.ax.plot([0, 644.76], [462.41, 500], c="purple")  # bottom boundary
                 self.ax.plot([614.48, 595.84], [0, 500], c="purple")  # right boundary
 
-            elif self.ImDisplayInfo.numSamplesDrOut != -1:
-                print("No preset found!")
+            # elif self.ImDisplayInfo.numSamplesDrOut != -1:
+            #     print("No preset found!")
         except (AttributeError, UnboundLocalError):
             pass
 
@@ -373,63 +373,19 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         phantFileName = tmpPhantLocation[-1]
         phantFileLocation = phantomFilePath[: len(phantomFilePath) - len(phantFileName)]
 
-        (
-            imArray,
-            _,
-            self.imgInfoStruct,
-            self.refDataStruct,
-            self.refInfoStruct,
-        ) = vera.getImage(
+        (imArray, imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct,) = vera.getImage(
             dataFileName, dataFileLocation, phantFileName, phantFileLocation
         )
-        self.AnalysisInfo.pixDepth = imArray.shape[0]
-        self.AnalysisInfo.pixWidth = imArray.shape[1]
-        self.imData = np.array(imArray).reshape(
-            self.AnalysisInfo.pixDepth, self.AnalysisInfo.pixWidth
+        self.AnalysisInfo.verasonics = True
+
+        self.AnalysisInfo.computeSpecWindows = computeSpecWindowsIQ
+
+        self.processImage(
+            imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
         )
-        self.imData = np.flipud(self.imData)  # flipud
-        self.imData = np.require(self.imData, np.uint8, "C")
-        self.bytesLine = self.imData.strides[0]
-        self.qIm = QImage(
-            self.imData,
-            self.AnalysisInfo.pixWidth,
-            self.AnalysisInfo.pixDepth,
-            self.bytesLine,
-            QImage.Format_Grayscale8,
-        ).scaled(721, 501)
 
-        self.qIm.mirrored().save(
-            os.path.join("Junk", "bModeImRaw.png")
-        )  # Save as .png file
-
-        self.editImageDisplayGUI.contrastVal.setValue(1)
         self.editImageDisplayGUI.brightnessVal.setValue(1)
         self.editImageDisplayGUI.sharpnessVal.setValue(1)
-
-        self.analysisParamsGUI.axWinSizeVal.setValue(10)
-        self.analysisParamsGUI.latWinSizeVal.setValue(10)
-        self.analysisParamsGUI.axOverlapVal.setValue(50)
-        self.analysisParamsGUI.latOverlapVal.setValue(50)
-        # self.analysisParamsGUI.minFreqVal.setValue(3)
-        # self.analysisParamsGUI.maxFreqVal.setValue(4.5)
-        # self.analysisParamsGUI.clipFactorVal.setValue(95)
-        # self.analysisParamsGUI.samplingFreqVal.setValue(20)
-
-        # Implement correct previously assigned image display settings
-
-        self.analysisParamsGUI.computeSpecWindows = computeSpecWindowsIQ
-
-        self.cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
-        enhancer = ImageEnhance.Contrast(self.cvIm)
-
-        imOutput = enhancer.enhance(self.editImageDisplayGUI.contrastVal.value())
-        bright = ImageEnhance.Brightness(imOutput)
-        imOutput = bright.enhance(self.editImageDisplayGUI.brightnessVal.value())
-        sharp = ImageEnhance.Sharpness(imOutput)
-        imOutput = sharp.enhance(self.editImageDisplayGUI.sharpnessVal.value())
-        imOutput.save(os.path.join("Junk", "bModeIm.png"))
-
-        self.plotOnCanvas()
 
     def openImageCanon(
         self, imageFilePath, phantomFilePath
@@ -493,10 +449,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.RefDisplayInfo.minFrequency = refInfoStruct.minFrequency
         self.RefDisplayInfo.maxFrequency = refInfoStruct.maxFrequency
         self.RefDisplayInfo.samplingFrequency = refInfoStruct.samplingFrequency
-
-        if self.ImDisplayInfo.depth != self.ImDisplayInfo.depth:
-            print("Presets don't match! Analysis not possible")
-            exit()
 
         # Display images correctly
         quotient = self.ImDisplayInfo.width / self.ImDisplayInfo.depth
@@ -677,9 +629,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 elif self.ImDisplayInfo.numSamplesDrOut == 1496:
                     self.finalSplineX = np.clip(self.finalSplineX, a_min=120, a_max=615)
                     self.finalSplineY = np.clip(self.finalSplineY, a_min=0.5, a_max=645)
-                elif self.ImDisplayInfo.numSamplesDrOut != -1:
-                    print("Preset not found!")
-                    return
+                # elif self.ImDisplayInfo.numSamplesDrOut != -1:
+                #     print("Preset not found!")
+                #     return
             except (AttributeError, UnboundLocalError):
                 pass
 
@@ -717,8 +669,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                         [614.48, 595.84], [0, 500], c="purple"
                     )  # right boundary
 
-                elif self.ImDisplayInfo.numSamplesDrOut != -1:
-                    print("No preset found!")
+                # elif self.ImDisplayInfo.numSamplesDrOut != -1:
+                #     print("No preset found!")
             except (AttributeError, UnboundLocalError):
                 pass
 
@@ -796,9 +748,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 rightSlope = (500 - 0) / (595.84 - 614.48)
                 pointSlopeRight = (event.ydata - 0) / (event.xdata - 614.48)
 
-            elif self.ImDisplayInfo.numSamplesDrOut != -1:
-                print("Preset not found!")
-                return
+            # elif self.ImDisplayInfo.numSamplesDrOut != -1:
+            #     print("Preset not found!")
+            #     return
 
             if pointSlopeBottom > bottomSlope:
                 return
@@ -888,9 +840,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
                     return
 
-            elif self.ImDisplayInfo.numSamplesDrOut != -1:
-                print("Preset not found!")
-                return
+            # elif self.ImDisplayInfo.numSamplesDrOut != -1:
+            #     print("Preset not found!")
+            #     return
 
         except (AttributeError, UnboundLocalError):
             pass
