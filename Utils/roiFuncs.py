@@ -265,8 +265,8 @@ def computeSpecWindowsIQ(
     # Compute spectral parameters for each window
     for i in range(len(top)):
         # Make some adjustments and find the window to use
-        imgWindow = imgRF[top[i] : bottom[i], left[i] : right[i]]
-        refWindow = refRF[top[i] : bottom[i], left[i] : right[i]]
+        imgWindow = imgRF[top[i] : bottom[i]+1, left[i] : right[i]+1]
+        refWindow = refRF[top[i] : bottom[i]+1, left[i] : right[i]+1]
 
         [f, ps] = computePowerSpec(
             imgWindow, f0, f1, fs
