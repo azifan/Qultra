@@ -198,7 +198,7 @@ def readFileImg(Info, input):
     for i in range(iqData.shape[1]):
         bmode[:,i] = 20*np.log10(abs(iqData[:,i]))
 
-    bmode = np.clip(bmode, (0.95*np.amax(bmode)-55), 0.95*np.amax(bmode)).astype(np.float)
+    bmode = np.clip(bmode, (0.95*np.amax(bmode)-55), 0.95*np.amax(bmode)).astype(np.float32)
     # bmode -= np.amin(bmode)
     # bmode *= (255/np.amax(bmode))
     # plt.imshow(bmode, cmap="Greys_r")
