@@ -160,6 +160,8 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.hide()
 
     def moveToRoiSelection(self):
+        if self.machine == "Verasonics":
+            self.phantomPathInput.setText(self.imagePathInput.text())
         if os.path.exists(self.imagePathInput.text()) and os.path.exists(
             self.phantomPathInput.text()
         ):
@@ -383,9 +385,23 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.chooseImagePrep()
         self.selectDataLabel.setHidden(False)
         self.imagePathLabelVerasonics.setHidden(False)
-        self.phantomPathLabelVerasonics.setHidden(False)
         self.chooseImageFileButton.setHidden(False)
-        self.choosePhantomFileButton.setHidden(False)
+
+        self.phantomPathInput.setHidden(True)
+        self.clearPhantomPathButton.setHidden(True)
+
+        imagePathLabelPos = self.imagePathLabelCanon.pos()
+        imagePathLabelPos.setX(625)
+        self.imagePathLabelVerasonics.move(imagePathLabelPos)
+        chooseImageFilePos = self.chooseImageFileButton.pos()
+        chooseImageFilePos.setX(625)
+        self.chooseImageFileButton.move(chooseImageFilePos)
+        clearImagePathPos = self.clearImagePathButton.pos()
+        clearImagePathPos.setX(765)
+        self.clearImagePathButton.move(clearImagePathPos)
+        imagePathPos = self.imagePathInput.pos()
+        imagePathPos.setX(655)
+        self.imagePathInput.move(imagePathPos)
 
         self.machine = "Verasonics"
         self.fileExts = "*.mat"
