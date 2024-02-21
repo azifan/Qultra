@@ -672,10 +672,10 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         PsGraphDisplayGUI.ax.plot(
             windowFreqs, np.mean(windowNPSs, axis=0), c="red", zorder=10, label="NPS"
         )
-        # PsGraphDisplayGUI.ax.plot(x, y, c="orange", zorder=11, label="LOBF")
-        # mbfPoint = PsGraphDisplayGUI.ax.scatter(
-        #     median / 1000000, avMBF, marker="o", zorder=12, c="green", label="MBF"
-        # )
+        PsGraphDisplayGUI.ax.plot(x, y, c="orange", zorder=11, label="LOBF")
+        mbfPoint = PsGraphDisplayGUI.ax.scatter(
+            median / 1000000, avMBF, marker="o", zorder=12, c="green", label="MBF"
+        )
         PsGraphDisplayGUI.figure.subplots_adjust(
             left=0.16, right=0.98, bottom=0.2, top=0.98
         )
