@@ -30,6 +30,8 @@ deactivate
 
 #### Troubleshooting
 
+To run these commands, make sure you have [HomeBrew](https://brew.sh/) installed.
+
 If you encounter an error after running `pip install -r requirements.txt`, try the following code and then run the command again:
 
 ```shell
