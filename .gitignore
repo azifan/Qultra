@@ -79,3 +79,5 @@ philips_rf_parser_windows.o
 
 # Auto-compiled .py files
 *_ui.py
+
+QuantUS\ Sample\ Data/
