@@ -1,5 +1,5 @@
-# QuantUS
-
+![QuantUS Logo](Images/logo.png)
+# 
 QuantUS is a free, standalone, native graphical user interface (GUI) supporting 2D Ultrasound Tissue Characterization (UTC) via spectral analysis of radiofrequency (RF) and in-phase and quadrature (IQ) data, 2D Contrast-Enhanced Ultrasound (CEUS) Time Intensity Curve (TIC) Analysis with Motion Compensation, and 3D CEUS TIC Analysis. The tool provides an end-to-end workflow for clinical researchers on Mac OS X, Windows, and Linux. Notably, QuantUS addresses gaps in existing tools by offering unique features, such as 3D parametric map generation, motion compensation for 2D CEUS with TIC analysis, an ultrasound system-independent approach, and an intuitive user interface.
 
 ![3D CEUS Parametric Map Example](Images/3dCeusParamap.png)
