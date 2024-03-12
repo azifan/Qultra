@@ -147,7 +147,7 @@ def readFileInfo(filename, filepath, input):
     # Info.lines = np.array(input["rf_data_all_fund"]).shape[0]
     Info.depthOffset = 0.04 # probeStruct.transmitoffset
     Info.depth = 40 #mm
-    Info.width = 48 #mm
+    Info.width = 192 #mm
     Info.rxFrequency = 31250000
     Info.samplingFrequency = 31250000
     Info.txFrequency = 6875000 #7812500
