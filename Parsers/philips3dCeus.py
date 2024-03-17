@@ -47,7 +47,10 @@ def readSIPscVDBParams(filename):
     scParams = ScParams()
     for line in file:
         paramName, paramValue = line.split(" = ")
-        paramValue, _ = paramValue.split(" \n")
+        try: 
+            paramValue, _ = paramValue.split(" \n")
+        except ValueError:
+            paramValue, _ = paramValue.split(" ,")
         paramAr = paramValue.split(" ")
         for i in range(len(paramAr)):
             paramAr[i] = float(paramAr[i])
@@ -275,16 +278,25 @@ def image4dCeusPostXbr(pathToData, sipFilename):
     
     # Read in Parameter data (primarily for scan conversion)
     scParams = readSIPscVDBParams(os.path.join(pathToData, scParamFilename))
-    scParams.NUM_PLANES = 20
-    scParams.pixPerMm = 2.5
+    if scParams.NUM_PLANES is None:
+        scParams.NUM_PLANES = 20
+    if scParams.pixPerMm is None:
+        scParams.pixPerMm = 2.5
 
     # Read in the interleaved SIP volume data time series (both linear/non-linear parts)
     sipVolDat = readSIP3dInterleavedV5(os.path.join(pathToData, sipFilename),  scParams.NUM_PLANES)
     
     # Scan Conversion of 3D volume time series (Only doing 1 volume here)
     scSipVolDat = SipVolDataStruct()
-    scSipVolDat.linVol, imgDims = scanConvert3dVolumeSeries(sipVolDat.linVol[0], scParams)
-    scSipVolDat.nLinVol, nLineImgDims = scanConvert3dVolumeSeries(sipVolDat.nLinVol[0], scParams)
+    linVols = []
+    nLinVols = []
+    for i in range(sipVolDat.linVol.shape[0]):
+        linVol, imgDim = scanConvert3dVolumeSeries(sipVolDat.linVol[i], scParams)
+        nLinVol, nLineImgDims = scanConvert3dVolumeSeries(sipVolDat.nLinVol[i], scParams)
+        linVols.append(linVol)
+        nLinVols.append(nLinVol)
+    scSipVolDat.linVol = np.array(linVols)
+    scSipVolDat.nLinVol = np.array(nLinVols)
 
     upperLim = 255
     lowerLim = 145 # trial and error
@@ -295,16 +307,16 @@ def image4dCeusPostXbr(pathToData, sipFilename):
     scSipVolDat.linVol -= np.amin(scSipVolDat.linVol)
     scSipVolDat.linVol *= int(255/np.amax(scSipVolDat.linVol))
 
-    return scSipVolDat.linVol, scSipVolDat.nLinVol, imgDims # assume linear and non-linear images have same dims
+    return scSipVolDat.linVol, scSipVolDat.nLinVol, imgDim # assume linear and non-linear images have same dims
 
 def makeNifti(dataFolder, destinationPath):
     imarray_org, imarray_bmode_org, imgDims = image4dCeusPostXbr(os.path.dirname(dataFolder), os.path.basename(dataFolder))
     timeconst = 0 # no framerate for now
-    orgres = [imgDims[0]/imarray_org.shape[2], imgDims[1]/imarray_org.shape[1], imgDims[0]/imarray_org.shape[2]]
+    orgres = [imgDims[0]/imarray_org.shape[1], imgDims[1]/imarray_org.shape[2], imgDims[2]/imarray_org.shape[3]]
 
     if len(imarray_org.shape) <= 3:
-        imarray_org = np.reshape(imarray_org, (1, imarray_org.shape[0], imarray_org.shape[1], imarray_org.shape[2]))
-        imarray_bmode_org = np.reshape(imarray_bmode_org, (1, imarray_bmode_org.shape[0], imarray_bmode_org.shape[1], imarray_bmode_org.shape[2]))
+        imarray_org = np.reshape(imarray_org, (imarray_org.shape[0], imarray_org.shape[1], imarray_org.shape[2], imarray_org.shape[3]))
+        imarray_bmode_org = np.reshape(imarray_bmode_org, (imarray_bmode_org.shape[0], imarray_bmode_org.shape[1], imarray_bmode_org.shape[2], imarray_bmode_org.shape[3]))
 
     imarray_org = imarray_org.astype('uint8')
     imarray_org = imarray_org.swapaxes(1, 2)
