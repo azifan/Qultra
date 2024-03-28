@@ -1,8 +1,10 @@
-import numpy as np
 import os
+
+import numpy as np
 import math
 import nibabel as nib
 import scipy.interpolate
+from tqdm import tqdm
 
 class ScParams():
     def __init__(self):
@@ -60,8 +62,8 @@ def readSIPscVDBParams(filename):
         else:
             paramValue = paramAr
 
-        if (paramName == 'NUM_PLANES'):
-            scParams.NUM_PLANES = paramValue
+        if (paramName == 'VDB_2D_ECHO_MATRIX_ELEVATION_NUM_TRANSMIT_PLANES'):
+            scParams.NUM_PLANES = int(paramValue)
         elif (paramName == 'pixPerMm'):
             scParams.pixPerMm = paramValue
         elif (paramName == 'VDB_2D_ECHO_APEX_TO_SKINLINE'):
@@ -224,13 +226,13 @@ end
     img /= np.amax(img)
     img *= 255
 
-    print("Finished scan converting volume data...")
+    # print("Finished scan converting volume data...")
 
     return img
 
 
 def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams):
-    print("Scan converting volume data...")
+    # print("Scan converting volume data...")
 
     #Scan conversion parameter computation -- ported from Shiying's implementation
     if len(dbEnvDatFullVolSeries.shape) != 4:
@@ -273,7 +275,7 @@ def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams):
 
 def image4dCeusPostXbr(pathToData, sipFilename):
     # Input paths/filenames
-    vdbFilename = str(sipFilename.split("_")[0] + "_vdbDump.xml")
+    vdbFilename = str("_".join(sipFilename.split("_")[:2]) + "_vdbDump.xml")
     scParamFilename = str(vdbFilename+"_Extras.txt")
     
     # Read in Parameter data (primarily for scan conversion)
@@ -290,7 +292,7 @@ def image4dCeusPostXbr(pathToData, sipFilename):
     scSipVolDat = SipVolDataStruct()
     linVols = []
     nLinVols = []
-    for i in range(sipVolDat.linVol.shape[0]):
+    for i in tqdm(range(sipVolDat.linVol.shape[0])):
         linVol, imgDim = scanConvert3dVolumeSeries(sipVolDat.linVol[i], scParams)
         nLinVol, nLineImgDims = scanConvert3dVolumeSeries(sipVolDat.nLinVol[i], scParams)
         linVols.append(linVol)
