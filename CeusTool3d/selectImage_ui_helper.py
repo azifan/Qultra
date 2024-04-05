@@ -354,9 +354,19 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
                     and os.path.exists(self.niftiImageDestinationPath.text())
                     and os.path.exists(self.xmlImagePathInput.text())
                 ):
+                    # parse each volume individually
+                    nProcs = 4
+                    pixPerMm = 1.2
+                    sipFilename = os.path.basename(self.xmlImagePathInput.text())
+                    # os.system(f"python Parsers/philipsSipVolumeParser.py {os.path.dirname(self.xmlImagePathInput.text())} \
+                    #           {self.niftiImageDestinationPath.text()} {sipFilename} \
+                    #           {nProcs} {pixPerMm}")
+                    
+                    destFolderName = "_".join(sipFilename.split("_")[:2])
+                    destFolder = os.path.join(self.niftiImageDestinationPath.text(), destFolderName)
                     self.imagePath, self.bmodePath = phil.makeNifti(
-                        self.xmlImagePathInput.text(),
-                        self.niftiImageDestinationPath.text(),
+                        destFolder,
+                        sipFilename,
                     )
             if self.imagePath != "":
                 if self.timeconst is None:
@@ -445,9 +455,7 @@ if __name__ == "__main__":
     import sys
 
     app = QApplication(sys.argv)
-    # selectWindow = QWidget()
     ui = SelectImageGUI_CeusTool3d()
-    # ui.selectImage.show()
     ui.show()
     sys.exit(app.exec_())
 
