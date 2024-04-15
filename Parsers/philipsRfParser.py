@@ -683,7 +683,7 @@ def parseRF(filepath, readOffset, readSize):
             os.system("Parsers\philips_rf_parser.exe {0} {1} {2} partB".format(fn, numClumps, (totalHeaderSize+readOffset)))
         else:
             Path.mkdir(Path("imRois"), exist_ok=True, parents=True)
-            os.system("docker run -d -it --rm --name qus-parser-container --mount type=bind,source=/Users/davidspector/Home/Stanford/QuantUS\ Projects/QuantUS/imROIs,target=/shared qus-parser")
+            os.system("docker run -d -it --rm --name qus-parser-container --mount type=bind,source=\"$(pwd)\"/imROIs,target=/shared qus-parser")
             os.system("docker cp {0} qus-parser-container:/usr/src/philipsRfParser/data.rf".format(fn))
             os.system("docker exec qus-parser-container ./philips_rf_parser data.rf {0} {1} partA".format(numClumps, (totalHeaderSize+readOffset)))
             os.system("docker exec qus-parser-container ./philips_rf_parser data.rf {0} {1} partB".format(numClumps, (totalHeaderSize+readOffset)))
