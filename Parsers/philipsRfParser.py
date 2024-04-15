@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from pathlib import Path
 from datetime import datetime
 import warnings
 from scipy.io import savemat
@@ -681,24 +682,19 @@ def parseRF(filepath, readOffset, readSize):
             os.system("Parsers\philips_rf_parser.exe {0} {1} {2} partA".format(fn, numClumps, (totalHeaderSize+readOffset)))
             os.system("Parsers\philips_rf_parser.exe {0} {1} {2} partB".format(fn, numClumps, (totalHeaderSize+readOffset)))
         else:
-            # os.mkdir("imRois")
+            Path.mkdir(Path("imRois"), exist_ok=True, parents=True)
             os.system("docker run -d -it --rm --name qus-parser-container --mount type=bind,source=/Users/davidspector/Home/Stanford/QuantUS\ Projects/QuantUS/imROIs,target=/shared qus-parser")
-            try:
-                os.system("docker cp {0} qus-parser-container:/usr/src/philipsRfParser/data.rf".format(fn))
-                os.system("docker exec qus-parser-container ./philips_rf_parser data.rf {0} {1} partA".format(numClumps, (totalHeaderSize+readOffset)))
-                os.system("docker exec qus-parser-container ./philips_rf_parser data.rf {0} {1} partB".format(numClumps, (totalHeaderSize+readOffset)))
-            except:
-                os.system("docker stop qus-parser-container")
+            os.system("docker cp {0} qus-parser-container:/usr/src/philipsRfParser/data.rf".format(fn))
+            os.system("docker exec qus-parser-container ./philips_rf_parser data.rf {0} {1} partA".format(numClumps, (totalHeaderSize+readOffset)))
+            os.system("docker exec qus-parser-container ./philips_rf_parser data.rf {0} {1} partB".format(numClumps, (totalHeaderSize+readOffset)))
             os.system("docker stop qus-parser-container")
-    
-            # os.system("Parsers/philips_rf_parser {0} {1} {2} partA".format(fn, numClumps, (totalHeaderSize+readOffset)))
-            # os.system("Parsers/philips_rf_parser {0} {1} {2} partB".format(fn, numClumps, (totalHeaderSize+readOffset)))
 
-        partA = np.fromfile("./imROIs/.partA_data", dtype=np.int32)
+        imROIsFolder = Path.cwd() / Path("imROIs")
+        partA = np.fromfile(imROIsFolder / Path(".partA_data"), dtype=np.int32)
         partA = np.reshape(partA, (12, numClumps), order='F')
 
-        partB = np.fromfile("./imROIs/.partB_data", dtype=np.int32)
-        partB = np.reshape(partB, (1, numClumps))       
+        partB = np.fromfile(imROIsFolder / Path(".partB_data"), dtype=np.int32)
+        partB = np.reshape(partB, (1, numClumps))
 
         rawrfdata = np.concatenate((partA, partB))
 
