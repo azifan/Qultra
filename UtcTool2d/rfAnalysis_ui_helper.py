@@ -392,7 +392,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.roiWindowSplinesStruct.left,
             self.roiWindowSplinesStruct.right,
         ]
-        if not scanConverted:
+        if scanConverted:
             splineListPreSC = [
                 self.roiWindowSplinesStructPreSC.top,
                 self.roiWindowSplinesStructPreSC.bottom,
@@ -429,7 +429,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.roiWindowSplinesStruct.left = splineList[2]
         self.roiWindowSplinesStruct.right = splineList[3]
 
-        if not scanConverted:
+        if scanConverted:
             self.roiWindowSplinesStructPreSC.top = splineListPreSC[0]
             self.roiWindowSplinesStructPreSC.bottom = splineListPreSC[1]
             self.roiWindowSplinesStructPreSC.left = splineListPreSC[2]
@@ -546,10 +546,10 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 self.AnalysisInfo.scImRawData.xmap,
                 self.AnalysisInfo.scImRawData.ymap,
             )
-            scanConverted = False
+            scanConverted = True
             self.cleanStructs()
         except AttributeError:
-            scanConverted = True
+            scanConverted = False
             xScale = self.AnalysisInfo.roiWidthScale / self.AnalysisInfo.pixWidth
             yScale = self.AnalysisInfo.roiDepthScale / self.AnalysisInfo.pixDepth
             x = self.AnalysisInfo.finalSplineX / xScale
@@ -576,7 +576,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             # Prepare ROI window coordinate arrays for graphing
             # Global variables important for matplotlib functions
 
-            if not scanConverted:
+            if scanConverted:
                 roisLeft = self.roiWindowSplinesStruct.left
                 roisRight = self.roiWindowSplinesStruct.right
                 roisTop = self.roiWindowSplinesStruct.top

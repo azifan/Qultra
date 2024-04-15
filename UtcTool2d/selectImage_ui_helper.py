@@ -144,6 +144,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.fileExts = None
 
         self.terasonButton.clicked.connect(self.terasonClicked)
+        self.philipsButton.clicked.connect(self.philipsClicked)
         self.canonButton.clicked.connect(self.canonClicked)
         self.siemensButton.clicked.connect(self.siemensClicked)
         self.verasonicsButton.clicked.connect(self.verasonicsClicked)
@@ -211,6 +212,10 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
                     return
             elif self.machine == "Terason":
                 self.roiSelectionGUI.openImageTerason(
+                    self.imagePathInput.text(), self.phantomPathInput.text()
+                )
+            elif self.machine == "Philips":
+                self.roiSelectionGUI.openPhilipsImage(
                     self.imagePathInput.text(), self.phantomPathInput.text()
                 )
             elif self.machine == "Siemens":
@@ -337,6 +342,20 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.terasonButton.setHidden(True)
         self.philipsButton.setHidden(True)
         self.siemensButton.setHidden(True)
+
+    def philipsClicked(self):
+        self.chooseImagePrep()
+        self.selectDataLabel.setHidden(False)
+        self.imagePathLabel.setHidden(False)
+        self.phantomPathLabel.setHidden(False)
+        self.chooseImageFileButton.setHidden(False)
+        self.choosePhantomFileButton.setHidden(False)
+
+        self.imagePathLabel.setText("Input Path to Image file\n (.rf, .mat)")
+        self.phantomPathLabel.setText("Input Path to Phantom file\n (.rf, .mat)")
+
+        self.machine = "Philips"
+        self.fileExts = "*.rf *.mat"
 
     def terasonClicked(self):
         self.chooseImagePrep()
