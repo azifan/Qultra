@@ -396,6 +396,12 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
                     self.frameRateLabel.setHidden(False)
                     self.frameRateValue.setHidden(False)
                     self.confirmFrameRateButton.setHidden(False)
+                    self.nProcLabel.setHidden(True)
+                    self.nProcSpinBox.setHidden(True)
+                    self.pixPerMmLabel.setHidden(True)
+                    self.pixPerMmSpinBox.setHidden(True)
+                    # TODO: fix hidden stuff here and address redundancy
+                    self.philipsGenerateImageButton.setHidden(True)
                     self.confirmFrameRateButton.clicked.connect(self.confirmFrameRate)
                     return
                 del self.voiSelectionGui
