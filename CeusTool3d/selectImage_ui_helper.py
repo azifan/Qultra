@@ -119,6 +119,13 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.frameRateValue.setHidden(True)
         self.confirmFrameRateButton.setHidden(True)
         self.generateImageButton.setHidden(True)
+        self.pixPerMmLabel.setHidden(True)
+        self.pixPerMmSpinBox.setHidden(True)
+        self.pixPerMmSpinBox.setValue(1.2)
+        self.nProcLabel.setHidden(True)
+        self.nProcSpinBox.setHidden(True)
+        self.nProcSpinBox.setValue(4)
+        self.philipsGenerateImageButton.setHidden(True)
 
         self.imageNifti = 0
 
@@ -132,6 +139,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.philipsOptionButton.clicked.connect(self.selectPhilipsImageOption)
         self.selectXmlFolderImageOptionButton.clicked.connect(self.selectXmlImageOption)
         self.generateImageButton.clicked.connect(self.moveToVoiSelection)
+        self.philipsGenerateImageButton.clicked.connect(self.moveToVoiSelection)
         self.chooseNiftiImageFileButton.clicked.connect(self.getNiftiImagePath)
         self.chooseNiftiBmodeFileButton.clicked.connect(self.getNiftiBmodePath)
         self.clearNiftiBmodeFileButton.clicked.connect(self.clearNiftiBmodePath)
@@ -211,6 +219,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.frameRateValue.setHidden(True)
         self.confirmFrameRateButton.setHidden(True)
         self.generateImageButton.setHidden(True)
+        self.philipsGenerateImageButton.setHidden(True)
         self.timeconst = None
         self.frameRateValue.setValue(0)
 
@@ -229,6 +238,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.niftiImageDestinationButton.setHidden(True)
         self.clearNiftiImageDestinationButton.setHidden(True)
         self.generateImageButton.setHidden(True)
+        self.philipsGenerateImageButton.setHidden(True)
         self.niftiImageDestinationPath.setHidden(True)
         self.imageBackButton.setHidden(True)
         self.selectXmlFolderImageLabel.setHidden(True)
@@ -236,6 +246,10 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.frameRateLabel.setHidden(True)
         self.frameRateValue.setHidden(True)
         self.confirmFrameRateButton.setHidden(True)
+        self.pixPerMmLabel.setHidden(True)
+        self.pixPerMmSpinBox.setHidden(True)
+        self.nProcLabel.setHidden(True)
+        self.nProcSpinBox.setHidden(True)
         self.timeconst = None
         self.frameRateValue.setValue(0)
 
@@ -306,7 +320,11 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.selectXmlFolderImageLabel.setText("Select Philips Data File: (.raw)")
         self.selectXmlFolderImageLabel.setHidden(False)
         self.niftiDestinationImageLabel.setHidden(False)
-        self.generateImageButton.setHidden(False)
+        self.philipsGenerateImageButton.setHidden(False)
+        self.pixPerMmLabel.setHidden(False)
+        self.pixPerMmSpinBox.setHidden(False)
+        self.nProcLabel.setHidden(False)
+        self.nProcSpinBox.setHidden(False)
 
         self.imageBackButton.clicked.connect(self.backFromXmlImage)
         try:
@@ -354,9 +372,19 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
                     and os.path.exists(self.niftiImageDestinationPath.text())
                     and os.path.exists(self.xmlImagePathInput.text())
                 ):
+                    # parse each volume individually
+                    nProcs = int(self.nProcSpinBox.value())
+                    pixPerMm = self.pixPerMmSpinBox.value()
+                    sipFilename = os.path.basename(self.xmlImagePathInput.text())
+                    os.system(f"python Parsers/philipsSipVolumeParser.py {os.path.dirname(self.xmlImagePathInput.text())} \
+                              {self.niftiImageDestinationPath.text()} {sipFilename} \
+                              {nProcs} {pixPerMm}")
+                    
+                    destFolderName = "_".join(sipFilename.split("_")[:2])
+                    destFolder = os.path.join(self.niftiImageDestinationPath.text(), destFolderName)
                     self.imagePath, self.bmodePath = phil.makeNifti(
-                        self.xmlImagePathInput.text(),
-                        self.niftiImageDestinationPath.text(),
+                        destFolder,
+                        sipFilename,
                     )
             if self.imagePath != "":
                 if self.timeconst is None:
@@ -368,6 +396,12 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
                     self.frameRateLabel.setHidden(False)
                     self.frameRateValue.setHidden(False)
                     self.confirmFrameRateButton.setHidden(False)
+                    self.nProcLabel.setHidden(True)
+                    self.nProcSpinBox.setHidden(True)
+                    self.pixPerMmLabel.setHidden(True)
+                    self.pixPerMmSpinBox.setHidden(True)
+                    # TODO: fix hidden stuff here and address redundancy
+                    self.philipsGenerateImageButton.setHidden(True)
                     self.confirmFrameRateButton.clicked.connect(self.confirmFrameRate)
                     return
                 del self.voiSelectionGui
@@ -445,9 +479,7 @@ if __name__ == "__main__":
     import sys
 
     app = QApplication(sys.argv)
-    # selectWindow = QWidget()
     ui = SelectImageGUI_CeusTool3d()
-    # ui.selectImage.show()
     ui.show()
     sys.exit(app.exec_())
 

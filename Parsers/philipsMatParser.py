@@ -16,6 +16,9 @@ class AnalysisParamsStruct():
         self.depth = 0.16
         self.width = 0.265
 
+        if self.frame is None:
+            self.frame = 0
+
 class FileStruct():
     def __init__(self, filedirectory, filename):
         self.name = filename
@@ -30,6 +33,17 @@ class DataOutputStruct():
 
 class InfoStruct():
     def __init__(self):
+        self.minFrequency = 3000000
+        self.maxFrequency = 15000000
+        self.lowBandFreq = 1000000
+        self.upBandFreq = 6000000
+        self.depth = None
+        self.centerFrequency = 9000000 #Hz
+
+        # For B-Mode image rendering
+        self.clipFact = 0.95 
+        self.dynRange = 55
+       
         self.studyMode = None
         self.filename = None
         self.filepath = None
@@ -45,7 +59,6 @@ class InfoStruct():
         self.rxFrequency = None
         self.samplingFrequency = None
         self.txFrequency = None
-        self.centerFrequency = None
         self.targetFOV = None
         self.numFocalZones = None
         self.numFrames = None
@@ -53,13 +66,9 @@ class InfoStruct():
         self.depthAxis = None
         self.widthAxis = None
         self.lineDensity = None
-        self.height = None
         self.pitch = None
-        self.dynRange = None
         self.yOffset = None
         self.xOffset = None
-        self.lowBandFreq = None
-        self.upBandFreq = None
         self.gain = None
         self.rxGain = None
         self.userGain = None
@@ -134,7 +143,6 @@ def readFileInfo(filename, filepath, input):
     Info.rxFrequency = 20000000
     Info.samplingFrequency = 20000000
     Info.txFrequency = 3200000
-    Info.centerFrequency = 3200000
     Info.targetFOV = 0
     Info.numFocalZones = 1
     # Info.numFrames = input["NumFrame"][0][0]
@@ -142,13 +150,9 @@ def readFileInfo(filename, filepath, input):
     Info.depthAxis = np.nan
     Info.widthAxis = np.nan
     # Info.lineDensity = input["multilinefactor"][0][0]
-    Info.height = 500
     Info.pitch = 0
-    Info.dynRange = 55
     Info.yOffset = 0
     Info.xOffset = 0
-    Info.lowBandFreq = 1000000
-    Info.upBandFreq = 6000000
     Info.gain = 0
     Info.rxGain = 0
     Info.userGain = 0
@@ -175,7 +179,7 @@ def readFileInfo(filename, filepath, input):
 
 def readFileImg(Info, frame, input):
     echoData = input["rf_data_all_fund"]# indexing works by frame, angle, image
-    while not(len(echoData[0].shape) > 1 and echoData[0].shape[0]>100 and echoData[0].shape[1]>100):
+    while not(len(echoData[0].shape) > 1 and echoData[0].shape[0]>40 and echoData[0].shape[1]>40):
         echoData = echoData[0]
     echoData = np.array(echoData[frame]).astype(np.int32)
 
@@ -197,7 +201,7 @@ def readFileImg(Info, frame, input):
     # TODO: Left off here (line 23, philips_read_PhilipsImg.m). Was not able to check final outim, inIm_ind(x/y). If something's off, look here
     [_, hCm1, wCm1, scModeIM] = scanConvert(ModeIM, Info.width1, Info.tilt1, Info.startDepth1, Info.endDepth1, Info.endHeight)
 
-    Info.height = hCm1
+    Info.depth = hCm1
     Info.width = wCm1
     Info.lateralRes = wCm1*10/scBmode.shape[1]
     Info.axialRes = hCm1*10/scBmode.shape[0]
@@ -213,10 +217,10 @@ def readFileImg(Info, frame, input):
     # Data.scBmode = bmode
     # Info.maxval = np.amax(bmode)
 
-    Info.height = 126.8344
-    Info.width = Info.height*bmode.shape[0]/bmode.shape[1]
-    Info.lateralRes = Info.width/bmode.shape[0]
-    Info.axialRes = Info.height/bmode.shape[1]
+    # Info.depth = 126.8344
+    # Info.width = Info.depth*bmode.shape[0]/bmode.shape[1]
+    # Info.lateralRes = Info.width/bmode.shape[0]
+    # Info.axialRes = Info.depth/bmode.shape[1]
 
     return Data, Info
 

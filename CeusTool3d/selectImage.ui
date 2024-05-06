@@ -915,6 +915,121 @@
     <string>Clear Path</string>
    </property>
   </widget>
+  <widget class="QSpinBox" name="nProcSpinBox">
+   <property name="geometry">
+    <rect>
+     <x>1040</x>
+     <y>570</y>
+     <width>71</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QSpinBox {
+	background: white;
+	color: black;
+}</string>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="pixPerMmSpinBox">
+   <property name="geometry">
+    <rect>
+     <x>610</x>
+     <y>575</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QDoubleSpinBox {
+	background: white;
+	color: black;
+}</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="pixPerMmLabel">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>570</y>
+     <width>211</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>-1</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 24px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Pixels Per Mm:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="textInteractionFlags">
+    <set>Qt::NoTextInteraction</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="nProcLabel">
+   <property name="geometry">
+    <rect>
+     <x>730</x>
+     <y>570</y>
+     <width>291</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>-1</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	font-size: 24px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Num Parallel Processes:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="textInteractionFlags">
+    <set>Qt::NoTextInteraction</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="philipsGenerateImageButton">
+   <property name="geometry">
+    <rect>
+     <x>690</x>
+     <y>650</y>
+     <width>131</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Generate Image</string>
+   </property>
+  </widget>
   <zorder>selectDataLabel</zorder>
   <zorder>generateImageButton</zorder>
   <zorder>selectImageErrorMsg</zorder>
@@ -944,6 +1059,11 @@
   <zorder>niftiBmodePathInput</zorder>
   <zorder>chooseNiftiBmodeFileButton</zorder>
   <zorder>clearNiftiBmodeFileButton</zorder>
+  <zorder>nProcSpinBox</zorder>
+  <zorder>pixPerMmSpinBox</zorder>
+  <zorder>pixPerMmLabel</zorder>
+  <zorder>nProcLabel</zorder>
+  <zorder>philipsGenerateImageButton</zorder>
  </widget>
  <resources/>
  <connections/>

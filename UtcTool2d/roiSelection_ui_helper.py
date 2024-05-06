@@ -1,6 +1,8 @@
 import Parsers.verasonicsMatParser as vera
 import Parsers.canonBinParser as canon
 import Parsers.terasonRfParser as tera
+from Parsers.philipsMatParser import getImage as philipsMatParser
+from Parsers.philipsRfParser import main_parser_stanford as philipsRfParser
 from UtcTool2d.roiSelection_ui import Ui_constructRoi
 from UtcTool2d.editImageDisplay_ui_helper import EditImageDisplayGUI
 from UtcTool2d.analysisParamsSelection_ui_helper import AnalysisParamsGUI
@@ -409,6 +411,48 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.processImage(
             imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
         )
+
+    def openPhilipsImage(self, imageFilePath, phantomFilePath):
+        tmpLocation = imageFilePath.split("/")
+        dataFileName = tmpLocation[-1]
+        dataFileLocation = imageFilePath[:len(imageFilePath)-len(dataFileName)]
+        tmpPhantLocation = phantomFilePath.split("/")
+        phantFileName = tmpPhantLocation[-1]
+        phantFileLocation = phantomFilePath[:len(phantomFilePath)-len(phantFileName)]
+        if dataFileName[-3:] == ".rf":
+            dataFile = open(imageFilePath, 'rb')
+            datasig = list(dataFile.read(8))
+            if datasig != [0,0,0,0,255,255,0,0]: # Philips signature parameters
+                # self.invalidPath.setText("Data and Phantom files are both invalid.\nPlease use Philips .rf files.")
+                return
+            elif datasig != [0,0,0,0,255,255,0,0]:
+                # self.invalidPath.setText("Invalid phantom file.\nPlease use Philips .rf files.")
+                return
+            else: # Display Philips image and assign relevant default analysis
+                philipsRfParser(imageFilePath) # parse image filee
+                dataFileName = str(dataFileLocation[:-3]+'.mat')
+
+        if phantFileName[-3:] == ".rf": # Check binary signatures at start of .rf files
+            phantFile = open(phantomFilePath, 'rb')
+            phantsig = list(phantFile.read(8))
+            if phantsig != [0,0,0,0,255,255,0,0]: # Philips signature parameters
+                # self.invalidPath.setText("Data and Phantom files are both invalid.\nPlease use Philips .rf files.")
+                return
+            elif phantsig != [0,0,0,0,255,255,0,0]:
+                # self.invalidPath.setText("Invalid phantom file.\nPlease use Philips .rf files.")
+                return
+            else: # Display Philips image and assign relevant default analysis
+                philipsRfParser(imageFilePath) # parse image filee
+
+                phantFileName = str(phantFileName[:-3]+'.mat')
+
+        # Display Philips image and assign relevant default analysis params
+        self.frame = None
+        imArray, imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = philipsMatParser(dataFileName, dataFileLocation, phantFileName, phantFileLocation, self.frame)
+
+        self.processImage(
+            imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
+        )    
 
     def openImageTerason(self, imageFilePath, phantomFilePath):
         imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = tera.getImage(

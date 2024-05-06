@@ -831,7 +831,7 @@ of image data</string>
 }</string>
    </property>
    <property name="text">
-    <string>Philips RF (Not Active)</string>
+    <string>Philips RF</string>
    </property>
   </widget>
   <widget class="QPushButton" name="siemensButton">
