@@ -196,7 +196,7 @@
    </property>
    <property name="text">
     <string>Type name of new file:
-(no spaces,  must end in &quot;.csv&quot;)</string>
+(no spaces,  must end in &quot;.pkl&quot;)</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -242,7 +242,7 @@
    </property>
    <property name="text">
     <string>ERROR: Filename must not contain a space
-and must end in &quot;.csv&quot;</string>
+and must end in &quot;.pkl&quot;</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
