@@ -411,6 +411,17 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.processImage(
             imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
         )
+        # import pickle
+        # with open("/Volumes/CREST Data/David_S_Data/ATI-Data-CanonFatStudy/Phantom data/Preset_2/hi.pkl", "rb") as f:
+        #     self.AnalysisInfo = pickle.load(f)
+        # self.ImDisplayInfo = self.AnalysisInfo.ImDisplayInfo
+        # self.RefDisplayInfo = self.AnalysisInfo.RefDisplayInfo
+        # self.displayInitialImage()
+        # self.pointsPlottedX = self.AnalysisInfo.finalSplineX
+        # self.pointsPlottedY = self.AnalysisInfo.finalSplineY
+        # self.finalSplineX = self.pointsPlottedX
+        # self.finalSplineY = self.pointsPlottedY
+        # self.acceptROI()
 
     def openPhilipsImage(self, imageFilePath, phantomFilePath):
         tmpLocation = imageFilePath.split("/")
@@ -494,6 +505,28 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.RefDisplayInfo.maxFrequency = refInfoStruct.maxFrequency
         self.RefDisplayInfo.samplingFrequency = refInfoStruct.samplingFrequency
 
+        imData = np.array(imArray).reshape(
+            self.AnalysisInfo.pixDepth, self.AnalysisInfo.pixWidth
+        )
+        imData = np.flipud(imData)  # flipud
+        imData = np.require(imData, np.uint8, "C")
+
+        self.AnalysisInfo.axialRes = imgInfoStruct.axialRes
+        self.AnalysisInfo.lateralRes = imgInfoStruct.lateralRes
+        self.AnalysisInfo.imArray = imData
+        self.AnalysisInfo.lowBandFreq = imgInfoStruct.lowBandFreq
+        self.AnalysisInfo.upBandFreq = imgInfoStruct.upBandFreq
+        self.AnalysisInfo.imRawData = imgDataStruct.rf
+        self.AnalysisInfo.phantomRawData = refDataStruct.rf
+        try:
+            self.AnalysisInfo.scImRawData = imgDataStruct.scRF
+            self.AnalysisInfo.scPhantomRawData = imgDataStruct.scRF
+        except (AttributeError, UnboundLocalError):
+            pass
+
+        self.displayInitialImage()
+
+    def displayInitialImage(self):
         # Display images correctly
         quotient = self.ImDisplayInfo.width / self.ImDisplayInfo.depth
         if quotient > (721 / 501):
@@ -512,32 +545,14 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.xBorderMin = 400 + ((721 - self.AnalysisInfo.roiWidthScale) / 2)
         self.xBorderMax = 1121 - ((721 - self.AnalysisInfo.roiWidthScale) / 2)
 
-        imData = np.array(imArray).reshape(
-            self.AnalysisInfo.pixDepth, self.AnalysisInfo.pixWidth
-        )
-        imData = np.flipud(imData)  # flipud
-        imData = np.require(imData, np.uint8, "C")
-        self.bytesLine = imData.strides[0]
+        self.bytesLine = self.AnalysisInfo.imArray.strides[0]
         self.qIm = QImage(
-            imData,
+            self.AnalysisInfo.imArray,
             self.AnalysisInfo.pixWidth,
             self.AnalysisInfo.pixDepth,
             self.bytesLine,
             QImage.Format_Grayscale8,
         ).scaled(self.AnalysisInfo.roiWidthScale, self.AnalysisInfo.roiDepthScale)
-
-        self.AnalysisInfo.axialRes = imgInfoStruct.axialRes
-        self.AnalysisInfo.lateralRes = imgInfoStruct.lateralRes
-        self.AnalysisInfo.imArray = imData
-        self.AnalysisInfo.lowBandFreq = imgInfoStruct.lowBandFreq
-        self.AnalysisInfo.upBandFreq = imgInfoStruct.upBandFreq
-        self.AnalysisInfo.imRawData = imgDataStruct.rf
-        self.AnalysisInfo.phantomRawData = refDataStruct.rf
-        try:
-            self.AnalysisInfo.scImRawData = imgDataStruct.scRF
-            self.AnalysisInfo.scPhantomRawData = imgDataStruct.scRF
-        except (AttributeError, UnboundLocalError):
-            pass
 
         self.qIm.mirrored().save(
             os.path.join("Junk", "bModeImRaw.png")
@@ -547,9 +562,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.editImageDisplayGUI.brightnessVal.setValue(0.75)
         self.editImageDisplayGUI.sharpnessVal.setValue(3)
 
-        self.displayInitialImage()
-
-    def displayInitialImage(self):
         speedOfSoundInTissue = 1540  # m/s
         waveLength = (
             speedOfSoundInTissue / self.ImDisplayInfo.centerFrequency
@@ -560,27 +572,43 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.analysisParamsGUI.latWinSizeVal.setMinimum(
             2 * waveLength
         )  # should be at least 10 times wavelength, must be at least 2 times
-        self.analysisParamsGUI.axWinSizeVal.setValue(10 * waveLength)
-        self.analysisParamsGUI.latWinSizeVal.setValue(10 * waveLength)
 
-        self.analysisParamsGUI.axOverlapVal.setValue(50)
-        self.analysisParamsGUI.latOverlapVal.setValue(50)
-        self.analysisParamsGUI.windowThresholdVal.setValue(95)
-        self.analysisParamsGUI.minFreqVal.setValue(
-            np.round(self.ImDisplayInfo.minFrequency / 1000000, decimals=2)
-        )
-        self.analysisParamsGUI.maxFreqVal.setValue(
-            np.round(self.ImDisplayInfo.maxFrequency / 1000000, decimals=2)
-        )
-        self.analysisParamsGUI.lowBandFreqVal.setValue(
-            np.round(self.AnalysisInfo.lowBandFreq / 1000000, decimals=2)
-        )
-        self.analysisParamsGUI.upBandFreqVal.setValue(
-            np.round(self.AnalysisInfo.upBandFreq / 1000000, decimals=2)
-        )
-        self.analysisParamsGUI.samplingFreqVal.setValue(
-            np.round(self.ImDisplayInfo.samplingFrequency / 1000000, decimals=2)
-        )
+        if self.AnalysisInfo.axialWinSize is not None: # pre-loaded with ROI
+            print("Previously saved analysis params auto-populated") #TODO: add message to UI
+            self.analysisParamsGUI.axWinSizeVal.setValue(self.AnalysisInfo.axialWinSize)
+            self.analysisParamsGUI.latWinSizeVal.setValue(self.AnalysisInfo.lateralWinSize)
+            self.analysisParamsGUI.axOverlapVal.setValue(self.AnalysisInfo.axialOverlap*100)
+            self.analysisParamsGUI.latOverlapVal.setValue(self.AnalysisInfo.lateralOverlap*100)
+            self.analysisParamsGUI.windowThresholdVal.setValue(self.AnalysisInfo.threshold)
+            self.analysisParamsGUI.minFreqVal.setValue(self.AnalysisInfo.minFrequency/1000000)
+            self.analysisParamsGUI.maxFreqVal.setValue(self.AnalysisInfo.maxFrequency/1000000)
+            self.analysisParamsGUI.lowBandFreqVal.setValue(self.AnalysisInfo.lowBandFreq/1000000)
+            self.analysisParamsGUI.upBandFreqVal.setValue(self.AnalysisInfo.upBandFreq/1000000)
+            self.analysisParamsGUI.samplingFreqVal.setValue(self.AnalysisInfo.samplingFreq/1000000)
+
+        else:
+            self.analysisParamsGUI.axWinSizeVal.setValue(10 * waveLength)
+            self.analysisParamsGUI.latWinSizeVal.setValue(10 * waveLength)
+
+            self.analysisParamsGUI.axOverlapVal.setValue(50)
+            self.analysisParamsGUI.latOverlapVal.setValue(50)
+            self.analysisParamsGUI.windowThresholdVal.setValue(95)
+            self.analysisParamsGUI.minFreqVal.setValue(
+                np.round(self.ImDisplayInfo.minFrequency / 1000000, decimals=2)
+            )
+            self.analysisParamsGUI.maxFreqVal.setValue(
+                np.round(self.ImDisplayInfo.maxFrequency / 1000000, decimals=2)
+            )
+            self.analysisParamsGUI.lowBandFreqVal.setValue(
+                np.round(self.AnalysisInfo.lowBandFreq / 1000000, decimals=2)
+            )
+            self.analysisParamsGUI.upBandFreqVal.setValue(
+                np.round(self.AnalysisInfo.upBandFreq / 1000000, decimals=2)
+            )
+            self.analysisParamsGUI.samplingFreqVal.setValue(
+                np.round(self.ImDisplayInfo.samplingFrequency / 1000000, decimals=2)
+            )
+
         self.analysisParamsGUI.imageDepthVal.setText(
             str(np.round(self.ImDisplayInfo.depth, decimals=1))
         )
@@ -970,6 +998,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.AnalysisInfo.curPointsPlottedX = self.pointsPlottedX[:-1]
             self.AnalysisInfo.curPointsPlottedY = self.pointsPlottedY[:-1]
             self.AnalysisInfo.dataFrame = self.dataFrame
+            self.AnalysisInfo.ImDisplayInfo = self.ImDisplayInfo
+            self.AnalysisInfo.RefDisplayInfo = self.RefDisplayInfo
 
             self.analysisParamsGUI.AnalysisInfo = (
                 self.AnalysisInfo

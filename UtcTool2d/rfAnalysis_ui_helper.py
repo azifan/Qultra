@@ -55,6 +55,10 @@ class AnalysisInfo:
         self.roiWidthScale = None
         self.roiDepthScale = None
 
+        self.roiWindowSplinesStructPreSC = None
+        self.ImDisplayInfo = None
+        self.RefDisplayInfo = None
+
 
 class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
     def __init__(self):
@@ -641,6 +645,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.AnalysisInfo.frame,
             self.AnalysisInfo.verasonics
         )
+        self.AnalysisInfo.roiWindowSplinesStructPreSC = self.roiWindowSplinesStructPreSC
         minMBF = min(mbf)
         maxMBF = max(mbf)
         minSS = min(ss)
