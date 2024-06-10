@@ -597,7 +597,7 @@ def parseFileHeader(file_obj, endianness):
     return temp_dbParams, numFileHeaderBytes
 
 
-def parseRF(filepath, readOffset, readSize):
+def parseRF(filepath, readOffset, readSize) -> Rfdata:
     # Remember to make sure .c files have been compiled before running
 
     rfdata = Rfdata()

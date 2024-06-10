@@ -1119,6 +1119,26 @@ of image data</string>
     <string>Accept Frame</string>
    </property>
   </widget>
+  <widget class="QCheckBox" name="philips3dCheckBox">
+   <property name="geometry">
+    <rect>
+     <x>710</x>
+     <y>450</y>
+     <width>87</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QCheckBox {
+	background-color: rgba(255, 255, 255, 0);
+	color: white;
+	font-size: 17px;
+}</string>
+   </property>
+   <property name="text">
+    <string>3D Data</string>
+   </property>
+  </widget>
   <zorder>imPreview</zorder>
   <zorder>selectDataLabel</zorder>
   <zorder>phantomPathLabelVerasonics</zorder>
@@ -1151,6 +1171,7 @@ of image data</string>
   <zorder>curFrameSlider</zorder>
   <zorder>curFrameLabel</zorder>
   <zorder>acceptFrameButton</zorder>
+  <zorder>philips3dCheckBox</zorder>
  </widget>
  <resources/>
  <connections/>

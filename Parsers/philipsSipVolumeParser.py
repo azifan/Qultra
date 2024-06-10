@@ -23,6 +23,9 @@ class ScParams():
         self.VDB_2D_ECHO_START_DEPTH_SIP = None
         self.VDB_2D_ECHO_SLACK_TIME_MM = None
 
+        self.NumXmtCols = None
+        self.NumRcvCols = None
+
 class SipVolParams():
     def __init__(self):
         self.imagePitch = []
@@ -47,7 +50,7 @@ class OutImStruct():
         self.xmap = None
         self.ymap = None
 
-def scanConvert3Va(rxLines, lineAngles, planeAngles, beamDist, imgSize, fovSize, z0):
+def scanConvert3Va(rxLines, lineAngles, planeAngles, beamDist, imgSize, fovSize, z0, normalize=True):
     pixSizeX = 1/(imgSize[0]-1)
     pixSizeY = 1/(imgSize[1]-1)
     pixSizeZ = 1/(imgSize[2]-1)
@@ -64,12 +67,16 @@ def scanConvert3Va(rxLines, lineAngles, planeAngles, beamDist, imgSize, fovSize,
 
     img = scipy.interpolate.interpn((beamDist, np.pi*lineAngles/180, np.pi*planeAngles/180), 
                                     rxLines, (R, TH, PHI), bounds_error=False, method='linear', fill_value=0)
-    img /= np.amax(img)
-    img *= 255
+    
+    if normalize:
+        img /= np.amax(img)
+        img *= 255
+    else:
+        img = np.array(img)
 
     return img
 
-def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams) -> Tuple[np.ndarray, list]:
+def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams, normalize=True) -> Tuple[np.ndarray, list]:
     if len(dbEnvDatFullVolSeries.shape) != 4:
         numVolumes = 1
         nz, nx, ny = dbEnvDatFullVolSeries.shape
@@ -97,13 +104,13 @@ def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams) -> Tuple[np.ndarr
         for k in range(numVolumes):
             rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries[k].shape[1])
             rxAngsElVec = np.einsum('ikj->ijk', np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries[k].shape[2]))
-            curImgOut = scanConvert3Va(dbEnvDatFullVolSeries[k], rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
+            curImgOut = scanConvert3Va(dbEnvDatFullVolSeries[k], rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist, normalize=normalize)
             imgOut.append(curImgOut)
         imgOut = np.array(imgOut)
     else:
         rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries.shape[1])
         rxAngsElVec = np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries.shape[2])
-        curImgOut = scanConvert3Va(dbEnvDatFullVolSeries, rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
+        curImgOut = scanConvert3Va(dbEnvDatFullVolSeries, rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist, normalize=normalize)
         imgOut = curImgOut
     
     return imgOut, fovSize
