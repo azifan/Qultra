@@ -1,15 +1,16 @@
+import os
+import shutil
+import platform
+
+
+from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
+import nibabel as nib
+
 from CeusTool3d.selectImage_ui import Ui_selectImage
 from CeusTool3d.voiSelection_ui_helper import VoiSelectionGUI
 import Parsers.philips3dCeus as phil
 import Utils.utils as ut
-
-import os
-import shutil
-import nibabel as nib
-
-from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
-
-import platform
+from Parsers.philipsSipVolumeParser import sipParser
 
 system = platform.system()
 
@@ -376,9 +377,8 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
                     nProcs = int(self.nProcSpinBox.value())
                     pixPerMm = self.pixPerMmSpinBox.value()
                     sipFilename = os.path.basename(self.xmlImagePathInput.text())
-                    os.system(f"python Parsers/philipsSipVolumeParser.py {os.path.dirname(self.xmlImagePathInput.text())} \
-                              {self.niftiImageDestinationPath.text()} {sipFilename} \
-                              {nProcs} {pixPerMm}")
+                    sipParser(os.path.dirname(self.xmlImagePathInput.text()), self.niftiImageDestinationPath.text(), 
+                         sipFilename, nProcs, pixPerMm)
                     
                     destFolderName = "_".join(sipFilename.split("_")[:2])
                     destFolder = os.path.join(self.niftiImageDestinationPath.text(), destFolderName)
