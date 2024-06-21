@@ -176,6 +176,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.scatteredPoints = []
         self.dataFrame = None
         self.lastGui = None
+        self.imPixDepth = None
+        self.imPixWidth = None
 
         self.crosshairCursor = matplotlib.widgets.Cursor(
             self.ax, color="gold", linewidth=0.4, useblit=True
@@ -318,6 +320,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def plotOnCanvas(self):  # Plot current image on GUI
         self.ax.clear()
         im = plt.imread(os.path.join("Junk", "bModeIm.png"))
+        self.imPixDepth = im.shape[0]
+        self.imPixWidth = im.shape[1]
         self.ax.imshow(im, cmap="Greys_r")
         plt.gcf().set_facecolor((0, 0, 0, 0))
 
@@ -688,11 +692,14 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.ax.clear()
             im = plt.imread(os.path.join("Junk", "bModeIm.png"))
             self.ax.imshow(im, cmap="Greys_r")
-            self.pointsPlottedX.append(self.pointsPlottedX[0])
-            self.pointsPlottedY.append(self.pointsPlottedY[0])
+            if self.pointsPlottedX[0] != self.pointsPlottedX[-1] and self.pointsPlottedY[0] != self.pointsPlottedY[-1]:
+                self.pointsPlottedX.append(self.pointsPlottedX[0])
+                self.pointsPlottedY.append(self.pointsPlottedY[0])
             self.finalSplineX, self.finalSplineY = calculateSpline(
                 self.pointsPlottedX, self.pointsPlottedY
             )
+            self.finalSplineX = np.clip(self.finalSplineX, a_min=0, a_max=self.imPixWidth-1)
+            self.finalSplineY = np.clip(self.finalSplineY, a_min=0, a_max=self.imPixDepth-1)
 
             try:
                 if self.ImDisplayInfo.numSamplesDrOut == 1400:
@@ -831,6 +838,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         except (AttributeError, UnboundLocalError):
             pass
 
+        if len(self.pointsPlottedX) > 0 and self.pointsPlottedX[-1] == int(event.xdata) and self.pointsPlottedY[-1] == int(event.ydata):
+            return
+
         self.pointsPlottedX.append(int(event.xdata))
         self.pointsPlottedY.append(int(event.ydata))
         plottedPoints = len(self.pointsPlottedX)
@@ -841,6 +851,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 oldSpline.remove()
 
             xSpline, ySpline = calculateSpline(self.pointsPlottedX, self.pointsPlottedY)
+            xSpline = np.clip(xSpline, a_min=0, a_max=self.imPixWidth-1)
+            ySpline = np.clip(ySpline, a_min=0, a_max=self.imPixDepth-1)
             self.spline = self.ax.plot(
                 xSpline, ySpline, color="cyan", zorder=1, linewidth=0.75
             )
