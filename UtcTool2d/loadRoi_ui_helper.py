@@ -1,9 +1,9 @@
-from UtcTool2d.loadRoi_ui import Ui_loadRoi
 import os
 import csv
+import pickle
 
 from PyQt5.QtWidgets import QWidget, QFileDialog
-
+from UtcTool2d.loadRoi_ui import Ui_loadRoi
 
 class LoadRoiGUI(Ui_loadRoi, QWidget):
     def __init__(self):
@@ -21,7 +21,7 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
         self.chooseRoiGUI.show()
 
     def chooseFile(self):
-        fileName, _ = QFileDialog.getOpenFileName(None, "Open file", filter="*.csv")
+        fileName, _ = QFileDialog.getOpenFileName(None, "Open file", filter="*.pkl")
         if fileName != "":
             self.roiPathInput.setText(fileName)
 
@@ -30,54 +30,32 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
 
     def getRoiPath(self):
         if os.path.exists(self.roiPathInput.text()):
-            imageName = ""
-            with open(self.roiPathInput.text(), mode="r") as csvfile:
-                reader = csv.reader(csvfile)
-                line_count = 0
-                for row in reader:
-                    if line_count == 1:
-                        imageName = row[0]
-                        roiType = row[1]
-                        if roiType == "Freehand":
-                            self.chooseRoiGUI.pointsPlottedX = row[2][1:-1].split(",")
-                            self.chooseRoiGUI.pointsPlottedX = [
-                                int(num) for num in self.chooseRoiGUI.pointsPlottedX
-                            ]
-                            self.chooseRoiGUI.pointsPlottedY = row[3][1:-1].split(",")
-                            self.chooseRoiGUI.pointsPlottedY = [
-                                int(num) for num in self.chooseRoiGUI.pointsPlottedY
-                            ]
-                            self.chooseRoiGUI.acceptLoadedRoiButton.clicked.connect(
-                                self.chooseRoiGUI.acceptROI
-                            )
-                        else:
-                            self.chooseRoiGUI.AnalysisInfo.rectCoords = row[4][
-                                1:-1
-                            ].split(",")
-                            self.chooseRoiGUI.AnalysisInfo.rectCoords = [
-                                int(num)
-                                for num in self.chooseRoiGUI.AnalysisInfo.rectCoords
-                            ]
-                            self.chooseRoiGUI.plotPatch()
-                            self.chooseRoiGUI.acceptLoadedRoiButton.clicked.connect(
-                                self.chooseRoiGUI.acceptRect
-                            )
-                        break
-                    line_count += 1
-            if imageName != self.chooseRoiGUI.imagePathInput.text():
-                self.chooseRoiGUI.pointsPlottedX = []
-                self.chooseRoiGUI.pointsPlottedY = []
-                print("Selected ROI for wrong image")
-                return
-            self.chooseRoiGUI.closeInterpolation()
-            self.chooseRoiGUI.acceptLoadedRoiButton.setHidden(False)
-            self.chooseRoiGUI.undoLoadedRoiButton.setHidden(False)
-            self.chooseRoiGUI.newRoiButton.setHidden(True)
-            self.chooseRoiGUI.loadRoiButton.setHidden(True)
-            self.chooseRoiGUI.drawRoiButton.setChecked(True)
-            self.chooseRoiGUI.drawRoiButton.setCheckable(True)
-            self.chooseRoiGUI.redrawRoiButton.setHidden(True)
-            self.chooseRoiGUI.drawRectangleButton.setHidden(True)
-            self.chooseRoiGUI.closeRoiButton.setHidden(True)
+            with open(self.roiPathInput.text(), "rb") as f:
+                AnalysisInfo = pickle.load(f)
+
+                if (self.chooseRoiGUI.imagePathInput.text() != AnalysisInfo.imName or 
+                    self.chooseRoiGUI.phantomPathInput.text() != AnalysisInfo.phantomName): 
+                    print("Selected ROI for wrong image")
+                    return
+                
+                self.chooseRoiGUI.AnalysisInfo = AnalysisInfo
+                self.chooseRoiGUI.ImDisplayInfo = self.chooseRoiGUI.AnalysisInfo.ImDisplayInfo
+                self.chooseRoiGUI.RefDisplayInfo = self.chooseRoiGUI.AnalysisInfo.RefDisplayInfo
+                self.chooseRoiGUI.pointsPlottedX = self.chooseRoiGUI.AnalysisInfo.pointsPlottedX
+                self.chooseRoiGUI.pointsPlottedY = self.chooseRoiGUI.AnalysisInfo.pointsPlottedY
+                self.chooseRoiGUI.finalSplineX = self.chooseRoiGUI.AnalysisInfo.finalSplineX
+                self.chooseRoiGUI.finalSplineY = self.chooseRoiGUI.AnalysisInfo.finalSplineY
+                self.chooseRoiGUI.displayInitialImage()
+                self.chooseRoiGUI.acceptLoadedRoiButton.setHidden(False)
+                self.chooseRoiGUI.undoLoadedRoiButton.setHidden(False)
+                self.chooseRoiGUI.newRoiButton.setHidden(True)
+                self.chooseRoiGUI.loadRoiButton.setHidden(True)
+                self.chooseRoiGUI.drawRoiButton.setChecked(True)
+                self.chooseRoiGUI.drawRoiButton.setCheckable(True)
+                self.chooseRoiGUI.redrawRoiButton.setHidden(True)
+                self.chooseRoiGUI.drawRectangleButton.setHidden(True)
+                self.chooseRoiGUI.closeRoiButton.setHidden(True)
+
+
             self.hide()
             self.chooseRoiGUI.show()

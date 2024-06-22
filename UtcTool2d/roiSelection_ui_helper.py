@@ -178,6 +178,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.lastGui = None
         self.imPixDepth = None
         self.imPixWidth = None
+        self.finalSplineX = []
+        self.finalSplineY = []
 
         self.crosshairCursor = matplotlib.widgets.Cursor(
             self.ax, color="gold", linewidth=0.4, useblit=True
@@ -325,25 +327,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.ax.imshow(im, cmap="Greys_r")
         plt.gcf().set_facecolor((0, 0, 0, 0))
 
-        if len(self.pointsPlottedX) > 0:
-            self.scatteredPoints.append(
-                self.ax.scatter(
-                    self.pointsPlottedX[-1],
-                    self.pointsPlottedY[-1],
-                    marker="o",
-                    s=0.5,
-                    c="red",
-                    zorder=500,
-                )
-            )
-            if len(self.pointsPlottedX) > 1:
-                xSpline, ySpline = calculateSpline(
-                    self.pointsPlottedX, self.pointsPlottedY
-                )
-                self.spline = self.ax.plot(
-                    xSpline, ySpline, color="cyan", zorder=1, linewidth=0.75
-                )
-
         try:
             if self.ImDisplayInfo.numSamplesDrOut == 1400:
                 # Preset 1 boundaries for 20220831121844_IQ.bin
@@ -361,6 +344,28 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             #     print("No preset found!")
         except (AttributeError, UnboundLocalError):
             pass
+
+        if len(self.finalSplineX):
+            self.spline = self.ax.plot(self.finalSplineX, self.finalSplineY, 
+                                       color="cyan", zorder=1, linewidth=0.75)
+        elif len(self.pointsPlottedX) > 0:
+            self.scatteredPoints.append(
+                self.ax.scatter(
+                    self.pointsPlottedX[-1],
+                    self.pointsPlottedY[-1],
+                    marker="o",
+                    s=0.5,
+                    c="red",
+                    zorder=500,
+                )
+            )
+            if len(self.pointsPlottedX) > 1:
+                xSpline, ySpline = calculateSpline(
+                    self.pointsPlottedX, self.pointsPlottedY
+                )
+                self.spline = self.ax.plot(
+                    xSpline, ySpline, color="cyan", zorder=1, linewidth=0.75
+                )
 
         self.figure.subplots_adjust(
             left=0, right=1, bottom=0, top=1, hspace=0.2, wspace=0.2
@@ -415,17 +420,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.processImage(
             imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
         )
-        # import pickle
-        # with open("/Volumes/CREST Data/David_S_Data/ATI-Data-CanonFatStudy/Phantom data/Preset_2/hi.pkl", "rb") as f:
-        #     self.AnalysisInfo = pickle.load(f)
-        # self.ImDisplayInfo = self.AnalysisInfo.ImDisplayInfo
-        # self.RefDisplayInfo = self.AnalysisInfo.RefDisplayInfo
-        # self.displayInitialImage()
-        # self.pointsPlottedX = self.AnalysisInfo.finalSplineX
-        # self.pointsPlottedY = self.AnalysisInfo.finalSplineY
-        # self.finalSplineX = self.pointsPlottedX
-        # self.finalSplineY = self.pointsPlottedY
-        # self.acceptROI()
 
     def openPhilipsImage(self, imageFilePath, phantomFilePath):
         tmpLocation = imageFilePath.split("/")
@@ -567,14 +561,14 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.editImageDisplayGUI.sharpnessVal.setValue(3)
 
         speedOfSoundInTissue = 1540  # m/s
-        waveLength = (
+        self.waveLength = (
             speedOfSoundInTissue / self.ImDisplayInfo.centerFrequency
         ) * 1000  # mm
         self.analysisParamsGUI.axWinSizeVal.setMinimum(
-            2 * waveLength
+            2 * self.waveLength
         )  # should be at least 10 times wavelength, must be at least 2 times
         self.analysisParamsGUI.latWinSizeVal.setMinimum(
-            2 * waveLength
+            2 * self.waveLength
         )  # should be at least 10 times wavelength, must be at least 2 times
 
         if self.AnalysisInfo.axialWinSize is not None: # pre-loaded with ROI
@@ -591,8 +585,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.analysisParamsGUI.samplingFreqVal.setValue(self.AnalysisInfo.samplingFreq/1000000)
 
         else:
-            self.analysisParamsGUI.axWinSizeVal.setValue(10 * waveLength)
-            self.analysisParamsGUI.latWinSizeVal.setValue(10 * waveLength)
+            self.analysisParamsGUI.axWinSizeVal.setValue(10 * self.waveLength)
+            self.analysisParamsGUI.latWinSizeVal.setValue(10 * self.waveLength)
 
             self.analysisParamsGUI.axOverlapVal.setValue(50)
             self.analysisParamsGUI.latOverlapVal.setValue(50)
@@ -1007,11 +1001,13 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         ):
             self.AnalysisInfo.finalSplineX = self.finalSplineX
             self.AnalysisInfo.finalSplineY = self.finalSplineY
-            self.AnalysisInfo.curPointsPlottedX = self.pointsPlottedX[:-1]
-            self.AnalysisInfo.curPointsPlottedY = self.pointsPlottedY[:-1]
+            self.AnalysisInfo.pointsPlottedX = self.pointsPlottedX
+            self.AnalysisInfo.pointsPlottedY = self.pointsPlottedY
             self.AnalysisInfo.dataFrame = self.dataFrame
             self.AnalysisInfo.ImDisplayInfo = self.ImDisplayInfo
             self.AnalysisInfo.RefDisplayInfo = self.RefDisplayInfo
+            self.AnalysisInfo.imName = self.imagePathInput.text()
+            self.AnalysisInfo.phantomName = self.phantomPathInput.text()
 
             self.analysisParamsGUI.AnalysisInfo = (
                 self.AnalysisInfo
@@ -1021,6 +1017,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 self.imagePathInput.text().split("/")[-1],
                 self.phantomPathInput.text().split("/")[-1],
             )
+            self.analysisParamsGUI.waveLength = self.waveLength
             self.analysisParamsGUI.plotRoiPreview()
             self.analysisParamsGUI.show()
             self.editImageDisplayGUI.hide()

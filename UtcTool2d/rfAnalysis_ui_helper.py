@@ -24,14 +24,16 @@ class AnalysisInfo:
     def __init__(self):
         self.finalSplineX = None
         self.finalSplineY = None
-        self.curPointsPlottedX = None
-        self.curPointsPlottedY = None
+        self.pointsPlottedX = None
+        self.pointsPlottedY = None
         self.imArray = None
         self.dataFrame = None
         self.rectCoords = []
         self.computeSpecWindows = None
         self.frame = None
         self.verasonics = False
+        self.imName = None
+        self.phantomName = None
 
         self.imRawData = None
         self.phantomRawData = None
