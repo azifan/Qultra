@@ -44,38 +44,7 @@ class SaveRoiGUI(Ui_saveRoi, QWidget):
                 mode="wb",
             ) as pklfile:
                 pickle.dump(self.rfAnalysisGUI.AnalysisInfo, pklfile, protocol=pickle.HIGHEST_PROTOCOL)
-                # mode="w",
-            # ) as csvfile:
-            #     writer = csv.writer(csvfile, delimiter=",")
-            #     writer.writerow(
-            #         [
-            #             "Image Name",
-            #             "Type",
-            #             "Spline x points",
-            #             "Spline y points",
-            #             "Rect Coords",
-            #         ]
-            #     )
-            #     if len(self.rfAnalysisGUI.AnalysisInfo.rectCoords) > 0:
-            #         writer.writerow(
-            #             [
-            #                 self.rfAnalysisGUI.imagePathInput.text(),
-            #                 "Rect",
-            #                 " ",
-            #                 " ",
-            #                 self.rfAnalysisGUI.AnalysisInfo.rectCoords,
-            #             ]
-            #         )
-            #     else:
-            #         writer.writerow(
-            #             [
-            #                 self.rfAnalysisGUI.imagePathInput.text(),
-            #                 "Freehand",
-            #                 self.rfAnalysisGUI.AnalysisInfo.curPointsPlottedX,
-            #                 self.rfAnalysisGUI.AnalysisInfo.curPointsPlottedY,
-            #                 " ",
-            #             ]
-            #         )
+              
             self.dataSavedSuccessfullyLabel.setHidden(False)
             self.newFileNameInput.setHidden(True)
             self.newFileNameLabel.setHidden(True)

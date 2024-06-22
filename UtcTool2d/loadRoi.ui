@@ -67,7 +67,7 @@
 }</string>
    </property>
    <property name="text">
-    <string>ROI file: (.csv)</string>
+    <string>ROI file: (.pkl)</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>

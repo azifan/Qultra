@@ -197,6 +197,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.rfAnalysisGUI = None
         self.lastGui = None
         self.AnalysisInfo = None
+        self.waveLength = None
 
         self.continueButton.clicked.connect(self.continueToRfAnalysis)
         self.backButton.clicked.connect(self.backToLastScreen)
@@ -285,8 +286,6 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             )
 
     def plotRoiPreview(self):
-        self.waveLength = self.axWinSizeVal.value() / 10
-
         self.minX = min(self.AnalysisInfo.finalSplineX)
         self.maxX = max(self.AnalysisInfo.finalSplineX)
         self.minY = min(self.AnalysisInfo.finalSplineY)
