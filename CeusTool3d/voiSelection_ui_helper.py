@@ -475,21 +475,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
         tempAx = self.maskCoverImg[:, :, 0, :]  # 2D data for axial
         tempAx = np.rot90(np.flipud(tempAx), 3)
-        # tempAx = np.flipud(tempAx)  # flipud
-        # tempAx = np.rot90(tempAx, 3)  # rotate ccw 270
         tempAx = np.require(tempAx, np.uint8, "C")
 
         tempSag = self.maskCoverImg[0, :, :, :]  # 2D data for sagittal
-        # tempSag = np.fliplr(tempSag)
-        # tempSag = np.flipud(tempSag)  # flipud
-        # tempSag = np.rot90(tempSag, 2)  # rotate ccw 180
-        # tempSag = np.fliplr(tempSag)
         tempSag = np.require(tempSag, np.uint8, "C")
 
         tempCor = self.maskCoverImg[:, 0, :, :]  # 2D data for coronal
         tempCor = np.fliplr(np.rot90(tempCor, 3))
-        # tempCor = np.rot90(tempCor, 1)  # rotate ccw 90
-        # tempCor = np.flipud(tempCor)  # flipud
         tempCor = np.require(tempCor, np.uint8, "C")
 
         self.maskAxH, self.maskAxW = tempAx[
@@ -535,34 +527,23 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.maskLayerCor.setPixmap(
             QPixmap.fromImage(self.curMaskCorIm).scaled(321, 301)
         )
-        # self.axCoverLabel.setMouseTracking(True)
-        # self.corCoverLabel.setMouseTracking(True)
-        # self.sagCoverLabel.setMouseTracking(True)
 
         self.drawRoiButton.setCheckable(True)
 
         # getting initial image data for axial, sag, coronal slices
         self.data2dAx = self.data4dImg[:, :, 0, self.curSliceIndex]  # 2D data for axial
         self.data2dAx = np.rot90(np.flipud(self.data2dAx), 3)
-        # self.data2dAx = np.flipud(self.data2dAx)  # flipud
-        # self.data2dAx = np.rot90(self.data2dAx, 3)  # rotate ccw 270
         self.data2dAx = np.require(self.data2dAx, np.uint8, "C")
 
         self.data2dSag = self.data4dImg[
             0, :, :, self.curSliceIndex
         ]  # 2D data for sagittal
-        # self.data2dSag = np.fliplr(self.data2dSag)
-        # self.data2dSag = np.flipud(self.data2dSag)  # flipud
-        # self.data2dSag = np.rot90(self.data2dSag, 2)  # rotate ccw 180
-        # self.data2dSag = np.fliplr(self.data2dSag)
         self.data2dSag = np.require(self.data2dSag, np.uint8, "C")
 
         self.data2dCor = self.data4dImg[
             :, 0, :, self.curSliceIndex
         ]  # 2D data for coronal
         self.data2dCor = np.fliplr(np.rot90(self.data2dCor, 3))
-        # self.data2dCor = np.rot90(self.data2dCor, 1)  # rotate ccw 90
-        # self.data2dCor = np.flipud(self.data2dCor)  # flipud
         self.data2dCor = np.require(self.data2dCor, np.uint8, "C")
 
         (
@@ -635,8 +616,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             :, :, self.newZVal, self.curSliceIndex
         ]  # , self.curSliceIndex #defining 2D data for axial
         self.data2dAx = np.rot90(np.flipud(self.data2dAx), 3)
-        # self.data2dAx = np.flipud(self.data2dAx)  # flipud
-        # self.data2dAx = np.rot90(self.data2dAx, 3)  # rotate
         self.data2dAx = np.require(self.data2dAx, np.uint8, "C")
 
         self.bytesLineAx, _ = self.data2dAx.strides
@@ -650,8 +629,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
         tempAx = self.maskCoverImg[:, :, self.newZVal, :]  # 2D data for axial
         tempAx = np.rot90(np.flipud(tempAx), 3)
-        # tempAx = np.flipud(tempAx)  # flipud
-        # tempAx = np.rot90(tempAx, 3)  # rotate ccw 270
         tempAx = np.require(tempAx, np.uint8, "C")
 
         self.curMaskAxIm = QImage(
@@ -675,10 +652,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.data2dSag = self.data4dImg[
             self.newXVal, :, :, self.curSliceIndex
         ]  # , self.curSliceIndex
-        # self.data2dSag = np.fliplr(self.data2dSag)
-        # self.data2dSag = np.flipud(self.data2dSag)  # flipud
-        # self.data2dSag = np.rot90(self.data2dSag, 2)  # rotate
-        # self.data2dSag = np.fliplr(self.data2dSag)
         self.data2dSag = np.require(self.data2dSag, np.uint8, "C")
 
         self.bytesLineSag, _ = self.data2dSag.strides
@@ -691,10 +664,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         )
 
         tempSag = self.maskCoverImg[self.newXVal, :, :, :]  # 2D data for sagittal
-        # tempSag = np.fliplr(tempSag)
-        # tempSag = np.flipud(tempSag)  # flipud
-        # tempSag = np.rot90(tempSag, 2)  # rotate ccw 180
-        # tempSag = np.fliplr(tempSag)
         tempSag = np.require(tempSag, np.uint8, "C")
 
         self.curMaskSagIm = QImage(
@@ -717,8 +686,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             :, self.newYVal, :, self.curSliceIndex
         ]  # , self.curSliceIndex
         self.data2dCor = np.fliplr(np.rot90(self.data2dCor, 3))
-        # self.data2dCor = np.rot90(self.data2dCor, 1)  # rotate
-        # self.data2dCor = np.flipud(self.data2dCor)  # flipud
         self.data2dCor = np.require(self.data2dCor, np.uint8, "C")
 
         self.bytesLineCor, _ = self.data2dCor.strides
@@ -732,8 +699,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
         tempCor = self.maskCoverImg[:, self.newYVal, :, :]  # 2D data for coronal
         tempCor = np.fliplr(np.rot90(tempCor, 3))
-        # tempCor = np.rot90(tempCor, 1)  # rotate ccw 90
-        # tempCor = np.flipud(tempCor)  # flipud
         tempCor = np.require(tempCor, np.uint8, "C")
 
         self.curMaskCorIm = QImage(
