@@ -1,15 +1,18 @@
+import os
+import platform
+import shutil
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 from UtcTool2d.selectImage_ui import Ui_selectImage
 from UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
 from Parsers.canonBinParser import findPreset
 import Parsers.siemensRfdParser as rfdParser
-
+import Parsers.philips3dRf as phil3d
 from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
 from PyQt5.QtGui import QImage, QPixmap
-import shutil
-import os
-import matplotlib.pyplot as plt
-import platform
-import numpy as np
 
 system = platform.system()
 
@@ -136,6 +139,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.curFrameLabel.setHidden(True)
         self.imPreview.setHidden(True)
         self.selectFrameLabel.setHidden(True)
+        self.philips3dCheckBox.setHidden(True)
 
         self.welcomeGui = None
         self.roiSelectionGUI = None
@@ -215,9 +219,15 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
                     self.imagePathInput.text(), self.phantomPathInput.text()
                 )
             elif self.machine == "Philips":
-                self.roiSelectionGUI.openPhilipsImage(
-                    self.imagePathInput.text(), self.phantomPathInput.text()
-                )
+                if not self.philips3dCheckBox.isChecked():
+                    self.roiSelectionGUI.openPhilipsImage(
+                        self.imagePathInput.text(), self.phantomPathInput.text()
+                    )
+                else:
+                    self.openPhilipsImage()
+                    self.roiSelectionGUI.machine = self.machine
+                    self.roiSelectionGUI.dataFrame = self.dataFrame
+                    return
             elif self.machine == "Siemens":
                 self.openSiemensImage()
                 self.roiSelectionGUI.machine = self.machine
@@ -249,6 +259,30 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.initialImgRf = self.imgDataStruct.rf
         self.initialRefRf = self.refDataStruct.rf
         self.frame = 0
+
+        self.displaySlidingFrames()
+
+    def openPhilipsImage(self):
+        imageFilePath = self.imagePathInput.text()
+        phantomFilePath = self.phantomPathInput.text()
+
+        tmpLocation = imageFilePath.split("/")
+        dataFileName = tmpLocation[-1]
+        dataFileLocation = imageFilePath[:len(imageFilePath)-len(dataFileName)]
+        tmpPhantLocation = phantomFilePath.split("/")
+        phantFileName = tmpPhantLocation[-1]
+        phantFileLocation = phantomFilePath[:len(phantomFilePath)-len(phantFileName)]
+
+        self.imgDataStruct, self.imgInfoStruct = phil3d.getVolume(Path(dataFileLocation) / Path(dataFileName))
+        self.refDataStruct, self.refInfoStruct = phil3d.getVolume(Path(phantFileLocation) / Path(phantFileName))
+        self.imArray = self.imgDataStruct.bMode
+        self.frame = 0
+        self.initialImgRf = self.imgDataStruct.rf
+        self.initialRefRf = self.refDataStruct.rf
+
+        self.displaySlidingFrames()
+
+    def displaySlidingFrames(self):
         self.imData = np.array(self.imArray[self.frame]).reshape(self.imArray.shape[1], self.imArray.shape[2])
         self.imData = np.require(self.imData,np.uint8,'C')
         self.bytesLine = self.imData.strides[0]
@@ -293,6 +327,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.phantomPathLabel.setHidden(True)
         self.selectDataLabel.setHidden(True)
         self.acceptFrameButton.setHidden(False)
+        self.philips3dCheckBox.setHidden(True)
 
         self.curFrameSlider.setMinimum(0)
         self.curFrameSlider.setMaximum(self.imArray.shape[0]-1)
@@ -301,7 +336,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.curFrameSlider.valueChanged.connect(self.frameChanged)
         self.acceptFrameButton.clicked.connect(self.acceptFrame)
 
-        self.update()    
+        self.update()   
     
     def frameChanged(self):
         self.frame = self.curFrameSlider.value()
@@ -350,6 +385,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.phantomPathLabel.setHidden(False)
         self.chooseImageFileButton.setHidden(False)
         self.choosePhantomFileButton.setHidden(False)
+        self.philips3dCheckBox.setHidden(False)
 
         self.imagePathLabel.setText("Input Path to Image file\n (.rf, .mat)")
         self.phantomPathLabel.setText("Input Path to Phantom file\n (.rf, .mat)")

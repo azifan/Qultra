@@ -23,6 +23,9 @@ class ScParams():
         self.VDB_2D_ECHO_START_DEPTH_SIP = None
         self.VDB_2D_ECHO_SLACK_TIME_MM = None
 
+        self.NumXmtCols = None
+        self.NumRcvCols = None
+
 class SipVolParams():
     def __init__(self):
         self.imagePitch = []
@@ -47,7 +50,7 @@ class OutImStruct():
         self.xmap = None
         self.ymap = None
 
-def scanConvert3Va(rxLines, lineAngles, planeAngles, beamDist, imgSize, fovSize, z0):
+def scanConvert3Va(rxLines, lineAngles, planeAngles, beamDist, imgSize, fovSize, z0, normalize=True):
     pixSizeX = 1/(imgSize[0]-1)
     pixSizeY = 1/(imgSize[1]-1)
     pixSizeZ = 1/(imgSize[2]-1)
@@ -62,14 +65,21 @@ def scanConvert3Va(rxLines, lineAngles, planeAngles, beamDist, imgSize, fovSize,
     TH = np.arctan2(X, np.sqrt(np.square(Y)+np.square(Z+z0)))
     R = np.sqrt(np.square(X)+np.square(Y)+np.square(Z+z0))*(1-z0/np.sqrt(np.square(Y)+np.square(Z+z0)))
 
-    img = scipy.interpolate.interpn((beamDist, np.pi*lineAngles/180, np.pi*planeAngles/180), 
-                                    rxLines, (R, TH, PHI), bounds_error=False, method='linear', fill_value=0)
-    img /= np.amax(img)
-    img *= 255
+    radLineAngles = np.pi*lineAngles/180
+    radPlaneAngles = np.pi*planeAngles/180
+
+    img = scipy.interpolate.interpn((beamDist, radLineAngles, radPlaneAngles), 
+                                    rxLines, (R, TH, PHI), method='linear', bounds_error=False, fill_value=0)
+    
+    if normalize:
+        img /= np.amax(img)
+        img *= 255
+    else:
+        img = np.array(img)
 
     return img
 
-def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams) -> Tuple[np.ndarray, list]:
+def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams, normalize=True) -> Tuple[np.ndarray, list]:
     if len(dbEnvDatFullVolSeries.shape) != 4:
         numVolumes = 1
         nz, nx, ny = dbEnvDatFullVolSeries.shape
@@ -97,20 +107,26 @@ def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams) -> Tuple[np.ndarr
         for k in range(numVolumes):
             rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries[k].shape[1])
             rxAngsElVec = np.einsum('ikj->ijk', np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries[k].shape[2]))
-            curImgOut = scanConvert3Va(dbEnvDatFullVolSeries[k], rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
+            curImgOut = scanConvert3Va(dbEnvDatFullVolSeries[k], rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist, normalize=normalize)
             imgOut.append(curImgOut)
         imgOut = np.array(imgOut)
     else:
         rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries.shape[1])
         rxAngsElVec = np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries.shape[2])
-        curImgOut = scanConvert3Va(dbEnvDatFullVolSeries, rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
+        curImgOut = scanConvert3Va(dbEnvDatFullVolSeries, rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist, normalize=normalize)
         imgOut = curImgOut
     
     return imgOut, fovSize
 
 def formatVolumePix(unformattedVolume: Iterable, lowerLim: int = 145, upperLim: int = 255) -> np.ndarray:
     unformattedVolume = np.array(unformattedVolume).squeeze().astype(float)
+    # unformattedVolume = np.flip(unformattedVolume.swapaxes(0,2), axis=1)
     unformattedVolume = np.transpose(unformattedVolume.swapaxes(0,1))
+    # unformattedVolume = unformattedVolume.swapaxes(0,2).swapaxes(1,2)
+    # for i, slice in enumerate(unformattedVolume):
+    #     unformattedVolume[i] = np.fliplr(slice)
+    # unformattedVolume = np.transpose(unformattedVolume)
+    # unformattedVolume = np.flip(unformattedVolume, axis=1)
     unformattedVolume = np.clip(unformattedVolume, a_min=lowerLim, a_max=upperLim)
     unformattedVolume -= np.amin(unformattedVolume)
     unformattedVolume *= 255/np.amax(unformattedVolume)
@@ -189,7 +205,10 @@ def readSIP3dInterleavedV5(filename, numberOfPlanes=32, numberOfParams=5):
             break
 
         # Read in enough to account for 2 frames (1 linear and 1 non-linear)
-        lineBuf = np.fromfile(file, count=int(param.imagePitch[-1]/2)*param.numberLines[-1], dtype='<u2')
+        try:
+            lineBuf = np.fromfile(file, count=int(param.imagePitch[-1]/2)*param.numberLines[-1], dtype='<u2')
+        except:
+            break
         lineBuf = lineBuf.reshape((int(param.imagePitch[-1]/2), param.numberLines[-1]), order='F')
 
         img.linImage.append(lineBuf[np.arange(0, lineBuf.shape[0], 2)])
@@ -258,7 +277,6 @@ class Philips4dParser:
         for volIndex in tqdm(volIndices):
             linVol, bmodeDims = scanConvert3dVolumeSeries(self.linVol[volIndex], self.scParams)
             nLinVol, ceusDims = scanConvert3dVolumeSeries(self.nLinVol[volIndex], self.scParams)
-
             bmodeDims = [bmodeDims[2], bmodeDims[0], bmodeDims[1]]
             ceusDims = [ceusDims[2], ceusDims[0], bmodeDims[1]]
 
@@ -271,28 +289,8 @@ class Philips4dParser:
                 pickle.dump(nLinVol, ceusFile)
 
         return bmodeDims, ceusDims, linVol.shape, nLinVol.shape
-
-if __name__ == "__main__":  # confirms that the code is under main function
-    parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('dataFolder', metavar='FOLDER', type=str, nargs=1,
-                        help='parent folder of file to parse')
-    parser.add_argument('destFolder', metavar='DEST', type=str, nargs=1,
-                        help='destination folder of outputs')
-    parser.add_argument('sipFilename', metavar='FILE', type=str, nargs=1,
-                        help='name of file to parse')
-    parser.add_argument('nProcs', metavar='PROCS', type=int, nargs=1,
-                        help='number of processes for parsing')
-    parser.add_argument('pixPerMm', metavar='RES', type=float, nargs=1,
-                        help='resolution of output volumes')
-
-
-    args = parser.parse_args()
-
-    dataFolder = args.dataFolder[0] #"/Users/davidspector/Downloads/wei_test"
-    destFolder = args.destFolder[0]
-    sipFilename = args.sipFilename[0] #"SHC-PTEST001-V02-CE01_16.05.52_mf_sip_capture_50_2_1_0.raw"
-    nProcs = args.nProcs[0] #4
-    pixPerMm = args.pixPerMm[0] #1.2
+    
+def sipParser(dataFolder, destFolder, sipFilename, nProcs, pixPerMm):
     procs = []
     Example = Philips4dParser()
     volDestPath = Example.prepVolRead(dataFolder, sipFilename, destFolder, pixPerMm)
@@ -321,3 +319,55 @@ if __name__ == "__main__":  # confirms that the code is under main function
         pickle.dump(bmodeRes, resFile)
     with open(volDestPath / Path("ceus_volume_dims.pkl"), 'wb') as resFile:
         pickle.dump(ceusRes, resFile)
+
+# if __name__ == "__main__":  # confirms that the code is under main function
+#     parser = argparse.ArgumentParser(description='Process some integers.')
+#     parser.add_argument('dataFolder', metavar='FOLDER', type=str, nargs=1,
+#                         help='parent folder of file to parse')
+#     parser.add_argument('destFolder', metavar='DEST', type=str, nargs=1,
+#                         help='destination folder of outputs')
+#     parser.add_argument('sipFilename', metavar='FILE', type=str, nargs=1,
+#                         help='name of file to parse')
+#     parser.add_argument('nProcs', metavar='PROCS', type=int, nargs=1,
+#                         help='number of processes for parsing')
+#     parser.add_argument('pixPerMm', metavar='RES', type=float, nargs=1,
+#                         help='resolution of output volumes')
+
+
+#     args = parser.parse_args()
+
+#     dataFolder = args.dataFolder[0] #"/Users/davidspector/Downloads/wei_test"
+#     destFolder = args.destFolder[0]
+#     sipFilename = args.sipFilename[0] #"SHC-PTEST001-V02-CE01_16.05.52_mf_sip_capture_50_2_1_0.raw"
+#     nProcs = args.nProcs[0] #4
+#     pixPerMm = args.pixPerMm[0] #1.2
+#     procs = []
+#     Example = Philips4dParser()
+#     volDestPath = Example.prepVolRead(dataFolder, sipFilename, destFolder, pixPerMm)
+
+#     volInds = list(range(Example.linVol.shape[0]))
+#     splitInds = np.array_split(volInds, nProcs)
+
+#     for indChunk in splitInds:
+#         proc = mp.Process(target=Example.saveSingleVol, args=(indChunk,))
+#         procs.append(proc)
+
+#     # start processes
+#     for proc in procs:
+#         proc.start()
+
+#     # complete the processes
+#     for proc in procs:
+#         proc.join()
+
+#     bmodeDims, ceusDims, bmodeShape, ceusShape = Example.saveSingleVol([0])
+
+#     timeconst = 0 # no timeconst for now
+#     bmodeRes = [4., bmodeDims[0]/bmodeShape[0], bmodeDims[1]/bmodeShape[1], bmodeDims[2]/bmodeShape[2], timeconst, 0., 0., 0.]
+#     ceusRes = [4., ceusDims[0]/ceusShape[0], ceusDims[1]/ceusShape[1], ceusDims[2]/ceusShape[2], timeconst, 0., 0., 0.]
+#     with open(volDestPath / Path("bmode_volume_dims.pkl"), 'wb') as resFile:
+#         pickle.dump(bmodeRes, resFile)
+#     with open(volDestPath / Path("ceus_volume_dims.pkl"), 'wb') as resFile:
+#         pickle.dump(ceusRes, resFile)
+
+# py_sipVolDat = main("/Volumes/CREST Data/", "/Volumes/CREST Data", "TJU-P001-V01-CEUS-2_10.05.43_mf_sip_capture_50_2_1_0.raw", 4, 1.2)

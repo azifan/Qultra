@@ -42,7 +42,11 @@ brew install qt5
 brew link qt5 --force
 
 pip install wheel setuptools pip --upgrade
+
+pip install pyqt5==5.15.9 --config-settings --confirm-license= --verbose
 ```
+
+If an error persists after running `python main.py`, try `export QT_QPA_PLATFORM_PLUGIN_PATH=/opt/homebrew/Cellar/qt@5/5.15.13_1/plugins`.
 
 ### Windows
 
