@@ -11,11 +11,11 @@ from Parsers.philipsSipVolumeParser import ScParams, readSIPscVDBParams, scanCon
 class InfoStruct():
     def __init__(self):
         # Placeholder for now
-        self.minFrequency = 3000000
-        self.maxFrequency = 15000000
+        self.minFrequency = 1000000
+        self.maxFrequency = 6000000
         self.lowBandFreq = 5000000
         self.upBandFreq = 13000000
-        self.centerFrequency = 9000000 #Hz
+        self.centerFrequency = 00000 #Hz
         self.samplingFrequency = 50000000 # TODO: currently a guess
 
         self.width = None
@@ -124,9 +124,9 @@ def getVolume(rfPath: Path, sipNumOutBits: int = 8, DRlowerdB: int = 20, DRupper
     Data.depthPixels = SC_Vol.shape[1]
 
     Info = InfoStruct()
-    Info.lateralRes = bmodeDims[2]
-    Info.axialRes = bmodeDims[1]
-    Info.width = Info.lateralRes*SC_Vol.shape[2] # mm
-    Info.depth = Info.axialRes*SC_Vol.shape[1] # mm
+    Info.width = bmodeDims[2]
+    Info.depth = bmodeDims[1]
+    Info.lateralRes = Info.width/SC_Vol.shape[2] # mm/pix
+    Info.axialRes = Info.depth/SC_Vol.shape[1] # mm/pix
 
     return Data, Info
