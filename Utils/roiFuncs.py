@@ -156,7 +156,6 @@ def computePowerSpec(RFData, startFrequency, endFrequency, samplingFrequency):
     freqChop = frequency[fLow:fHigh]
 
     # Get PS
-    windFunc = np.ones(windFunc.shape)
     fft = np.square(
         abs(np.fft.fft(np.transpose(np.multiply(RFData, windFunc)), 8192) * RFData.size)
     )
