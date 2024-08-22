@@ -838,7 +838,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
     def saveData(self):
         if self.newData is None:
             self.newData = {
-                "Patient": self.imagePathInput.text(),
+                "Patient": self.imagePathInput.text().split("_")[0],
                 "Area Under Curve (AUC)": self.auc,
                 "Peak Enhancement (PE)": self.pe,
                 "Time to Peak (TP)": self.tp,
@@ -857,6 +857,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.acceptTIC(1)
 
     def acceptTIC(self, autoT0=0):
+        self.imagePathInput.setText(self.lastGui.imagePathInput.text())
         self.pointsPlotted = self.lastGui.pointsPlotted
         self.dataFrame = self.lastGui.dataFrame
         self.data4dImg = self.lastGui.data4dImg
