@@ -182,6 +182,7 @@ class ExportDataGUI(Ui_exportData, QWidget):
                 wb.close()
 
                 self.dataSavedSuccessfully()
+                self.dataFrame = self.dataFrame.iloc[0:0]
             except Exception as e:
                 print(str(e))
 
@@ -199,10 +200,12 @@ class ExportDataGUI(Ui_exportData, QWidget):
                 wb.close()
 
                 self.dataSavedSuccessfully()
+                self.dataFrame = self.dataFrame.iloc[0:0]
             except Exception as e:
                 print(str(e))
 
     def backToAnalysis(self):
+        self.lastGui.dataFrame = self.dataFrame
         self.lastGui.show()
         self.hide()
 
