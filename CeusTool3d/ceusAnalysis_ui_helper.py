@@ -858,6 +858,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
     def acceptTIC(self, autoT0=0):
         self.imagePathInput.setText(self.lastGui.imagePathInput.text())
+        self.newData = None
         self.pointsPlotted = self.lastGui.pointsPlotted
         self.dataFrame = self.lastGui.dataFrame
         self.data4dImg = self.lastGui.data4dImg
