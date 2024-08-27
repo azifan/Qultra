@@ -1,4 +1,6 @@
 import struct
+from pathlib import Path
+
 import numpy as np
 from scipy.signal import hilbert
 
@@ -152,10 +154,10 @@ def getImage(filename, filedirectory, refname, refdirectory):
 
 def getData(Files, RefFiles):
     ImgInfo = readFileInfo(Files.name, Files.directory)
-    [ImgData, ImgInfo] = readFileImg(ImgInfo, str(Files.directory + Files.name))
+    [ImgData, ImgInfo] = readFileImg(ImgInfo, Path(Files.directory) / Path(Files.name))
 
     RefInfo = readFileInfo(RefFiles.name, RefFiles.directory)
-    [RefData, RefInfo] = readFileImg(RefInfo, str(RefFiles.directory + RefFiles.name))
+    [RefData, RefInfo] = readFileImg(RefInfo, Path(RefFiles.directory) / Path(RefFiles.name))
 
     return [ImgInfo, RefInfo, ImgData, RefData]
 
