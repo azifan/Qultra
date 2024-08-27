@@ -23,8 +23,6 @@ def roiWindowsGenerator(
     axialOverlap,
     lateralOverlap,  # Percent overlap - user inputted via GUI
     thresholdPercentage,
-    xmap=[],
-    ymap=[],  # Contains coordindates xmap and ymap for preSC conversion
 ):
     # Some axial/lateral dims
     axialSize = round(axialRSize / axialRes)  # in pixels :: mm/(mm/pixel)
@@ -50,8 +48,6 @@ def roiWindowsGenerator(
 
     # Determine ROI set
     roiPositions = RoiPositionsStruct()
-    if len(xmap) != 0:
-        roiPositionsPreSC = RoiPositionsStruct()
 
     # Determine all points inside the user-defined polygon that defines analysis region
     # The 'mask' matrix - "1" inside region and "0" outside region
@@ -97,27 +93,6 @@ def roiWindowsGenerator(
                     int(axial[axialInd + axialRoiSizePixels - 1])
                 )
 
-                if len(xmap) != 0:
-                    # PreSC conversion
-                    roiPositionsPreSC.left.append(
-                        int(np.floor(xmap[
-                            int(np.floor(axialInd)), int(np.floor(lateralInd))]))
-                    )
-                    roiPositionsPreSC.right.append(
-                        int(np.ceil(xmap[
-                            int(np.floor(axialInd)), int(np.floor(lateralInd+lateralRoiSizePixels-1))]))
-                    )
-                    roiPositionsPreSC.top.append(
-                        int(np.floor(ymap[
-                            int(np.floor(axialInd)), int(np.floor(lateralInd))]))
-                    )
-                    roiPositionsPreSC.bottom.append(
-                        int(np.floor(ymap[
-                            int(np.ceil(axialInd+axialRoiSizePixels-1)), int(np.floor(lateralInd))]))
-                    )
-
-    if len(xmap) != 0:
-        return roiPositions, roiPositionsPreSC
     return roiPositions
 
 
@@ -361,19 +336,9 @@ def computeSpecWindowsRF(
             refWindow, f0, f1, fs
         )  # Same as above, except for round(ref_gain)
         nps = np.asarray(ps) - np.asarray(rPS)  # SUBTRACTION method: log data
-        # import matplotlib.pyplot as plt
-        # fig, ax = plt.subplots()
-        # ax.scatter(f,ps)
-        # # plt.vlines([imgLowBandFreq, imgUpBandFreq], ymin=min(ps), ymax=max(ps), colors="green")
-        # plt.show()
-        # return
 
         # Get ready to send output
         for j in range(fRange):
-            # imNps[i,j]=nps[0][j]
-            # imPs[i,j]=ps[0][j]
-            # imRps[i,j]=rPS[0][j]
-            # imF[i,j]=f[0][j]
             imNps[i, j] = nps[j]
             imPs[i, j] = ps[j]
             imRps[i, j] = rPS[j]
@@ -385,10 +350,7 @@ def computeSpecWindowsRF(
 
         # Compute QUS parameters
         [mbfit, _, _, p, _, _] = spectralAnalysisDefault6db(nps, f, db6LowF, db6HighF)
-        # [mbfit, _, _, p, _, _] = eng.spectralAnalysisDefault6db(matlab.double(np.ascontiguousarray(nps)), matlab.double(f), matlab.double(db6LowF), matlab.double(db6HighF), matlab.double(2), nargout=6)
         imMbf[i] = mbfit
-        # imSs[i]=p[0][0]
-        # imSi[i]=p[0][1]
         imSs[i] = p[0]
         imSi[i] = p[1]
 
