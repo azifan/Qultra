@@ -32,6 +32,7 @@ class Config:
         self.windowThresh: float = None # % of window area required to be in ROI
         self.axialOverlap: float = None # % of ax window length to move before next window
         self.lateralOverlap: float = None # % of lat window length to move before next window
+        self.centerFrequency: float = None # Hz
 
 class UltrasoundImage:
     def __init__(self):

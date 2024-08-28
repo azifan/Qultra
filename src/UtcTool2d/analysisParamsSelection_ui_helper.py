@@ -1,11 +1,13 @@
-from UtcTool2d.analysisParamsSelection_ui import Ui_analysisParams
-from UtcTool2d.rfAnalysis_ui_helper import RfAnalysisGUI
+import platform
 
 from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtGui import QImage, QPixmap
 import numpy as np
 
-import platform
+from src.DataLayer.spectral import SpectralData
+from src.UtcTool2d.analysisParamsSelection_ui import Ui_analysisParams
+from src.UtcTool2d.rfAnalysis_ui_helper import RfAnalysisGUI
+from src.UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
 
 system = platform.system()
 
@@ -194,33 +196,58 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             }"""
             )
 
-        self.rfAnalysisGUI = None
-        self.lastGui = None
-        self.AnalysisInfo = None
-        self.waveLength = None
+        self.rfAnalysisGUI: RfAnalysisGUI
+        self.lastGui: RoiSelectionGUI
+        self.spectralData: SpectralData
 
         self.continueButton.clicked.connect(self.continueToRfAnalysis)
         self.backButton.clicked.connect(self.backToLastScreen)
         self.singleRoiWindowButton.clicked.connect(self.singleRoiWindow)
+
+    def initParams(self):
+        self.axWinSizeVal.setMinimum(
+            2 * self.spectralData.waveLength
+        )  # should be at least 10 times wavelength, must be at least 2 times
+        self.latWinSizeVal.setMinimum(
+            2 * self.spectralData.waveLength
+        )  # should be at least 10 times wavelength, must be at least 2 times
+
+        self.axWinSizeVal.setValue(self.spectralData.axWinSize)
+        self.latWinSizeVal.setValue(self.spectralData.latWinSize)
+        self.axOverlapVal.setValue(self.spectralData.axOverlap*100)
+        self.latOverlapVal.setValue(self.spectralData.latOverlap*100)
+        self.windowThresholdVal.setValue(self.spectralData.roiWindowThreshold*100)
+        self.minFreqVal.setValue(self.spectralData.transducerFreqBand[0]/1000000)
+        self.maxFreqVal.setValue(self.spectralData.transducerFreqBand[1]/1000000)
+        self.lowBandFreqVal.setValue(self.spectralData.analysisFreqBand/1000000)
+        self.upBandFreqVal.setValue(self.spectralData.analysisFreqBand/1000000)
+        self.samplingFreqVal.setValue(self.spectralData.samplingFrequency/1000000)
+
+        self.imageDepthVal.setText(
+            str(np.round(self.spectralData.depth, decimals=1))
+        )
+        self.imageWidthVal.setText(
+            str(np.round(self.spectralData.width, decimals=1))
+        )
 
     def singleRoiWindow(self):
         self.axOverlapVal.setValue(0)
         self.latOverlapVal.setValue(0)
         self.windowThresholdVal.setValue(50)
 
-        xScale = self.AnalysisInfo.roiWidthScale / (self.AnalysisInfo.pixWidth)
-        mplPixWidth = max(self.AnalysisInfo.finalSplineX) - min(
-            self.AnalysisInfo.finalSplineX
+        xScale = self.spectralData.roiWidthScale / (self.spectralData.pixWidth)
+        mplPixWidth = max(self.spectralData.splineX) - min(
+            self.spectralData.splineX
         )
         imPixWidth = mplPixWidth / xScale
-        mmWidth = self.AnalysisInfo.lateralRes * imPixWidth  # (mm/pixel)*pixels
+        mmWidth = self.spectralData.lateralRes * imPixWidth  # (mm/pixel)*pixels
 
-        yScale = self.AnalysisInfo.roiDepthScale / (self.AnalysisInfo.pixDepth)
-        mplPixHeight = max(self.AnalysisInfo.finalSplineY) - min(
-            self.AnalysisInfo.finalSplineY
+        yScale = self.spectralData.roiDepthScale / (self.spectralData.pixDepth)
+        mplPixHeight = max(self.spectralData.splineY) - min(
+            self.spectralData.splineY
         )
         imPixHeight = mplPixHeight / yScale
-        mmHeight = self.AnalysisInfo.axialRes * imPixHeight  # (mm/pixel)*pixels
+        mmHeight = self.spectralData.axialRes * imPixHeight  # (mm/pixel)*pixels
 
         self.axWinSizeVal.setValue(np.round(mmHeight, decimals=2))
         self.latWinSizeVal.setValue(np.round(mmWidth, decimals=2))
@@ -230,26 +257,26 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
     def updateRoiSize(self):
         if self.axWinSizeVal.value() > 0 and self.latWinSizeVal.value() > 0:
             self.axWavelengthRatioVal.setText(
-                str(np.round(self.axWinSizeVal.value() / self.waveLength, decimals=2))
+                str(np.round(self.axWinSizeVal.value() / self.spectralData.waveLength, decimals=2))
             )
             self.latWavelengthRatioVal.setText(
-                str(np.round(self.latWinSizeVal.value() / self.waveLength, decimals=2))
+                str(np.round(self.latWinSizeVal.value() / self.spectralData.waveLength, decimals=2))
             )
 
             self.maskCoverMesh.fill(0)
             axialRSize = self.axWinSizeVal.value()
             lateralRSize = self.latWinSizeVal.value()
-            axialRes = self.AnalysisInfo.axialRes
-            lateralRes = self.AnalysisInfo.lateralRes
+            axialRes = self.spectralData.axialRes
+            lateralRes = self.spectralData.lateralRes
             axialSize = round(axialRSize / axialRes)  # in pixels :: mm/(mm/pixel)
             lateralSize = round(lateralRSize / lateralRes)
             axialOverlap = self.axOverlapVal.value() / 100
             lateralOverlap = self.latOverlapVal.value() / 100
 
-            xScale = self.AnalysisInfo.roiWidthScale / (self.AnalysisInfo.pixWidth)
-            yScale = self.AnalysisInfo.roiDepthScale / (self.AnalysisInfo.pixDepth)
-            x = self.AnalysisInfo.finalSplineX / xScale
-            y = self.AnalysisInfo.finalSplineY / yScale
+            xScale = self.spectralData.roiWidthScale / (self.spectralData.pixWidth)
+            yScale = self.spectralData.roiDepthScale / (self.spectralData.pixDepth)
+            x = self.spectralData.splineX / xScale
+            y = self.spectralData.splineY / yScale
 
             # Some axial/lateral dims
             axialSize = round(axialRSize / axialRes)  # in pixels :: mm/(mm/pixel)
@@ -286,10 +313,10 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             )
 
     def plotRoiPreview(self):
-        self.minX = min(self.AnalysisInfo.finalSplineX)
-        self.maxX = max(self.AnalysisInfo.finalSplineX)
-        self.minY = min(self.AnalysisInfo.finalSplineY)
-        self.maxY = max(self.AnalysisInfo.finalSplineY)
+        self.minX = min(self.spectralData.splineX)
+        self.maxX = max(self.spectralData.splineX)
+        self.minY = min(self.spectralData.splineY)
+        self.maxY = max(self.spectralData.splineY)
 
         quotient = (self.maxX - self.minX) / (self.maxY - self.minY)
         if quotient > (341 / 231):
@@ -304,17 +331,16 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.xLen = round(self.maxX - self.minX)
         self.yLen = round(self.maxY - self.minY)
 
-        self.xScale = self.AnalysisInfo.pixWidth / self.AnalysisInfo.roiWidthScale
-        self.yScale = self.AnalysisInfo.pixDepth / self.AnalysisInfo.roiDepthScale
+        self.xScale = self.spectralData.pixWidth / self.spectralData.roiWidthScale
+        self.yScale = self.spectralData.pixDepth / self.spectralData.roiDepthScale
         self.xLenBmode = round(self.xLen * self.xScale)
         self.yLenBmode = round(self.yLen * self.yScale)
         self.minXBmode = round(self.minX * self.xScale)
         self.minYBmode = round(self.minY * self.yScale)
-        endXBmode = min(self.minXBmode + self.xLenBmode, self.AnalysisInfo.pixWidth - 1)
-        endYBmode = min(self.minYBmode + self.yLenBmode, self.AnalysisInfo.pixDepth - 1)
-        flippedArray = np.flipud(self.AnalysisInfo.imArray)
+        endXBmode = min(self.minXBmode + self.xLenBmode, self.spectralData.pixWidth - 1)
+        endYBmode = min(self.minYBmode + self.yLenBmode, self.spectralData.pixDepth - 1)
         self.imData = np.require(
-            flippedArray[self.minYBmode : endYBmode, self.minXBmode : endXBmode],
+            self.spectralData.finalBmode[self.minYBmode : endYBmode, self.minXBmode : endXBmode],
             np.uint8,
             "C",
         )
@@ -326,14 +352,14 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.maskCoverImg = np.zeros((self.yLen, self.xLen, 4))
         self.maskCoverMesh = np.zeros((self.yLenBmode, self.xLenBmode, 4))
 
-        for i in range(len(self.AnalysisInfo.finalSplineX)):
+        for i in range(len(self.spectralData.splineX)):
             self.maskCoverImg[
-                max(round(self.AnalysisInfo.finalSplineY[i] - self.minY - 1), 0) : max(
-                    round(self.AnalysisInfo.finalSplineY[i] - self.minY - 1), 0
+                max(round(self.spectralData.splineY[i] - self.minY - 1), 0) : max(
+                    round(self.spectralData.splineY[i] - self.minY - 1), 0
                 )
                 + 2,
-                max(round(self.AnalysisInfo.finalSplineX[i] - self.minX - 1), 0) : max(
-                    round(self.AnalysisInfo.finalSplineX[i] - self.minX - 1), 0
+                max(round(self.spectralData.splineX[i] - self.minX - 1), 0) : max(
+                    round(self.spectralData.splineX[i] - self.minX - 1), 0
                 )
                 + 2,
             ] = [255, 255, 0, 255]
@@ -357,7 +383,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             self.arWidth,
             self.arHeight,
             self.bytesLine,
-            QImage.Format_Grayscale8,
+            QImage.Format_RGB888,
         )
         self.previewFrame.setPixmap(
             QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale)
@@ -370,7 +396,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.latOverlapVal.valueChanged.connect(self.updateRoiSize)
 
     def backToLastScreen(self):
-        self.lastGui.AnalysisInfo.dataFrame = self.AnalysisInfo.dataFrame
+        self.lastGui.spectralData = self.spectralData
         self.lastGui.show()
         self.hide()
 
@@ -381,16 +407,14 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.phantomPathInput.setText(phantomName)
 
     def continueToRfAnalysis(self):
-        self.AnalysisInfo.axialWinSize = self.axWinSizeVal.value()
-        self.AnalysisInfo.lateralWinSize = self.latWinSizeVal.value()
-        self.AnalysisInfo.axialOverlap = self.axOverlapVal.value() / 100
-        self.AnalysisInfo.lateralOverlap = self.latOverlapVal.value() / 100
-        self.AnalysisInfo.threshold = self.windowThresholdVal.value()
-        self.AnalysisInfo.minFrequency = self.minFreqVal.value() * 1000000  # Hz
-        self.AnalysisInfo.maxFrequency = self.maxFreqVal.value() * 1000000  # Hz
-        self.AnalysisInfo.samplingFreq = self.samplingFreqVal.value() * 1000000  # Hz
-        self.AnalysisInfo.lowBandFreq = self.lowBandFreqVal.value() * 1000000  # Hz
-        self.AnalysisInfo.upBandFreq = self.upBandFreqVal.value() * 1000000  # Hz
+        self.spectralData.axWinSize = self.axWinSizeVal.value()
+        self.spectralData.latWinSize = self.latWinSizeVal.value()
+        self.spectralData.axOverlap = self.axOverlapVal.value() / 100
+        self.spectralData.latOverlap = self.latOverlapVal.value() / 100
+        self.spectralData.roiWindowThreshold = self.windowThresholdVal.value()
+        self.spectralData.transducerFreqBand = [self.minFreqVal.value() * 1000000, self.maxFreqVal.value() * 1000000] # Hz
+        self.spectralData.samplingFrequency = self.samplingFreqVal.value() * 1000000  # Hz
+        self.spectralData.analysisFreqBand = [self.lowBandFreqVal.value() * 1000000, self.upBandFreqVal.value() * 1000000] # Hz
 
         del self.rfAnalysisGUI
         self.rfAnalysisGUI = RfAnalysisGUI()
@@ -417,7 +441,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             self.imagePathInput.text().split("/")[-1],
             self.phantomPathInput.text().split("/")[-1],
         )
-        self.rfAnalysisGUI.displayROIWindows()
+        self.rfAnalysisGUI.completeSpectralAnalysis()
         self.rfAnalysisGUI.show()
         self.rfAnalysisGUI.lastGui = self
         self.hide()

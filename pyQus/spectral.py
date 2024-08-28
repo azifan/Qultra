@@ -9,14 +9,25 @@ from pyQus.transforms import computePowerSpec, spectralAnalysisDefault6db
 
 class SpectralAnalysis:
     def __init__(self):
-        self.ultrasoundImage: UltrasoundImage = None
-        self.config: Config = None
+        self.ultrasoundImage: UltrasoundImage
+        self.config: Config
         self.roiWindows: List[Window] = []
+        self.waveLength: float
 
-        self.scSplineX: List[float]  = None # pix
-        self.splineX: List[float] = None # pix
-        self.scSplineY: List[float] = None # pix
-        self.splineY: List[float] = None # pix
+        self.scSplineX: List[float] = [] # pix
+        self.splineX: List[float] = [] # pix
+        self.scSplineY: List[float] = [] # pix
+        self.splineY: List[float] = [] # pix
+
+    def initAnalysisConfig(self):
+        speedOfSoundInTissue = 1540  # m/s
+        self.waveLength = (
+            speedOfSoundInTissue / self.ImDisplayInfo.centerFrequency
+        ) * 1000  # mm
+        self.config.axWinSize = 10 * self.waveLength
+        self.config.latWinSize = 10 * self.waveLength
+        self.config.axialOverlap = 0.5; self.config.lateralOverlap = 0.5
+        self.config.windowThresh = 0.95
 
     def splineToPreSc(self):
         self.splineX = [self.ultrasoundImage.xmap[int(y), int(x)] for x, y in zip(self.scSplineX, self.scSplineY)]

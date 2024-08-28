@@ -144,10 +144,11 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
 
         self.welcomeGui = None
         self.roiSelectionGUI = None
-        self.dataFrame = None
         self.machine = None
         self.fileExts = None
-        self.spectralData = None
+
+        self.spectralData = SpectralData()
+        self.spectralData.dataFrame = None
 
         self.terasonButton.clicked.connect(self.terasonClicked)
         self.philipsButton.clicked.connect(self.philipsClicked)
@@ -162,7 +163,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.backButton.clicked.connect(self.backToWelcomeScreen)
 
     def backToWelcomeScreen(self):
-        self.welcomeGui.utc2dIqData = self.dataFrame
+        self.welcomeGui.utc2dIqData = self.spectralData.dataFrame
         self.welcomeGui.show()
         self.hide()
 
@@ -206,20 +207,17 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
                     )
                 else:
                     self.openPhilipsImage()
-                    self.roiSelectionGUI.machine = self.machine
-                    self.roiSelectionGUI.dataFrame = self.dataFrame
+                    self.roiSelectionGUI.spectralData = self.spectralData
                     return
             elif self.machine == "Siemens":
                 self.openSiemensImage()
-                self.roiSelectionGUI.machine = self.machine
-                self.roiSelectionGUI.dataFrame = self.dataFrame
+                self.roiSelectionGUI.spectralData = self.spectralData
                 return
             else:
                 print("ERROR: Machine match not found")
                 return
             self.roiSelectionGUI.show()
-            self.roiSelectionGUI.machine = self.machine
-            self.roiSelectionGUI.dataFrame = self.dataFrame
+            self.roiSelectionGUI.spectralData = self.spectralData
             self.roiSelectionGUI.lastGui = self
             self.selectImageErrorMsg.setHidden(True)
             self.hide()

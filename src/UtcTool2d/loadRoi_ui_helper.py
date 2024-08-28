@@ -3,13 +3,14 @@ import csv
 import pickle
 
 from PyQt5.QtWidgets import QWidget, QFileDialog
-from UtcTool2d.loadRoi_ui import Ui_loadRoi
+from src.UtcTool2d.loadRoi_ui import Ui_loadRoi
+from src.UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
 
 class LoadRoiGUI(Ui_loadRoi, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.chooseRoiGUI = None
+        self.chooseRoiGUI: RoiSelectionGUI
 
         self.chooseFileButton.clicked.connect(self.chooseFile)
         self.clearFileButton.clicked.connect(self.clearFile)

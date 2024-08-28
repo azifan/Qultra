@@ -1,19 +1,22 @@
 import os
+import platform
+
 import numpy as np
 from PIL import Image, ImageEnhance
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib
 import scipy.interpolate as interpolate
-from matplotlib.widgets import RectangleSelector
+from matplotlib.widgets import RectangleSelector, Cursor
 import matplotlib.patches as patches
 
 from PyQt5.QtWidgets import QWidget, QHBoxLayout
 from PyQt5.QtGui import QImage
 
-import platform
+from pyQus.analysisObjects import UltrasoundImage, Config
+from pyQus.spectral import SpectralAnalysis
 
-from pyQus.analysisObjects import UltrasoundImage
+from src.DataLayer.spectral import SpectralData
+from src.DataLayer.dataObjects import ScConfig
 import src.Parsers.verasonicsMatParser as vera
 import src.Parsers.canonBinParser as canon
 import src.Parsers.terasonRfParser as tera
@@ -22,7 +25,7 @@ from src.Parsers.philipsRfParser import main_parser_stanford as philipsRfParser
 from src.UtcTool2d.roiSelection_ui import Ui_constructRoi
 from src.UtcTool2d.editImageDisplay_ui_helper import EditImageDisplayGUI
 from src.UtcTool2d.analysisParamsSelection_ui_helper import AnalysisParamsGUI
-from src.UtcTool2d.rfAnalysis_ui_helper import AnalysisInfo
+from src.UtcTool2d.selectImage_ui_helper import SelectImageGUI_UtcTool2dIQ
 from src.UtcTool2d.loadRoi_ui_helper import LoadRoiGUI
 from src.Utils.roiFuncs import computeSpecWindowsIQ, computeSpecWindowsRF
 
@@ -32,8 +35,8 @@ system = platform.system()
 
 class ImDisplayInfo:
     def __init__(self):
-        self.numSamplesDrOut = None
-        self.centerFrequency = None
+        self.numSamplesDrOut: int
+        self.centerFrequency: int
         self.minFrequency = None
         self.maxFrequency = None
         self.samplingFrequency = None
@@ -152,7 +155,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
         self.ImDisplayInfo = ImDisplayInfo()
         self.RefDisplayInfo = ImDisplayInfo()
-        self.AnalysisInfo = AnalysisInfo()
 
         self.loadRoiGUI = LoadRoiGUI()
         self.pointsPlottedX = []
@@ -176,14 +178,11 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.analysisParamsGUI = AnalysisParamsGUI()
 
         self.scatteredPoints = []
-        self.dataFrame = None
-        self.lastGui = None
-        self.imPixDepth = None
-        self.imPixWidth = None
-        self.finalSplineX = []
-        self.finalSplineY = []
+        self.spectralData: SpectralData
+        self.ultrasoundImage: UltrasoundImage
+        self.lastGui: SelectImageGUI_UtcTool2dIQ
 
-        self.crosshairCursor = matplotlib.widgets.Cursor(
+        self.crosshairCursor = Cursor(
             self.ax, color="gold", linewidth=0.4, useblit=True
         )
         self.selector = RectangleSelector(
@@ -219,7 +218,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.newRoiButton.setHidden(False)
         self.drawRectangleButton.setHidden(False)
 
-        self.AnalysisInfo.rectCoords = []
+        self.spectralData.rectCoords = []
         self.undoLastRoi()
 
     def openLoadRoiWindow(self):
@@ -257,7 +256,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.physicalRectWidthVal.setText("0")
         self.userDrawRectangleButton.setChecked(False)
         self.undoLastRoi()
-        self.AnalysisInfo.rectCoords = []
+        self.spectralData.rectCoords = []
         self.selector.set_active(False)
         if len(self.ax.patches) > 0:
             self.ax.patches.pop()
@@ -287,7 +286,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.physicalRectWidthVal.setHidden(False)
 
     def backToWelcomeScreen(self):
-        self.lastGui.dataFrame = self.dataFrame
+        self.lastGui.spectralData = self.spectralData
         self.lastGui.show()
         self.hide()
 
@@ -323,10 +322,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
     def plotOnCanvas(self):  # Plot current image on GUI
         self.ax.clear()
-        im = plt.imread(os.path.join("Junk", "bModeIm.png"))
-        self.imPixDepth = im.shape[0]
-        self.imPixWidth = im.shape[1]
-        self.ax.imshow(im, cmap="Greys_r")
+        self.ax.imshow(self.spectralData.finalBmode, cmap="Greys_r")
         plt.gcf().set_facecolor((0, 0, 0, 0))
 
         try:
@@ -347,8 +343,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         except (AttributeError, UnboundLocalError):
             pass
 
-        if len(self.finalSplineX):
-            self.spline = self.ax.plot(self.finalSplineX, self.finalSplineY, 
+        if len(self.spectralData.splineX):
+            self.spline = self.ax.plot(self.spectralData.splineX, self.spectralData.splineY, 
                                        color="cyan", zorder=1, linewidth=0.75)
         elif len(self.pointsPlottedX) > 0:
             self.scatteredPoints.append(
@@ -379,6 +375,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def openImageVerasonics(
         self, imageFilePath, phantomFilePath
     ):  # Open initial image given data and phantom files previously inputted
+        raise NotImplementedError("Not updated with refactor")
         tmpLocation = imageFilePath.split("/")
         dataFileName = tmpLocation[-1]
         dataFileLocation = imageFilePath[: len(imageFilePath) - len(dataFileName)]
@@ -416,14 +413,26 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             dataFileName, dataFileLocation, phantFileName, phantFileLocation
         )
 
-        # Assumes scan conversion
-        imArray = imgDataStruct.scBmode
-        self.AnalysisInfo.computeSpecWindows = computeSpecWindowsIQ
+        scConfig = ScConfig()
+        scConfig.width = imgInfoStruct.width1
+        scConfig.tilt = imgInfoStruct.tilt1
+        scConfig.startDepth = imgInfoStruct.startDepth1
+        scConfig.endDepth = imgInfoStruct.endDepth1
+        scConfig.numSamplesDrOut = imgInfoStruct.numSamplesDrOut
+        self.spectralData.scConfig = scConfig
+
+        self.ultrasoundImage = UltrasoundImage()
+        self.ultrasoundImage.bmode = imgDataStruct.scBmodeStruct.preScArr
+        self.ultrasoundImage.scBmode = imgDataStruct.scBmodeStruct.scArr
+        self.ultrasoundImage.xmap = imgDataStruct.scBmodeStruct.xmap
+        self.ultrasoundImage.ymap = imgDataStruct.scBmodeStruct.ymap
+
         self.processImage(
-            imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
+            imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
         )
 
     def openPhilipsImage(self, imageFilePath, phantomFilePath):
+        raise NotImplementedError("Not updated with refactor")
         tmpLocation = imageFilePath.split("/")
         dataFileName = tmpLocation[-1]
         dataFileLocation = imageFilePath[:len(imageFilePath)-len(dataFileName)]
@@ -466,6 +475,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         )    
 
     def openImageTerason(self, imageFilePath, phantomFilePath):
+        raise NotImplementedError("Not updated with refactor")
         imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = tera.getImage(
             imageFilePath, phantomFilePath
         )
@@ -478,93 +488,59 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         )
 
     def processImage(
-        self, imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
+        self, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
     ):
-        ultrasoundImage = UltrasoundImage()
-        ultrasoundImage.axialResRf = imgInfoStruct.depth / imgDataStruct.rf.shape[0]
-        ultrasoundImage.lateralResRf = ultrasoundImage.axialResRf * (
+        self.ultrasoundImage.axialResRf = imgInfoStruct.depth / imgDataStruct.rf.shape[0]
+        self.ultrasoundImage.lateralResRf = self.ultrasoundImage.axialResRf * (
             imgDataStruct.rf.shape[0]/imgDataStruct.rf.shape[1]
         ) # placeholder
-        ultrasoundImage.bmode = imgDataStruct.scBmodeStruct.preScArr
-        ultrasoundImage.phantomRf = refDataStruct.rf
-        ultrasoundImage.rf = imgDataStruct.rf
-        ultrasoundImage.scBmode = imgDataStruct.scBmode
-        ultrasoundImage.xmap = imgDataStruct.scBmodeStruct.xmap
-        ultrasoundImage.ymap = imgDataStruct.scBmodeStruct.ymap
+        self.ultrasoundImage.rf = imgDataStruct.rf
+        self.ultrasoundImage.phantomRf = refDataStruct.rf
+
+        analysisConfig = Config()
+        analysisConfig.analysisFreqBand = [imgInfoStruct.lowBandFreq, imgInfoStruct.upBandFreq]
+        analysisConfig.transducerFreqBand = [imgInfoStruct.minFrequency, imgInfoStruct.maxFrequency]
+        analysisConfig.samplingFrequency = imgInfoStruct.samplingFrequency
+        analysisConfig.centerFrequency = imgInfoStruct.centerFrequency
+
+        spectralAnalysis = SpectralAnalysis()
+        spectralAnalysis.ultrasoundImage = self.ultrasoundImage
+        spectralAnalysis.config = analysisConfig
+
+        self.spectralData.spectralAnalysis = spectralAnalysis
+        self.spectralData.depth = imgInfoStruct.depth
+        self.spectralData.width = imgInfoStruct.width
         
-        if self.AnalysisInfo.computeSpecWindows is None: # currently means we're using Siemens RF data
-            self.AnalysisInfo.computeSpecWindows = computeSpecWindowsRF
-
-        self.ImDisplayInfo.depth = imgInfoStruct.depth
-        self.ImDisplayInfo.width = imgInfoStruct.width
-        try:
-            self.ImDisplayInfo.numSamplesDrOut = imgInfoStruct.numSamplesDrOut
-            self.RefDisplayInfo.numSamplesDrOut = refInfoStruct.numSamplesDrOut
-        except (AttributeError, UnboundLocalError):
-            self.ImDisplayInfo.numSamplesDrOut = -1
-            self.RefDisplayInfo.numSamplesDrOut = -1
-        self.ImDisplayInfo.centerFrequency = imgInfoStruct.centerFrequency
-        self.ImDisplayInfo.minFrequency = imgInfoStruct.minFrequency
-        self.ImDisplayInfo.maxFrequency = imgInfoStruct.maxFrequency
-        self.ImDisplayInfo.samplingFrequency = imgInfoStruct.samplingFrequency
-        self.AnalysisInfo.pixDepth = imArray.shape[0]
-        self.AnalysisInfo.pixWidth = imArray.shape[1]
-
-        self.RefDisplayInfo.depth = refInfoStruct.depth
-        self.RefDisplayInfo.width = refInfoStruct.width
-        self.RefDisplayInfo.centerFrequency = refInfoStruct.centerFrequency
-        self.RefDisplayInfo.minFrequency = refInfoStruct.minFrequency
-        self.RefDisplayInfo.maxFrequency = refInfoStruct.maxFrequency
-        self.RefDisplayInfo.samplingFrequency = refInfoStruct.samplingFrequency
-
-        imData = np.array(imArray).reshape(
-            self.AnalysisInfo.pixDepth, self.AnalysisInfo.pixWidth
-        )
-        imData = np.flipud(imData)  # flipud
-        imData = np.require(imData, np.uint8, "C")
-
-        self.AnalysisInfo.axialRes = imgInfoStruct.axialRes
-        self.AnalysisInfo.lateralRes = imgInfoStruct.lateralRes
-        self.AnalysisInfo.imArray = imData
-        self.AnalysisInfo.lowBandFreq = imgInfoStruct.lowBandFreq
-        self.AnalysisInfo.upBandFreq = imgInfoStruct.upBandFreq
-        self.AnalysisInfo.imRawData = imgDataStruct.rf
-        self.AnalysisInfo.phantomRawData = refDataStruct.rf
-        try:
-            self.AnalysisInfo.scImRawData = imgDataStruct.scRF
-            self.AnalysisInfo.scPhantomRawData = imgDataStruct.scRF
-        except (AttributeError, UnboundLocalError):
-            pass
+        self.spectralData.convertImagesToRGB()
 
         self.displayInitialImage()
 
     def displayInitialImage(self):
         # Display images correctly
-        quotient = self.ImDisplayInfo.width / self.ImDisplayInfo.depth
+        quotient = self.spectralData.width / self.spectralData.depth
         if quotient > (721 / 501):
-            self.AnalysisInfo.roiWidthScale = 721
-            self.AnalysisInfo.roiDepthScale = int(self.AnalysisInfo.roiWidthScale / (
-                self.ImDisplayInfo.width / self.ImDisplayInfo.depth
+            self.spectralData.roiWidthScale = 721
+            self.spectralData.roiDepthScale = int(self.spectralData.roiWidthScale / (
+                self.spectralData.width / self.spectralData.depth
             ))
         else:
-            self.AnalysisInfo.roiWidthScale = int(501 * quotient)
-            self.AnalysisInfo.roiDepthScale = 501
+            self.spectralData.roiWidthScale = int(501 * quotient)
+            self.spectralData.roiDepthScale = 501
         self.maskCoverImg = np.zeros(
             [501, 721, 4]
         )  # Hard-coded values match size of frame on GUI
-        self.yBorderMin = 190 + ((501 - self.AnalysisInfo.roiDepthScale) / 2)
-        self.yBorderMax = 671 - ((501 - self.AnalysisInfo.roiDepthScale) / 2)
-        self.xBorderMin = 400 + ((721 - self.AnalysisInfo.roiWidthScale) / 2)
-        self.xBorderMax = 1121 - ((721 - self.AnalysisInfo.roiWidthScale) / 2)
+        self.yBorderMin = 190 + ((501 - self.spectralData.roiDepthScale) / 2)
+        self.yBorderMax = 671 - ((501 - self.spectralData.roiDepthScale) / 2)
+        self.xBorderMin = 400 + ((721 - self.spectralData.roiWidthScale) / 2)
+        self.xBorderMax = 1121 - ((721 - self.spectralData.roiWidthScale) / 2)
 
-        self.bytesLine = self.AnalysisInfo.imArray.strides[0]
         self.qIm = QImage(
-            self.AnalysisInfo.imArray,
-            self.AnalysisInfo.pixWidth,
-            self.AnalysisInfo.pixDepth,
-            self.bytesLine,
-            QImage.Format_Grayscale8,
-        ).scaled(self.AnalysisInfo.roiWidthScale, self.AnalysisInfo.roiDepthScale)
+            self.spectralData.finalBmode,
+            self.spectralData.finalBmode.shape[1],
+            self.spectralData.finalBmode.shape[0],
+            self.spectralData.finalBmode.strides[0],
+            QImage.Format_RGB888,
+        ).scaled(self.spectralData.roiWidthScale, self.spectralData.roiDepthScale)
 
         self.qIm.mirrored().save(
             os.path.join("Junk", "bModeImRaw.png")
@@ -574,67 +550,16 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.editImageDisplayGUI.brightnessVal.setValue(0.75)
         self.editImageDisplayGUI.sharpnessVal.setValue(3)
 
-        speedOfSoundInTissue = 1540  # m/s
-        self.waveLength = (
-            speedOfSoundInTissue / self.ImDisplayInfo.centerFrequency
-        ) * 1000  # mm
-        self.analysisParamsGUI.axWinSizeVal.setMinimum(
-            2 * self.waveLength
-        )  # should be at least 10 times wavelength, must be at least 2 times
-        self.analysisParamsGUI.latWinSizeVal.setMinimum(
-            2 * self.waveLength
-        )  # should be at least 10 times wavelength, must be at least 2 times
+        self.spectralData.spectralAnalysis.initAnalysisConfig()
 
-        if self.AnalysisInfo.axialWinSize is not None: # pre-loaded with ROI
-            print("Previously saved analysis params auto-populated") #TODO: add message to UI
-            self.analysisParamsGUI.axWinSizeVal.setValue(self.AnalysisInfo.axialWinSize)
-            self.analysisParamsGUI.latWinSizeVal.setValue(self.AnalysisInfo.lateralWinSize)
-            self.analysisParamsGUI.axOverlapVal.setValue(self.AnalysisInfo.axialOverlap*100)
-            self.analysisParamsGUI.latOverlapVal.setValue(self.AnalysisInfo.lateralOverlap*100)
-            self.analysisParamsGUI.windowThresholdVal.setValue(self.AnalysisInfo.threshold)
-            self.analysisParamsGUI.minFreqVal.setValue(self.AnalysisInfo.minFrequency/1000000)
-            self.analysisParamsGUI.maxFreqVal.setValue(self.AnalysisInfo.maxFrequency/1000000)
-            self.analysisParamsGUI.lowBandFreqVal.setValue(self.AnalysisInfo.lowBandFreq/1000000)
-            self.analysisParamsGUI.upBandFreqVal.setValue(self.AnalysisInfo.upBandFreq/1000000)
-            self.analysisParamsGUI.samplingFreqVal.setValue(self.AnalysisInfo.samplingFreq/1000000)
-
-        else:
-            self.analysisParamsGUI.axWinSizeVal.setValue(10 * self.waveLength)
-            self.analysisParamsGUI.latWinSizeVal.setValue(10 * self.waveLength)
-
-            self.analysisParamsGUI.axOverlapVal.setValue(50)
-            self.analysisParamsGUI.latOverlapVal.setValue(50)
-            self.analysisParamsGUI.windowThresholdVal.setValue(95)
-            self.analysisParamsGUI.minFreqVal.setValue(
-                np.round(self.ImDisplayInfo.minFrequency / 1000000, decimals=2)
-            )
-            self.analysisParamsGUI.maxFreqVal.setValue(
-                np.round(self.ImDisplayInfo.maxFrequency / 1000000, decimals=2)
-            )
-            self.analysisParamsGUI.lowBandFreqVal.setValue(
-                np.round(self.AnalysisInfo.lowBandFreq / 1000000, decimals=2)
-            )
-            self.analysisParamsGUI.upBandFreqVal.setValue(
-                np.round(self.AnalysisInfo.upBandFreq / 1000000, decimals=2)
-            )
-            self.analysisParamsGUI.samplingFreqVal.setValue(
-                np.round(self.ImDisplayInfo.samplingFrequency / 1000000, decimals=2)
-            )
-
-        self.analysisParamsGUI.imageDepthVal.setText(
-            str(np.round(self.ImDisplayInfo.depth, decimals=1))
-        )
-        self.analysisParamsGUI.imageWidthVal.setText(
-            str(np.round(self.ImDisplayInfo.width, decimals=1))
-        )
         self.physicalDepthVal.setText(
-            str(np.round(self.ImDisplayInfo.depth, decimals=2))
+            str(np.round(self.spectralData.depth, decimals=2))
         )
         self.physicalWidthVal.setText(
-            str(np.round(self.ImDisplayInfo.width, decimals=2))
+            str(np.round(self.spectralData.width, decimals=2))
         )
-        self.pixelWidthVal.setText(str(self.AnalysisInfo.pixWidth))
-        self.pixelDepthVal.setText(str(self.AnalysisInfo.pixDepth))
+        self.pixelWidthVal.setText(str(self.spectralData.finalBmode.shape[1]))
+        self.pixelDepthVal.setText(str(self.spectralData.finalBmode.shape[0]))
 
         self.cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
         enhancer = ImageEnhance.Contrast(self.cvIm)
@@ -644,7 +569,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         imOutput = bright.enhance(self.editImageDisplayGUI.brightnessVal.value())
         sharp = ImageEnhance.Sharpness(imOutput)
         imOutput = sharp.enhance(self.editImageDisplayGUI.sharpnessVal.value())
-        imOutput.save(os.path.join("Junk", "bModeIm.png"))
+        self.spectralData.finalBmode = np.array(imOutput)
 
         self.plotOnCanvas()
 
@@ -682,12 +607,12 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 oldSpline = self.spline.pop(0)
                 oldSpline.remove()
                 if len(self.pointsPlottedX) > 1:
-                    self.finalSplineX, self.finalSplineY = calculateSpline(
+                    self.spectralData.splineX, self.spectralData.splineY = calculateSpline(
                         self.pointsPlottedX, self.pointsPlottedY
                     )
                     self.spline = self.ax.plot(
-                        self.finalSplineX,
-                        self.finalSplineY,
+                        self.spectralData.splineX,
+                        self.spectralData.splineY,
                         color="cyan",
                         linewidth=0.75,
                     )
@@ -698,24 +623,23 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def closeInterpolation(self):  # Finish drawing ROI
         if len(self.pointsPlottedX) > 2:
             self.ax.clear()
-            im = plt.imread(os.path.join("Junk", "bModeIm.png"))
-            self.ax.imshow(im, cmap="Greys_r")
+            self.ax.imshow(self.spectralData.finalBmode, cmap="Greys_r")
             if self.pointsPlottedX[0] != self.pointsPlottedX[-1] and self.pointsPlottedY[0] != self.pointsPlottedY[-1]:
                 self.pointsPlottedX.append(self.pointsPlottedX[0])
                 self.pointsPlottedY.append(self.pointsPlottedY[0])
-            self.finalSplineX, self.finalSplineY = calculateSpline(
+            self.spectralData.splineX, self.spectralData.splineY = calculateSpline(
                 self.pointsPlottedX, self.pointsPlottedY
             )
-            self.finalSplineX = np.clip(self.finalSplineX, a_min=0, a_max=self.imPixWidth-1)
-            self.finalSplineY = np.clip(self.finalSplineY, a_min=0, a_max=self.imPixDepth-1)
+            self.spectralData.splineX = np.clip(self.spectralData.splineX, a_min=0, a_max=self.spectralData.pixDepth-1)
+            self.spectralData.splineY = np.clip(self.spectralData.splineY, a_min=0, a_max=self.spectralData.pixDepth-1)
 
             try:
-                if self.ImDisplayInfo.numSamplesDrOut == 1400:
-                    self.finalSplineX = np.clip(self.finalSplineX, a_min=148, a_max=573)
-                    self.finalSplineY = np.clip(self.finalSplineY, a_min=0.5, a_max=387)
-                elif self.ImDisplayInfo.numSamplesDrOut == 1496:
-                    self.finalSplineX = np.clip(self.finalSplineX, a_min=120, a_max=615)
-                    self.finalSplineY = np.clip(self.finalSplineY, a_min=0.5, a_max=645)
+                if self.spectralData.numSamplesDrOut == 1400:
+                    self.spectralData.splineX = np.clip(self.spectralData.splineX, a_min=148, a_max=573)
+                    self.spectralData.splineY = np.clip(self.spectralData.splineY, a_min=0.5, a_max=387)
+                elif self.spectralData.numSamplesDrOut == 1496:
+                    self.spectralData.splineX = np.clip(self.spectralData.splineX, a_min=120, a_max=615)
+                    self.spectralData.splineY = np.clip(self.spectralData.splineY, a_min=0.5, a_max=645)
                 # elif self.ImDisplayInfo.numSamplesDrOut != -1:
                 #     print("Preset not found!")
                 #     return
@@ -723,7 +647,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 pass
 
             self.ax.plot(
-                self.finalSplineX, self.finalSplineY, color="cyan", linewidth=0.75
+                self.spectralData.splineX, self.spectralData.splineY, color="cyan", linewidth=0.75
             )
             try:
                 (image,) = self.ax.plot(
@@ -778,8 +702,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def undoLastRoi(
         self,
     ):  # Remove previously drawn roi and prepare user to draw a new one
-        self.finalSplineX = []
-        self.finalSplineY = []
+        self.spectralData.splineX = []
+        self.spectralData.splineY = []
         self.pointsPlottedX = []
         self.pointsPlottedY = []
         self.drawRoiButton.setChecked(False)
@@ -799,7 +723,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         imOutput = brightness.enhance(self.editImageDisplayGUI.brightnessVal.value())
         sharpness = ImageEnhance.Sharpness(imOutput)
         imOutput = sharpness.enhance(self.editImageDisplayGUI.sharpnessVal.value())
-        imOutput.save(os.path.join("Junk", "bModeIm.png"))
+        self.spectralData.finalBmode = np.array(imOutput)
         self.plotOnCanvas()
 
     def clearRect(self, event):
@@ -811,7 +735,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self, event
     ):  # Update ROI being drawn using spline using 2D interpolation
         try:
-            if self.ImDisplayInfo.numSamplesDrOut == 1400:
+            if self.spectralData.numSamplesDrOut == 1400:
                 # Preset 1 boundaries for 20220831121844_IQ.bin
                 leftSlope = (500 - 0) / (154.22 - 148.76)
                 pointSlopeLeft = (event.ydata - 0) / (event.xdata - 148.76)
@@ -823,7 +747,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 rightSlope = (500 - 0) / (509.967 - 572.47)
                 pointSlopeRight = (event.ydata - 0) / (event.xdata - 572.47)
 
-            elif self.ImDisplayInfo.numSamplesDrOut == 1496:
+            elif self.spectralData.numSamplesDrOut == 1496:
                 # Preset 2 boundaries for 20220831121752_IQ.bin
                 leftSlope = (500 - 0) / (120.79 - 146.9)
                 pointSlopeLeft = (event.ydata - 0) / (event.xdata - 146.9)
@@ -859,8 +783,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 oldSpline.remove()
 
             xSpline, ySpline = calculateSpline(self.pointsPlottedX, self.pointsPlottedY)
-            xSpline = np.clip(xSpline, a_min=0, a_max=self.imPixWidth-1)
-            ySpline = np.clip(ySpline, a_min=0, a_max=self.imPixDepth-1)
+            xSpline = np.clip(xSpline, a_min=0, a_max=self.spectralData.pixWidth-1)
+            ySpline = np.clip(ySpline, a_min=0, a_max=self.spectralData.pixDepth-1)
             self.spline = self.ax.plot(
                 xSpline, ySpline, color="cyan", zorder=1, linewidth=0.75
             )
@@ -882,7 +806,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
     def drawRect(self, event1, event2):
         try:
-            if self.ImDisplayInfo.numSamplesDrOut == 1400:
+            if self.spectralData.numSamplesDrOut == 1400:
                 # Preset 1 boundaries for 20220831121844_IQ.bin
                 leftSlope = (500 - 0) / (154.22 - 148.76)
                 pointSlopeLeft = (event1.ydata - 0) / (event1.xdata - 148.76)
@@ -907,7 +831,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
                     return
 
-            elif self.ImDisplayInfo.numSamplesDrOut == 1496:
+            elif self.spectralData.numSamplesDrOut == 1496:
                 # Preset 2 boundaries for 20220831121752_IQ.bin
                 leftSlope = (500 - 0) / (120.79 - 146.9)
                 pointSlopeLeft = (event1.ydata - 0) / (event1.xdata - 146.9)
@@ -939,7 +863,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         except (AttributeError, UnboundLocalError):
             pass
 
-        self.AnalysisInfo.rectCoords = [
+        self.spectralData.rectCoords = [
             int(event1.xdata),
             int(event1.ydata),
             int(event2.xdata),
@@ -948,8 +872,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.plotPatch()
 
     def plotPatch(self):
-        if len(self.AnalysisInfo.rectCoords) > 0:
-            left, bottom, right, top = self.AnalysisInfo.rectCoords
+        if len(self.spectralData.rectCoords) > 0:
+            left, bottom, right, top = self.spectralData.rectCoords
             rect = patches.Rectangle(
                 (left, bottom),
                 (right - left),
@@ -963,16 +887,16 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
             self.ax.add_patch(rect)
 
-            xScale = self.AnalysisInfo.roiWidthScale / (self.AnalysisInfo.pixWidth)
+            xScale = self.spectralData.roiWidthScale / (self.spectralData.finalBmode.shape[1])
             mplPixWidth = abs(right - left)
             imPixWidth = mplPixWidth / xScale
-            mmWidth = self.AnalysisInfo.lateralRes * imPixWidth  # (mm/pixel)*pixels
+            mmWidth = self.spectralData.lateralRes * imPixWidth  # (mm/pixel)*pixels
             self.physicalRectWidthVal.setText(str(np.round(mmWidth, decimals=2)))
 
-            yScale = self.AnalysisInfo.roiDepthScale / (self.AnalysisInfo.pixDepth)
+            yScale = self.spectralData.roiDepthScale / (self.spectralData.finalBmode.shape[0])
             mplPixHeight = abs(top - bottom)
             imPixHeight = mplPixHeight / yScale
-            mmHeight = self.AnalysisInfo.axialRes * imPixHeight  # (mm/pixel)*pixels
+            mmHeight = self.spectralData.axialRes * imPixHeight  # (mm/pixel)*pixels
             self.physicalRectHeightVal.setText(str(np.round(mmHeight, decimals=2)))
 
             self.figure.subplots_adjust(
@@ -1000,10 +924,10 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 + list(np.ones(width).astype(int) * (bottom + height - 1))
                 + list(range(bottom + height - 1, bottom - 1, -1))
             )
-            self.finalSplineX = np.array(
+            self.spectralData.splineX = np.array(
                 self.pointsPlottedX
             )  # Image boundaries already addressed at plotting phase
-            self.finalSplineY = np.array(
+            self.spectralData.splineY = np.array(
                 self.pointsPlottedY
             )  # Image boundaries already addressed at plotting phase
             self.acceptROI()
@@ -1013,25 +937,13 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             len(self.pointsPlottedX) > 1
             and self.pointsPlottedX[0] == self.pointsPlottedX[-1]
         ):
-            self.AnalysisInfo.finalSplineX = self.finalSplineX
-            self.AnalysisInfo.finalSplineY = self.finalSplineY
-            self.AnalysisInfo.pointsPlottedX = self.pointsPlottedX
-            self.AnalysisInfo.pointsPlottedY = self.pointsPlottedY
-            self.AnalysisInfo.dataFrame = self.dataFrame
-            self.AnalysisInfo.ImDisplayInfo = self.ImDisplayInfo
-            self.AnalysisInfo.RefDisplayInfo = self.RefDisplayInfo
-            self.AnalysisInfo.imName = self.imagePathInput.text()
-            self.AnalysisInfo.phantomName = self.phantomPathInput.text()
-
-            self.analysisParamsGUI.AnalysisInfo = (
-                self.AnalysisInfo
-            )  # Pass all image info to next layer
+            self.analysisParamsGUI.spectralData = self.spectralData
+            self.analysisParamsGUI.initParams()
             self.analysisParamsGUI.lastGui = self
             self.analysisParamsGUI.setFilenameDisplays(
-                self.imagePathInput.text().split("/")[-1],
-                self.phantomPathInput.text().split("/")[-1],
+                self.imagePathInput.text(),
+                self.phantomPathInput.text(),
             )
-            self.analysisParamsGUI.waveLength = self.waveLength
             self.analysisParamsGUI.plotRoiPreview()
             self.analysisParamsGUI.show()
             self.editImageDisplayGUI.hide()
