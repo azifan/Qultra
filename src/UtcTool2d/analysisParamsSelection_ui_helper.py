@@ -196,7 +196,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             }"""
             )
 
-        self.rfAnalysisGUI: RfAnalysisGUI
+        self.rfAnalysisGUI = RfAnalysisGUI()
         self.lastGui: RoiSelectionSection.RoiSelectionGUI
         self.spectralData: SpectralData
 
@@ -214,13 +214,13 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
 
         self.axWinSizeVal.setValue(self.spectralData.axWinSize)
         self.latWinSizeVal.setValue(self.spectralData.latWinSize)
-        self.axOverlapVal.setValue(self.spectralData.axOverlap*100)
-        self.latOverlapVal.setValue(self.spectralData.latOverlap*100)
-        self.windowThresholdVal.setValue(self.spectralData.roiWindowThreshold*100)
+        self.axOverlapVal.setValue(int(self.spectralData.axOverlap*100))
+        self.latOverlapVal.setValue(int(self.spectralData.latOverlap*100))
+        self.windowThresholdVal.setValue(int(self.spectralData.roiWindowThreshold*100))
         self.minFreqVal.setValue(self.spectralData.transducerFreqBand[0]/1000000)
         self.maxFreqVal.setValue(self.spectralData.transducerFreqBand[1]/1000000)
-        self.lowBandFreqVal.setValue(self.spectralData.analysisFreqBand/1000000)
-        self.upBandFreqVal.setValue(self.spectralData.analysisFreqBand/1000000)
+        self.lowBandFreqVal.setValue(self.spectralData.analysisFreqBand[0]/1000000)
+        self.upBandFreqVal.setValue(self.spectralData.analysisFreqBand[1]/1000000)
         self.samplingFreqVal.setValue(self.spectralData.samplingFrequency/1000000)
 
         self.imageDepthVal.setText(
@@ -411,32 +411,14 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.spectralData.latWinSize = self.latWinSizeVal.value()
         self.spectralData.axOverlap = self.axOverlapVal.value() / 100
         self.spectralData.latOverlap = self.latOverlapVal.value() / 100
-        self.spectralData.roiWindowThreshold = self.windowThresholdVal.value()
+        self.spectralData.roiWindowThreshold = self.windowThresholdVal.value() / 100
         self.spectralData.transducerFreqBand = [self.minFreqVal.value() * 1000000, self.maxFreqVal.value() * 1000000] # Hz
         self.spectralData.samplingFrequency = self.samplingFreqVal.value() * 1000000  # Hz
         self.spectralData.analysisFreqBand = [self.lowBandFreqVal.value() * 1000000, self.upBandFreqVal.value() * 1000000] # Hz
 
         del self.rfAnalysisGUI
         self.rfAnalysisGUI = RfAnalysisGUI()
-        self.rfAnalysisGUI.AnalysisInfo = self.AnalysisInfo
-        self.rfAnalysisGUI.editImageDisplayGUI.contrastVal.setValue(
-            self.lastGui.editImageDisplayGUI.contrastVal.value()
-        )
-        self.rfAnalysisGUI.editImageDisplayGUI.brightnessVal.setValue(
-            self.lastGui.editImageDisplayGUI.brightnessVal.value()
-        )
-        self.rfAnalysisGUI.editImageDisplayGUI.sharpnessVal.setValue(
-            self.lastGui.editImageDisplayGUI.sharpnessVal.value()
-        )
-        self.rfAnalysisGUI.editImageDisplayGUI.contrastVal.valueChanged.connect(
-            self.lastGui.analysisParamsGUI.rfAnalysisGUI.changeContrast
-        )
-        self.rfAnalysisGUI.editImageDisplayGUI.brightnessVal.valueChanged.connect(
-            self.rfAnalysisGUI.changeBrightness
-        )
-        self.rfAnalysisGUI.editImageDisplayGUI.sharpnessVal.valueChanged.connect(
-            self.rfAnalysisGUI.changeSharpness
-        )
+        self.rfAnalysisGUI.spectralData = self.spectralData
         self.rfAnalysisGUI.setFilenameDisplays(
             self.imagePathInput.text().split("/")[-1],
             self.phantomPathInput.text().split("/")[-1],

@@ -20,12 +20,12 @@ class SpectralData:
         self.roiDepthScale: int
         self.rectCoords: List[int]
         
-        self.mbfIm: np.ndarray
-        self.ssIm: np.ndarray
-        self.siIm: np.ndarray
-        self.scMbfIm: np.ndarray
-        self.scSsIm: np.ndarray
-        self.scSiIm: np.ndarray
+        self.mbfIm: np.ndarray | None = None
+        self.ssIm: np.ndarray | None = None
+        self.siIm: np.ndarray | None = None
+        self.scMbfIm: np.ndarray | None = None
+        self.scSsIm: np.ndarray | None = None
+        self.scSiIm: np.ndarray | None = None
 
         self.minMbf: float; self.maxMbf: float; self.mbfArr: List[float]
         self.minSs: float; self.maxSs: float; self.ssArr: List[float]
@@ -96,6 +96,10 @@ class SpectralData:
     def bmode(self):
         assert len(self.spectralAnalysis.ultrasoundImage.bmode.shape) == 3
         return self.spectralAnalysis.ultrasoundImage.bmode
+    
+    @bmode.setter
+    def bmode(self, value: np.ndarray):
+        self.spectralAnalysis.ultrasoundImage.bmode = value
     
     @property
     def scBmode(self):

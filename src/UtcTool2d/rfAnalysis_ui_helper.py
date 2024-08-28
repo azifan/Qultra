@@ -10,7 +10,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QWidget, QHBoxLayout
 
 from src.DataLayer.spectral import SpectralData
-from src.UtcTool2d.editImageDisplay_ui_helper import EditImageDisplayGUI
 from src.UtcTool2d.rfAnalysis_ui import Ui_rfAnalysis
 from src.UtcTool2d.exportData_ui_helper import ExportDataGUI
 from src.UtcTool2d.saveRoi_ui_helper import SaveRoiGUI
@@ -196,7 +195,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.newData = None
         self.saveRoiGUI = SaveRoiGUI()
         self.psGraphDisplay = PsGraphDisplay()
-        self.selectedImage: np.ndarray
+        self.selectedImage: np.ndarray | None = None
 
         self.indMbfVal.setText("")
         self.indSiVal.setText("")
@@ -210,9 +209,6 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.canvas = FigureCanvas(self.figure)
         self.horizontalLayout.addWidget(self.canvas)
 
-        self.editImageDisplayGUI = EditImageDisplayGUI()
-        self.editImageDisplayButton.clicked.connect(self.openImageEditor)
-
         self.chooseWindowButton.setCheckable(True)
         self.displayMbfButton.setCheckable(True)
         self.displaySiButton.setCheckable(True)
@@ -221,15 +217,6 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.displayMbfButton.clicked.connect(self.mbfChecked)
         self.displaySsButton.clicked.connect(self.ssChecked)
         self.displaySiButton.clicked.connect(self.siChecked)
-        self.chooseWindowButton.clicked.connect(self.chooseWindow)
-        self.editImageDisplayGUI.contrastVal.setValue(1)
-        self.editImageDisplayGUI.brightnessVal.setValue(1)
-        self.editImageDisplayGUI.sharpnessVal.setValue(1)
-        self.editImageDisplayGUI.contrastVal.valueChanged.connect(self.changeContrast)
-        self.editImageDisplayGUI.brightnessVal.valueChanged.connect(
-            self.changeBrightness
-        )
-        self.editImageDisplayGUI.sharpnessVal.valueChanged.connect(self.changeSharpness)
 
         # Prepare heatmap legend plot
         self.horizLayoutLeg = QHBoxLayout(self.legend)
@@ -246,6 +233,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.saveRoiButton.clicked.connect(self.saveRoi)
         self.displayNpsButton.clicked.connect(self.displayNps)
         self.displayNpsButton.setCheckable(True)
+        self.updateLegend("clear")
 
     def completeSpectralAnalysis(self):
         if self.spectralData.scConfig is not None:
@@ -300,30 +288,6 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.lastGui.show()
         self.hide()
 
-    def changeContrast(self):
-        self.editImageDisplayGUI.contrastValDisplay.setValue(
-            int(self.editImageDisplayGUI.contrastVal.value() * 10)
-        )
-        self.updateBModeSettings()
-
-    def changeBrightness(self):
-        self.editImageDisplayGUI.brightnessValDisplay.setValue(
-            int(self.editImageDisplayGUI.brightnessVal.value() * 10)
-        )
-        self.updateBModeSettings()
-
-    def changeSharpness(self):
-        self.editImageDisplayGUI.sharpnessValDisplay.setValue(
-            int(self.editImageDisplayGUI.sharpnessVal.value() * 10)
-        )
-        self.updateBModeSettings()
-
-    def openImageEditor(self):
-        if self.editImageDisplayGUI.isVisible():
-            self.editImageDisplayGUI.hide()
-        else:
-            self.editImageDisplayGUI.show()
-
     def setFilenameDisplays(self, imageName, phantomName):
         self.imagePathInput.setHidden(False)
         self.phantomPathInput.setHidden(False)
@@ -354,26 +318,6 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         plt.tick_params(bottom=False, left=False, labelbottom=False, labelleft=False)
         self.canvas.draw()  # Refresh canvas
 
-    def updateBModeSettings(
-        self,
-    ):  # Updates background photo when image settings are modified
-        self.cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
-        contrast = ImageEnhance.Contrast(self.cvIm)
-        self.editImageDisplayGUI.contrastVal.value()
-        imOutput = contrast.enhance(self.editImageDisplayGUI.contrastVal.value())
-        brightness = ImageEnhance.Brightness(imOutput)
-        self.editImageDisplayGUI.brightnessVal.value()
-        imOutput = brightness.enhance(self.editImageDisplayGUI.brightnessVal.value())
-        sharpness = ImageEnhance.Sharpness(imOutput)
-        self.editImageDisplayGUI.sharpnessVal.value()
-        imOutput = sharpness.enhance(self.editImageDisplayGUI.sharpnessVal.value())
-        self.spectralData.finalBmode = imOutput
-        self.selectedImage = self.spectralData.finalBmode
-        self.displayMbfButton.setChecked(False); self.displaySsButton.setChecked(False)
-        self.displaySiButton.setChecked(False)
-        self.udpateLegend("clear")
-        self.plotOnCanvas()
-
     def mbfChecked(self):
         if self.displayMbfButton.isChecked():
             if self.displaySsButton.isChecked() or self.displaySiButton.isChecked():
@@ -384,6 +328,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         else:
             self.selectedImage = self.spectralData.finalBmode
             self.updateLegend("clear")
+        self.plotOnCanvas()
         
     def ssChecked(self):
         if self.displaySsButton.isChecked():
@@ -395,6 +340,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         else:
             self.selectedImage = self.spectralData.finalBmode
             self.updateLegend("clear")
+        self.plotOnCanvas()
         
     def siChecked(self):
         global curDisp
@@ -407,6 +353,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         else:
             self.selectedImage = self.spectralData.finalBmode
             self.updateLegend("clear")
+        self.plotOnCanvas()
 
     def updateLegend(self, curDisp):
         self.legAx.clear()

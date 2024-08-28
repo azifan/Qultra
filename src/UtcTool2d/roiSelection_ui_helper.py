@@ -307,8 +307,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
     def plotOnCanvas(self):  # Plot current image on GUI
         self.ax.clear()
-        self.ax.imshow(self.spectralData.finalBmode, cmap="Greys_r")
-        plt.gcf().set_facecolor((0, 0, 0, 0))
+        self.ax.imshow(self.spectralData.finalBmode)
+        self.figure.set_facecolor((0, 0, 0, 0))
+        self.ax.axis("off")
 
         try:
             if self.spectralData.numSamplesDrOut == 1400:
@@ -407,10 +408,10 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.spectralData.scConfig = scConfig
 
         self.ultrasoundImage = UltrasoundImage()
-        self.ultrasoundImage.bmode = np.flipud(imgDataStruct.scBmodeStruct.preScArr)
-        self.ultrasoundImage.scBmode = np.flipud(imgDataStruct.scBmodeStruct.scArr)
-        self.ultrasoundImage.xmap = np.flipud(imgDataStruct.scBmodeStruct.xmap)
-        self.ultrasoundImage.ymap = np.flipud(imgDataStruct.scBmodeStruct.ymap)
+        self.ultrasoundImage.bmode = imgDataStruct.scBmodeStruct.preScArr
+        self.ultrasoundImage.scBmode = imgDataStruct.scBmodeStruct.scArr
+        self.ultrasoundImage.xmap = imgDataStruct.scBmodeStruct.xmap
+        self.ultrasoundImage.ymap = imgDataStruct.scBmodeStruct.ymap
 
         self.processImage(
             imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
@@ -500,6 +501,16 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
         self.displayInitialImage()
 
+    def updateImageDisplay(self, cvIm):
+        enhancer = ImageEnhance.Contrast(cvIm)
+        imOutput = enhancer.enhance(self.editImageDisplayGUI.contrastVal.value())
+        bright = ImageEnhance.Brightness(imOutput)
+        imOutput = bright.enhance(self.editImageDisplayGUI.brightnessVal.value())
+        sharp = ImageEnhance.Sharpness(imOutput)
+        imOutput = sharp.enhance(self.editImageDisplayGUI.sharpnessVal.value())
+        return np.array(imOutput)
+
+
     def displayInitialImage(self):
         # Display images correctly
         quotient = self.spectralData.width / self.spectralData.depth
@@ -519,20 +530,37 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.xBorderMin = 400 + ((721 - self.spectralData.roiWidthScale) / 2)
         self.xBorderMax = 1121 - ((721 - self.spectralData.roiWidthScale) / 2)
 
-        self.qIm = QImage(
-            self.spectralData.finalBmode,
-            self.spectralData.finalBmode.shape[1],
-            self.spectralData.finalBmode.shape[0],
-            self.spectralData.finalBmode.strides[0],
+        flippedIm = np.flipud(self.spectralData.finalBmode).astype(np.uint8)
+
+        qIm = QImage(
+            flippedIm.data,
+            flippedIm.shape[1],
+            flippedIm.shape[0],
+            flippedIm.strides[0],
             QImage.Format_RGB888,
         ).scaled(self.spectralData.roiWidthScale, self.spectralData.roiDepthScale)
 
-        self.qIm.mirrored().save(
+        qIm.mirrored().save(
             os.path.join("Junk", "bModeImRaw.png")
         )  # Save as .png file
 
+        if self.spectralData.scConfig is not None:
+            flippedIm = np.flipud(self.spectralData.bmode).astype(np.uint8)
+
+            qIm = QImage(
+                flippedIm.data,
+                flippedIm.shape[1],
+                flippedIm.shape[0],
+                flippedIm.strides[0],
+                QImage.Format_RGB888,
+            )
+
+            qIm.mirrored().save(
+                os.path.join("Junk", "bModeImRawPreSc.png")
+            )  # Save as .png file
+
         self.editImageDisplayGUI.contrastVal.setValue(1)
-        self.editImageDisplayGUI.brightnessVal.setValue(0.75)
+        self.editImageDisplayGUI.brightnessVal.setValue(1.4)
         self.editImageDisplayGUI.sharpnessVal.setValue(3)
 
         self.spectralData.spectralAnalysis.initAnalysisConfig()
@@ -546,15 +574,12 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.pixelWidthVal.setText(str(self.spectralData.finalBmode.shape[1]))
         self.pixelDepthVal.setText(str(self.spectralData.finalBmode.shape[0]))
 
-        self.cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
-        enhancer = ImageEnhance.Contrast(self.cvIm)
+        cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
+        self.spectralData.finalBmode = self.updateImageDisplay(cvIm)
 
-        imOutput = enhancer.enhance(self.editImageDisplayGUI.contrastVal.value())
-        bright = ImageEnhance.Brightness(imOutput)
-        imOutput = bright.enhance(self.editImageDisplayGUI.brightnessVal.value())
-        sharp = ImageEnhance.Sharpness(imOutput)
-        imOutput = sharp.enhance(self.editImageDisplayGUI.sharpnessVal.value())
-        self.spectralData.finalBmode = np.array(imOutput)
+        if self.spectralData.scConfig is not None:
+            cvIm = Image.open(os.path.join("Junk", "bModeImRawPreSc.png"))
+            self.spectralData.bmode = self.updateImageDisplay(cvIm)
 
         self.plotOnCanvas()
 
@@ -701,8 +726,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def updateBModeSettings(
         self,
     ):  # Updates background photo when image settings are modified
-        self.cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
-        contrast = ImageEnhance.Contrast(self.cvIm)
+        cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
+        contrast = ImageEnhance.Contrast(cvIm)
         imOutput = contrast.enhance(self.editImageDisplayGUI.contrastVal.value())
         brightness = ImageEnhance.Brightness(imOutput)
         imOutput = brightness.enhance(self.editImageDisplayGUI.brightnessVal.value())
