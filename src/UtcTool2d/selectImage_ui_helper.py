@@ -13,7 +13,7 @@ from src.UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
 from src.Parsers.canonBinParser import findPreset
 import src.Parsers.siemensRfdParser as rfdParser
 import src.Parsers.philips3dRf as phil3d
-from DataLayer.spectral import SpectralData
+from src.DataLayer.spectral import SpectralData
 
 system = platform.system()
 
@@ -177,6 +177,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
                 plt.close(self.roiSelectionGUI.figure)
             del self.roiSelectionGUI
             self.roiSelectionGUI = RoiSelectionGUI()
+            self.roiSelectionGUI.spectralData = self.spectralData
             self.roiSelectionGUI.setFilenameDisplays(
                 self.imagePathInput.text().split("/")[-1],
                 self.phantomPathInput.text().split("/")[-1],
@@ -217,7 +218,6 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
                 print("ERROR: Machine match not found")
                 return
             self.roiSelectionGUI.show()
-            self.roiSelectionGUI.spectralData = self.spectralData
             self.roiSelectionGUI.lastGui = self
             self.selectImageErrorMsg.setHidden(True)
             self.hide()

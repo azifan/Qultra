@@ -1,16 +1,15 @@
-from CeusMcTool2d.ticAnalysis_ui import Ui_ticEditor
-from CeusMcTool2d.ceusAnalysis_ui_helper import CeusAnalysisGUI
+import platform
 
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
-import numpy as np
-import Utils.lognormalFunctions as lf
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-
 from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout
 from PyQt5.QtGui import QImage, QPixmap
 
-import platform
+import src.Utils.lognormalFunctions as lf
+from src.CeusMcTool2d.ticAnalysis_ui import Ui_ticEditor
+from src.CeusMcTool2d.ceusAnalysis_ui_helper import CeusAnalysisGUI
 
 system = platform.system()
 

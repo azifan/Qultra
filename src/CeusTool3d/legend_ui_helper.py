@@ -1,9 +1,9 @@
-from CeusTool3d.legend_ui import Ui_legend
 import numpy as np
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QApplication
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QApplication
 
+from src.CeusTool3d.legend_ui import Ui_legend
 
 class LegendDisplay(Ui_legend, QWidget):
     def __init__(self):

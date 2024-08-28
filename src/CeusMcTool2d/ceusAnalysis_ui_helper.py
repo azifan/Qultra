@@ -1,18 +1,17 @@
-from CeusMcTool2d.ceusAnalysis_ui import Ui_ceusAnalysis
-from CeusMcTool2d.exportData_ui_helper import ExportDataGUI
-from CeusMcTool2d.genParamap_ui_helper import GenParamapGUI, ParamapInputs
+import platform
+import os
 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.colors as colors
 import nibabel as nib
-import os
-
 from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout, QFileDialog
 from PyQt5.QtGui import QPixmap, QImage
 
-import platform
+from src.CeusMcTool2d.ceusAnalysis_ui import Ui_ceusAnalysis
+from src.CeusMcTool2d.exportData_ui_helper import ExportDataGUI
+from src.CeusMcTool2d.genParamap_ui_helper import GenParamapGUI, ParamapInputs
 
 system = platform.system()
 

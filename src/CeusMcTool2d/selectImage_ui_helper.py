@@ -1,14 +1,14 @@
-from CeusMcTool2d.selectImage_ui import Ui_selectImage
-from CeusMcTool2d.roiSelection_ui_helper import RoiSelectionGUI
 
-from pathlib import Path
-import pandas as pd
 import os
+import platform
+from pathlib import Path
 
+import pandas as pd
 from PyQt5.QtWidgets import QWidget, QApplication, QHeaderView, QTableWidgetItem, QFileDialog
 from PyQt5.QtCore import Qt
 
-import platform
+from src.CeusMcTool2d.selectImage_ui import Ui_selectImage
+from src.CeusMcTool2d.roiSelection_ui_helper import RoiSelectionGUI
 
 system = platform.system()
 

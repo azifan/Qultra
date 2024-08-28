@@ -1,8 +1,8 @@
-from UtcTool2d.psGraphDisplay_ui import Ui_psGraphWidget
-from PyQt5.QtWidgets import QWidget, QHBoxLayout
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QWidget, QHBoxLayout
 
+from src.UtcTool2d.psGraphDisplay_ui import Ui_psGraphWidget
 
 class PsGraphDisplay(Ui_psGraphWidget, QWidget):
     def __init__(self):

@@ -111,9 +111,9 @@ class SpectralData:
     @finalBmode.setter
     def finalBmode(self, value: np.ndarray):
         if self.scConfig is not None:
-            self.scBmode = value
+            self.spectralAnalysis.ultrasoundImage.scBmode = value
         else:
-            self.bmode = value
+            self.spectralAnalysis.ultrasoundImage.bmode = value
     
     @property
     def splineX(self):

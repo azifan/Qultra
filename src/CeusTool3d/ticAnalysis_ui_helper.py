@@ -1,16 +1,15 @@
-from CeusTool3d.ticAnalysis_ui import Ui_ticEditor
-from CeusTool3d.ceusAnalysis_ui_helper import CeusAnalysisGUI
+import platform
 
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
-import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-
 from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout
 from PyQt5.QtGui import QPixmap, QPainter, QImage
 from PyQt5.QtCore import QLine, Qt
 
-import platform
+from src.CeusTool3d.ticAnalysis_ui import Ui_ticEditor
+from src.CeusTool3d.ceusAnalysis_ui_helper import CeusAnalysisGUI
 
 system = platform.system()
 

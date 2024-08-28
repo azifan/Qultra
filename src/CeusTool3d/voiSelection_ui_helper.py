@@ -1,23 +1,21 @@
-from CeusTool3d.voiSelection_ui import Ui_constructVoi
-from CeusTool3d.ticAnalysis_ui_helper import TicAnalysisGUI
-from CeusTool3d.saveVoi_ui_helper import SaveVoiGUI
+import os
+import platform
+from itertools import chain
 
 import nibabel as nib
 import numpy as np
-from scipy.ndimage import binary_fill_holes
-import os
-
-from itertools import chain
+import pyvista as pv
 import scipy.interpolate as interpolate
 from scipy.spatial import ConvexHull
-import pyvista as pv
-import Utils.utils as ut
-
 from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
 from PyQt5.QtGui import QPixmap, QPainter, QImage
 from PyQt5.QtCore import QLine, Qt
+from scipy.ndimage import binary_fill_holes
 
-import platform
+import src.Utils.utils as ut
+from src.CeusTool3d.voiSelection_ui import Ui_constructVoi
+from src.CeusTool3d.ticAnalysis_ui_helper import TicAnalysisGUI
+from src.CeusTool3d.saveVoi_ui_helper import SaveVoiGUI
 
 system = platform.system()
 

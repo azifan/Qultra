@@ -14,9 +14,8 @@ from src.UtcTool2d.editImageDisplay_ui_helper import EditImageDisplayGUI
 from src.UtcTool2d.rfAnalysis_ui import Ui_rfAnalysis
 from src.UtcTool2d.exportData_ui_helper import ExportDataGUI
 from src.UtcTool2d.saveRoi_ui_helper import SaveRoiGUI
-from src.UtcTool2d.analysisParamsSelection_ui_helper import AnalysisParamsGUI
+import src.UtcTool2d.analysisParamsSelection_ui_helper as AnalysisParamsSelection
 from src.UtcTool2d.psGraphDisplay_ui_helper import PsGraphDisplay
-from src.Utils.roiFuncs import roiWindowsGenerator
 
 system = platform.system()
 
@@ -192,7 +191,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             )
 
         self.exportDataGUI: ExportDataGUI
-        self.lastGui: AnalysisParamsGUI
+        self.lastGui: AnalysisParamsSelection.AnalysisParamsGUI
         self.spectralData: SpectralData
         self.newData = None
         self.saveRoiGUI = SaveRoiGUI()

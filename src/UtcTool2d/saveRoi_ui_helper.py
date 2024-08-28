@@ -1,11 +1,10 @@
 import os
 import re
-import csv
 import pickle
 
 from PyQt5.QtWidgets import QWidget, QFileDialog
 
-from UtcTool2d.saveRoi_ui import Ui_saveRoi
+from src.UtcTool2d.saveRoi_ui import Ui_saveRoi
 
 
 class SaveRoiGUI(Ui_saveRoi, QWidget):

@@ -7,7 +7,7 @@ import numpy as np
 from src.DataLayer.spectral import SpectralData
 from src.UtcTool2d.analysisParamsSelection_ui import Ui_analysisParams
 from src.UtcTool2d.rfAnalysis_ui_helper import RfAnalysisGUI
-from src.UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
+import src.UtcTool2d.roiSelection_ui_helper as RoiSelectionSection
 
 system = platform.system()
 
@@ -197,7 +197,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             )
 
         self.rfAnalysisGUI: RfAnalysisGUI
-        self.lastGui: RoiSelectionGUI
+        self.lastGui: RoiSelectionSection.RoiSelectionGUI
         self.spectralData: SpectralData
 
         self.continueButton.clicked.connect(self.continueToRfAnalysis)

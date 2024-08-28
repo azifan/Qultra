@@ -1,23 +1,21 @@
-from CeusMcTool2d.roiSelection_ui import Ui_constructRoi
-from CeusMcTool2d.ticAnalysis_ui_helper import TicAnalysisGUI
-from CeusMcTool2d.saveRoi_ui_helper import SaveRoiGUI
-
-
-import nibabel as nib
-import numpy as np
-from scipy.ndimage import binary_fill_holes
-
 import os
-import scipy.interpolate as interpolate
-import Utils.motionCorrection as mc
-import cv2
-import pydicom as dicom
-from pydicom.pixel_data_handlers import convert_color_space
 import json
 
+import cv2
+import numpy as np
+import pydicom as dicom
+import nibabel as nib
+import scipy.interpolate as interpolate
+from scipy.ndimage import binary_fill_holes
+from pydicom.pixel_data_handlers import convert_color_space
 from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
 from PyQt5.QtGui import QPixmap, QPainter, QImage
 from PyQt5.QtCore import QLine, Qt
+
+import src.Utils.motionCorrection as mc
+from src.CeusMcTool2d.roiSelection_ui import Ui_constructRoi
+from src.CeusMcTool2d.ticAnalysis_ui_helper import TicAnalysisGUI
+from src.CeusMcTool2d.saveRoi_ui_helper import SaveRoiGUI
 
 import platform
 

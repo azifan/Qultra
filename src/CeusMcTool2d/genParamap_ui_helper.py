@@ -1,9 +1,10 @@
-from CeusMcTool2d.genParamap_ui import Ui_genParamap
-from Utils.ceusParamap2d import get_paramap2d
-
 import os
 import re
+
 from PyQt5.QtWidgets import QWidget, QFileDialog
+
+from src.CeusMcTool2d.genParamap_ui import Ui_genParamap
+from src.Utils.ceusParamap2d import get_paramap2d
 
 class ParamapInputs():
     def __init__(self):

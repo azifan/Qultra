@@ -25,23 +25,11 @@ from src.Parsers.philipsRfParser import main_parser_stanford as philipsRfParser
 from src.UtcTool2d.roiSelection_ui import Ui_constructRoi
 from src.UtcTool2d.editImageDisplay_ui_helper import EditImageDisplayGUI
 from src.UtcTool2d.analysisParamsSelection_ui_helper import AnalysisParamsGUI
-from src.UtcTool2d.selectImage_ui_helper import SelectImageGUI_UtcTool2dIQ
+import src.UtcTool2d.selectImage_ui_helper as SelectImageSection
 from src.UtcTool2d.loadRoi_ui_helper import LoadRoiGUI
 from src.Utils.roiFuncs import computeSpecWindowsIQ, computeSpecWindowsRF
 
-
 system = platform.system()
-
-
-class ImDisplayInfo:
-    def __init__(self):
-        self.numSamplesDrOut: int
-        self.centerFrequency: int
-        self.minFrequency = None
-        self.maxFrequency = None
-        self.samplingFrequency = None
-        self.depth = None
-        self.width = None
 
 
 class RoiSelectionGUI(QWidget, Ui_constructRoi):
@@ -153,9 +141,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.acceptRectangleButton.clicked.connect(self.acceptRect)
         self.undoLoadedRoiButton.clicked.connect(self.undoRoiLoad)
 
-        self.ImDisplayInfo = ImDisplayInfo()
-        self.RefDisplayInfo = ImDisplayInfo()
-
         self.loadRoiGUI = LoadRoiGUI()
         self.pointsPlottedX = []
         self.pointsPlottedY = []
@@ -180,7 +165,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.scatteredPoints = []
         self.spectralData: SpectralData
         self.ultrasoundImage: UltrasoundImage
-        self.lastGui: SelectImageGUI_UtcTool2dIQ
+        self.lastGui: SelectImageSection.SelectImageGUI_UtcTool2dIQ
 
         self.crosshairCursor = Cursor(
             self.ax, color="gold", linewidth=0.4, useblit=True
@@ -326,13 +311,13 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         plt.gcf().set_facecolor((0, 0, 0, 0))
 
         try:
-            if self.ImDisplayInfo.numSamplesDrOut == 1400:
+            if self.spectralData.numSamplesDrOut == 1400:
                 # Preset 1 boundaries for 20220831121844_IQ.bin
                 self.ax.plot([148.76, 154.22], [0, 500], c="purple")  # left boundary
                 self.ax.plot([0, 716], [358.38, 386.78], c="purple")  # bottom boundary
                 self.ax.plot([572.47, 509.967], [0, 500], c="purple")  # right boundary
 
-            elif self.ImDisplayInfo.numSamplesDrOut == 1496:
+            elif self.spectralData.numSamplesDrOut == 1496:
                 # Preset 2 boundaries for 20220831121752_IQ.bin
                 self.ax.plot([146.9, 120.79], [0, 500], c="purple")  # left boundary
                 self.ax.plot([0, 644.76], [462.41, 500], c="purple")  # bottom boundary
@@ -422,10 +407,10 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.spectralData.scConfig = scConfig
 
         self.ultrasoundImage = UltrasoundImage()
-        self.ultrasoundImage.bmode = imgDataStruct.scBmodeStruct.preScArr
-        self.ultrasoundImage.scBmode = imgDataStruct.scBmodeStruct.scArr
-        self.ultrasoundImage.xmap = imgDataStruct.scBmodeStruct.xmap
-        self.ultrasoundImage.ymap = imgDataStruct.scBmodeStruct.ymap
+        self.ultrasoundImage.bmode = np.flipud(imgDataStruct.scBmodeStruct.preScArr)
+        self.ultrasoundImage.scBmode = np.flipud(imgDataStruct.scBmodeStruct.scArr)
+        self.ultrasoundImage.xmap = np.flipud(imgDataStruct.scBmodeStruct.xmap)
+        self.ultrasoundImage.ymap = np.flipud(imgDataStruct.scBmodeStruct.ymap)
 
         self.processImage(
             imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
@@ -658,7 +643,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 image = 0  # do nothing. Means we're loading ROI
 
             try:
-                if self.ImDisplayInfo.numSamplesDrOut == 1400:
+                if self.spectralData.numSamplesDrOut == 1400:
                     # Preset 1 boundaries for 20220831121844_IQ.bin
                     self.ax.plot(
                         [148.76, 154.22], [0, 500], c="purple"
@@ -670,7 +655,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                         [572.47, 509.967], [0, 500], c="purple"
                     )  # right boundary
 
-                elif self.ImDisplayInfo.numSamplesDrOut == 1496:
+                elif self.spectralData.numSamplesDrOut == 1496:
                     # Preset 2 boundaries for 20220831121752_IQ.bin
                     self.ax.plot([146.9, 120.79], [0, 500], c="purple")  # left boundary
                     self.ax.plot(

@@ -1,10 +1,12 @@
-import numpy as np
 import os
+import platform
 from pathlib import Path
 from datetime import datetime
 import warnings
+
+import numpy as np
 from scipy.io import savemat
-import platform
+
 system = platform.system()
 
 

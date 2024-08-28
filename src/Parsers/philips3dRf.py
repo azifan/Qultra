@@ -5,8 +5,8 @@ import numpy as np
 from scipy.signal import firwin, lfilter, hilbert
 from scipy.ndimage import correlate
 
-from Parsers.philipsRfParser import Rfdata, parseRF
-from Parsers.philipsSipVolumeParser import ScParams, readSIPscVDBParams, scanConvert3dVolumeSeries, formatVolumePix
+from src.Parsers.philipsRfParser import Rfdata, parseRF
+from src.Parsers.philipsSipVolumeParser import ScParams, readSIPscVDBParams, scanConvert3dVolumeSeries, formatVolumePix
 
 class InfoStruct():
     def __init__(self):

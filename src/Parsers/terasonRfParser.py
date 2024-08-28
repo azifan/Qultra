@@ -1,5 +1,5 @@
-from scipy.io import loadmat
 import numpy as np
+from scipy.io import loadmat
 from scipy.signal import hilbert
 
 class InfoStruct():

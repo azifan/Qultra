@@ -1,12 +1,12 @@
-from UtcTool2d.exportData_ui import Ui_exportData
-from openpyxl import load_workbook, Workbook
-from openpyxl.utils.dataframe import dataframe_to_rows
 import os
 import re
+import platform
 
+from openpyxl import load_workbook, Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
 from PyQt5.QtWidgets import QWidget, QFileDialog, QApplication
 
-import platform
+from src.UtcTool2d.exportData_ui import Ui_exportData
 
 system = platform.system()
 

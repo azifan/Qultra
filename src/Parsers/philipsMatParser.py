@@ -1,7 +1,8 @@
 from scipy.io import loadmat
 from scipy.signal import hilbert
 import numpy as np
-from Utils.parserTools import scanConvert
+
+from src.Utils.parserTools import scanConvert
 
 class AnalysisParamsStruct():
     def __init__(self, frame):

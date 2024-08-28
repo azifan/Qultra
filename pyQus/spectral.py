@@ -22,7 +22,7 @@ class SpectralAnalysis:
     def initAnalysisConfig(self):
         speedOfSoundInTissue = 1540  # m/s
         self.waveLength = (
-            speedOfSoundInTissue / self.ImDisplayInfo.centerFrequency
+            speedOfSoundInTissue / self.config.centerFrequency
         ) * 1000  # mm
         self.config.axWinSize = 10 * self.waveLength
         self.config.latWinSize = 10 * self.waveLength

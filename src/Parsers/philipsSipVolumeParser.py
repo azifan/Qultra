@@ -1,14 +1,13 @@
-import multiprocessing as mp
-from pathlib import Path
 import os
-import pickle
-import argparse
-
-from typing_extensions import Tuple, List, Iterable
-import numpy as np
 import math
-from tqdm import tqdm
+import pickle
+from pathlib import Path
+import multiprocessing as mp
+from typing_extensions import Tuple, List, Iterable
+
 import scipy
+import numpy as np
+from tqdm import tqdm
 
 class ScParams():
     def __init__(self):

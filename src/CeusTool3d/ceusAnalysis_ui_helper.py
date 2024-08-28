@@ -1,18 +1,17 @@
-from CeusTool3d.ceusAnalysis_ui import Ui_ceusAnalysis
-from CeusTool3d.exportData_ui_helper import ExportDataGUI
-from CeusTool3d.legend_ui_helper import LegendDisplay
-import Utils.lognormalFunctions as lf
+import platform
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import nibabel as nib
-
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QWidget, QFileDialog, QHBoxLayout
 from PyQt5.QtGui import QImage, QPixmap, QPainter
 from PyQt5.QtCore import QLine, Qt
 
-import platform
+from src.CeusTool3d.ceusAnalysis_ui import Ui_ceusAnalysis
+from src.CeusTool3d.exportData_ui_helper import ExportDataGUI
+from src.CeusTool3d.legend_ui_helper import LegendDisplay
+import src.Utils.lognormalFunctions as lf
 
 system = platform.system()
 

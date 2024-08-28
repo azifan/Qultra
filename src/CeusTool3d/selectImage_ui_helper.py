@@ -2,15 +2,14 @@ import os
 import shutil
 import platform
 
-
 from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
 import nibabel as nib
 
-from CeusTool3d.selectImage_ui import Ui_selectImage
-from CeusTool3d.voiSelection_ui_helper import VoiSelectionGUI
-import Parsers.philips3dCeus as phil
-import Utils.utils as ut
-from Parsers.philipsSipVolumeParser import sipParser
+from src.CeusTool3d.selectImage_ui import Ui_selectImage
+from src.CeusTool3d.voiSelection_ui_helper import VoiSelectionGUI
+import src.Parsers.philips3dCeus as phil
+import src.Utils.utils as ut
+from src.Parsers.philipsSipVolumeParser import sipParser
 
 system = platform.system()
 

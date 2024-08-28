@@ -4,13 +4,13 @@ import pickle
 
 from PyQt5.QtWidgets import QWidget, QFileDialog
 from src.UtcTool2d.loadRoi_ui import Ui_loadRoi
-from src.UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
+import src.UtcTool2d.roiSelection_ui_helper as RoiSelectionSection
 
 class LoadRoiGUI(Ui_loadRoi, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.chooseRoiGUI: RoiSelectionGUI
+        self.chooseRoiGUI: RoiSelectionSection.RoiSelectionGUI
 
         self.chooseFileButton.clicked.connect(self.chooseFile)
         self.clearFileButton.clicked.connect(self.clearFile)
