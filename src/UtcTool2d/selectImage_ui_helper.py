@@ -5,14 +5,15 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-
-from UtcTool2d.selectImage_ui import Ui_selectImage
-from UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
-from Parsers.canonBinParser import findPreset
-import Parsers.siemensRfdParser as rfdParser
-import Parsers.philips3dRf as phil3d
 from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
 from PyQt5.QtGui import QImage, QPixmap
+
+from src.UtcTool2d.selectImage_ui import Ui_selectImage
+from src.UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
+from src.Parsers.canonBinParser import findPreset
+import src.Parsers.siemensRfdParser as rfdParser
+import src.Parsers.philips3dRf as phil3d
+from DataLayer.spectral import SpectralData
 
 system = platform.system()
 
@@ -146,6 +147,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.dataFrame = None
         self.machine = None
         self.fileExts = None
+        self.spectralData = None
 
         self.terasonButton.clicked.connect(self.terasonClicked)
         self.philipsButton.clicked.connect(self.philipsClicked)
@@ -170,27 +172,6 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         if os.path.exists(self.imagePathInput.text()) and os.path.exists(
             self.phantomPathInput.text()
         ):
-            # if self.imagePathInput.text().endswith('.rfd') and self.phantomPathInput.text().endswith('.rfd'):
-            #     imageName = self.imagePathInput.text().split('/')[-1]
-            #     phantomName = self.phantomPathInput.text().split('/')[-1]
-            #     vIm = imageName.split("SpV")[1]
-            #     vIm = vIm.split("_")[0]
-            #     fIm = imageName.split("VpF")[1]
-            #     fIm = fIm.split("_")[0]
-            #     aIm = imageName.split("FpA")[1]
-            #     aIm = aIm.split("_")[0]
-            #     vPhant = phantomName.split("SpV")[1]
-            #     vPhant = vPhant.split("_")[0]
-            #     fPhant = phantomName.split("VpF")[1]
-            #     fPhant = fPhant.split("_")[0]
-            #     aPhant = phantomName.split("FpA")[1]
-            #     aPhant = aPhant.split("_")[0]
-
-            #     if aPhant < aIm or vPhant < vIm or fPhant < fPhant:
-            #         self.selectImageErrorMsg.setText("ERROR: At least one dimension of phantom data\nsmaller than corresponding dimension\nof image data")
-            #         self.selectImageErrorMsg.setHidden(False)
-            #         return
-
             if self.roiSelectionGUI is not None:
                 plt.close(self.roiSelectionGUI.figure)
             del self.roiSelectionGUI

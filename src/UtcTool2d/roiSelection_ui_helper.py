@@ -1,15 +1,3 @@
-import Parsers.verasonicsMatParser as vera
-import Parsers.canonBinParser as canon
-import Parsers.terasonRfParser as tera
-from Parsers.philipsMatParser import getImage as philipsMatParser
-from Parsers.philipsRfParser import main_parser_stanford as philipsRfParser
-from UtcTool2d.roiSelection_ui import Ui_constructRoi
-from UtcTool2d.editImageDisplay_ui_helper import EditImageDisplayGUI
-from UtcTool2d.analysisParamsSelection_ui_helper import AnalysisParamsGUI
-from UtcTool2d.rfAnalysis_ui_helper import AnalysisInfo
-from UtcTool2d.loadRoi_ui_helper import LoadRoiGUI
-from Utils.roiFuncs import computeSpecWindowsIQ, computeSpecWindowsRF
-
 import os
 import numpy as np
 from PIL import Image, ImageEnhance
@@ -24,6 +12,20 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout
 from PyQt5.QtGui import QImage
 
 import platform
+
+from pyQus.analysisObjects import UltrasoundImage
+import src.Parsers.verasonicsMatParser as vera
+import src.Parsers.canonBinParser as canon
+import src.Parsers.terasonRfParser as tera
+from src.Parsers.philipsMatParser import getImage as philipsMatParser
+from src.Parsers.philipsRfParser import main_parser_stanford as philipsRfParser
+from src.UtcTool2d.roiSelection_ui import Ui_constructRoi
+from src.UtcTool2d.editImageDisplay_ui_helper import EditImageDisplayGUI
+from src.UtcTool2d.analysisParamsSelection_ui_helper import AnalysisParamsGUI
+from src.UtcTool2d.rfAnalysis_ui_helper import AnalysisInfo
+from src.UtcTool2d.loadRoi_ui_helper import LoadRoiGUI
+from src.Utils.roiFuncs import computeSpecWindowsIQ, computeSpecWindowsRF
+
 
 system = platform.system()
 
@@ -478,6 +480,18 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def processImage(
         self, imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
     ):
+        ultrasoundImage = UltrasoundImage()
+        ultrasoundImage.axialResRf = imgInfoStruct.depth / imgDataStruct.rf.shape[0]
+        ultrasoundImage.lateralResRf = ultrasoundImage.axialResRf * (
+            imgDataStruct.rf.shape[0]/imgDataStruct.rf.shape[1]
+        ) # placeholder
+        ultrasoundImage.bmode = imgDataStruct.scBmodeStruct.preScArr
+        ultrasoundImage.phantomRf = refDataStruct.rf
+        ultrasoundImage.rf = imgDataStruct.rf
+        ultrasoundImage.scBmode = imgDataStruct.scBmode
+        ultrasoundImage.xmap = imgDataStruct.scBmodeStruct.xmap
+        ultrasoundImage.ymap = imgDataStruct.scBmodeStruct.ymap
+        
         if self.AnalysisInfo.computeSpecWindows is None: # currently means we're using Siemens RF data
             self.AnalysisInfo.computeSpecWindows = computeSpecWindowsRF
 

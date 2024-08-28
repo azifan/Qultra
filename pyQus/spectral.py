@@ -11,7 +11,7 @@ class SpectralAnalysis:
     def __init__(self):
         self.ultrasoundImage: UltrasoundImage = None
         self.config: Config = None
-        self.roiWindows: List[Window] = None
+        self.roiWindows: List[Window] = []
 
         self.scSplineX: List[float]  = None # pix
         self.splineX: List[float] = None # pix

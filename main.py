@@ -1,9 +1,10 @@
 import sys
 import pandas as pd
 from PyQt5.QtWidgets import QApplication, QWidget
-from CeusTool3d.selectImage_ui_helper import SelectImageGUI_CeusTool3d
-from CeusMcTool2d.selectImage_ui_helper import SelectImageGUI_CeusMcTool2d
-from UtcTool2d.selectImage_ui_helper import SelectImageGUI_UtcTool2dIQ
+
+from src.CeusTool3d.selectImage_ui_helper import SelectImageGUI_CeusTool3d
+from src.CeusMcTool2d.selectImage_ui_helper import SelectImageGUI_CeusMcTool2d
+from src.UtcTool2d.selectImage_ui_helper import SelectImageGUI_UtcTool2dIQ
 from welcome_ui import Ui_qusPage
 
 
