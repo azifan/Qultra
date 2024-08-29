@@ -6,6 +6,7 @@ import matplotlib
 import scipy.interpolate as interpolate
 import matplotlib.pyplot as plt
 from PIL import Image, ImageEnhance
+import pyqtgraph as pg
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QWidget, QHBoxLayout
 
@@ -239,20 +240,17 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
 
         del self.psGraphDisplay
         self.psGraphDisplay = PsGraphDisplay()
-        self.psGraphDisplay.ax.plot(x, y, c="orange", zorder=11, label="Av LOBF")
-        self.psGraphDisplay.ax.scatter(np.median(x), mbfMean, marker="o", zorder=12, c="green", label="Av MBF")
-        self.psGraphDisplay.ax.vlines(self.spectralData.analysisFreqBand, 
-                                      ymin=np.amin(npsArr), ymax=np.amax(npsArr), colors="purple", label="Band Lims")
-        self.psGraphDisplay.ax.plot(f, avNps, c="red", zorder=10, label="Av NPS")
-        for nps in npsArr:
-            self.psGraphDisplay.ax.plot(f, nps, c="blue", alpha=0.2, zorder=1)
-        self.psGraphDisplay.ax.axis("on")
-        self.psGraphDisplay.figure.subplots_adjust(
-            left=0.16, right=0.98, bottom=0.2, top=0.98
-        )
-        self.psGraphDisplay.figure.legend()
-        self.psGraphDisplay.canvas.draw()
 
+        for nps in npsArr:
+            self.psGraphDisplay.plot_graph.plot(f, nps, pen=pg.mkPen(color=(0, 0, 255, 51)))
+        self.psGraphDisplay.plot_graph.plot(f, avNps, pen=pg.mkPen(color="r", width=2))
+        self.psGraphDisplay.plot_graph.plot(x, y, pen=pg.mkPen(color=(255, 172, 28), width=2))
+        self.psGraphDisplay.plot_graph.plot(2*[self.spectralData.analysisFreqBand[0]], [np.amin(npsArr), np.amax(npsArr)], 
+                                            pen=pg.mkPen(color="m", width=2))
+        self.psGraphDisplay.plot_graph.plot(2*[self.spectralData.analysisFreqBand[1]], [np.amin(npsArr), np.amax(npsArr)], 
+                                            pen=pg.mkPen(color="m", width=2))
+        self.psGraphDisplay.plot_graph.setYRange(np.amin(npsArr), np.amax(npsArr))
+        
         self.plotOnCanvas()
 
     def displayNps(self):
