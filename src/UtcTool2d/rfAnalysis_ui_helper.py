@@ -153,27 +153,6 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 background-color: rgba(0,0,0,0);
             }"""
             )
-            self.indMbfVal.setStyleSheet(
-                """QLabel {
-                font-size: 14px;
-                color: white;
-                background-color: rgba(0,0,0,0);
-            }"""
-            )
-            self.indSsLabel.setStyleSheet(
-                """QLabel {
-                font-size: 14px;
-                color: white;
-                background-color: rgba(0,0,0,0);
-            }"""
-            )
-            self.indSsVal.setStyleSheet(
-                """QLabel {
-                font-size: 14px;
-                color: white;
-                background-color: rgba(0,0,0,0);
-            }"""
-            )
             self.indSiVal.setStyleSheet(
                 """QLabel {
                 font-size: 14px;
@@ -196,10 +175,6 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.psGraphDisplay = PsGraphDisplay()
         self.saveConfigGUI = SaveConfigGUI()
         self.selectedImage: np.ndarray | None = None
-
-        self.indMbfVal.setText("")
-        self.indSiVal.setText("")
-        self.indSsVal.setText("")
 
         # Display B-Mode
         self.horizontalLayout = QHBoxLayout(self.imDisplayFrame)
@@ -249,9 +224,34 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         if self.spectralData.scConfig is not None:
             self.spectralData.scanConvertCmaps()
 
-        self.avMbfVal.setText(f"{np.round(np.mean(self.spectralData.mbfArr), decimals=1)}")
-        self.avSsVal.setText(f"{np.round(np.mean(self.spectralData.ssArr)*1e6, decimals=2)}")
-        self.avSiVal.setText(f"{np.round(np.mean(self.spectralData.siArr), decimals=1)}")
+        mbfMean = np.mean(self.spectralData.mbfArr)
+        ssMean = np.mean(self.spectralData.ssArr)
+        siMean = np.mean(self.spectralData.siArr)
+        self.avMbfVal.setText(f"{np.round(mbfMean, decimals=1)}")
+        self.avSsVal.setText(f"{np.round(ssMean*1e6, decimals=2)}")
+        self.avSiVal.setText(f"{np.round(siMean, decimals=1)}")
+
+        npsArr = [window.results.nps for window in self.spectralData.spectralAnalysis.roiWindows]
+        avNps = np.mean(npsArr, axis=0)
+        f = self.spectralData.spectralAnalysis.roiWindows[0].results.f
+        x = np.linspace(min(f), max(f), 100)
+        y = ssMean*x + siMean
+
+        del self.psGraphDisplay
+        self.psGraphDisplay = PsGraphDisplay()
+        self.psGraphDisplay.ax.plot(x, y, c="orange", zorder=11, label="Av LOBF")
+        self.psGraphDisplay.ax.scatter(np.median(x), mbfMean, marker="o", zorder=12, c="green", label="Av MBF")
+        self.psGraphDisplay.ax.vlines(self.spectralData.analysisFreqBand, 
+                                      ymin=np.amin(npsArr), ymax=np.amax(npsArr), colors="purple", label="Band Lims")
+        self.psGraphDisplay.ax.plot(f, avNps, c="red", zorder=10, label="Av NPS")
+        for nps in npsArr:
+            self.psGraphDisplay.ax.plot(f, nps, c="blue", alpha=0.2, zorder=1)
+        self.psGraphDisplay.ax.axis("on")
+        self.psGraphDisplay.figure.subplots_adjust(
+            left=0.16, right=0.98, bottom=0.2, top=0.98
+        )
+        self.psGraphDisplay.figure.legend()
+        self.psGraphDisplay.canvas.draw()
 
         self.plotOnCanvas()
 
