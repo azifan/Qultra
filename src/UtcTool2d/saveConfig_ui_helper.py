@@ -1,14 +1,14 @@
 import os
 import re
 import pickle
-from typing import List
 
 from PyQt5.QtWidgets import QWidget, QFileDialog
 
-from src.UtcTool2d.saveRoi_ui import Ui_saveRoi
+from src.UtcTool2d.saveConfig_ui import Ui_saveConfig
+from pyQus.analysisObjects import Config
 
 
-class SaveRoiGUI(Ui_saveRoi, QWidget):
+class SaveConfigGUI(Ui_saveConfig, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -17,12 +17,11 @@ class SaveRoiGUI(Ui_saveRoi, QWidget):
         
         self.imName: str
         self.phantomName: str
-        self.splineX: List[float]
-        self.splineY: List[float]
+        self.config: Config
 
         self.chooseFolderButton.clicked.connect(self.chooseFolder)
         self.clearFolderButton.clicked.connect(self.clearFolder)
-        self.saveRoiButton.clicked.connect(self.saveRoi)
+        self.saveConfigButton.clicked.connect(self.saveConfig)
 
     def chooseFolder(self):
         folderName = QFileDialog.getExistingDirectory(None, "Select Directory")
@@ -32,7 +31,7 @@ class SaveRoiGUI(Ui_saveRoi, QWidget):
     def clearFolder(self):
         self.newFolderPathInput.clear()
 
-    def saveRoi(self):
+    def saveConfig(self):
         if os.path.exists(self.newFolderPathInput.text()):
             if not (
                 self.newFileNameInput.text().endswith(".pkl")
@@ -43,7 +42,7 @@ class SaveRoiGUI(Ui_saveRoi, QWidget):
                 return
             
             output = {"Image Name": self.imName, "Phantom Name": self.phantomName,
-                      "Spline X": self.splineX, "Spline Y": self.splineY}
+                      "Config": self.config}
             
             with open(os.path.join(
                     self.newFolderPathInput.text(), self.newFileNameInput.text()
@@ -54,11 +53,11 @@ class SaveRoiGUI(Ui_saveRoi, QWidget):
             self.newFileNameInput.setHidden(True)
             self.newFileNameLabel.setHidden(True)
             self.newFolderPathInput.setHidden(True)
-            self.saveRoiLabel.setHidden(True)
+            self.saveConfigLabel.setHidden(True)
             self.newFileNameLabel.setHidden(True)
             self.fileNameErrorLabel.setHidden(True)
-            self.roiFolderPathLabel.setHidden(True)
+            self.configFolderPathLabel.setHidden(True)
             self.fileNameWarningLabel.setHidden(True)
-            self.saveRoiButton.setHidden(True)
+            self.saveConfigButton.setHidden(True)
             self.clearFolderButton.setHidden(True)
             self.chooseFolderButton.setHidden(True)

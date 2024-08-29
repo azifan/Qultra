@@ -1351,6 +1351,27 @@ QPushButton:checked {
     <bool>true</bool>
    </property>
   </widget>
+  <widget class="QPushButton" name="saveRoiButton">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>690</y>
+     <width>131</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Save ROI</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

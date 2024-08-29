@@ -1,5 +1,4 @@
 import os
-import csv
 import pickle
 
 from PyQt5.QtWidgets import QWidget, QFileDialog
@@ -32,31 +31,25 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
     def getRoiPath(self):
         if os.path.exists(self.roiPathInput.text()):
             with open(self.roiPathInput.text(), "rb") as f:
-                AnalysisInfo = pickle.load(f)
+                roiInfo = pickle.load(f)
 
-                if (self.chooseRoiGUI.imagePathInput.text() != AnalysisInfo.imName or 
-                    self.chooseRoiGUI.phantomPathInput.text() != AnalysisInfo.phantomName): 
-                    print("Selected ROI for wrong image")
-                    return
-                
-                self.chooseRoiGUI.AnalysisInfo = AnalysisInfo
-                self.chooseRoiGUI.ImDisplayInfo = self.chooseRoiGUI.AnalysisInfo.ImDisplayInfo
-                self.chooseRoiGUI.RefDisplayInfo = self.chooseRoiGUI.AnalysisInfo.RefDisplayInfo
-                self.chooseRoiGUI.pointsPlottedX = self.chooseRoiGUI.AnalysisInfo.pointsPlottedX
-                self.chooseRoiGUI.pointsPlottedY = self.chooseRoiGUI.AnalysisInfo.pointsPlottedY
-                self.chooseRoiGUI.finalSplineX = self.chooseRoiGUI.AnalysisInfo.finalSplineX
-                self.chooseRoiGUI.finalSplineY = self.chooseRoiGUI.AnalysisInfo.finalSplineY
-                self.chooseRoiGUI.displayInitialImage()
-                self.chooseRoiGUI.acceptLoadedRoiButton.setHidden(False)
-                self.chooseRoiGUI.undoLoadedRoiButton.setHidden(False)
-                self.chooseRoiGUI.newRoiButton.setHidden(True)
-                self.chooseRoiGUI.loadRoiButton.setHidden(True)
-                self.chooseRoiGUI.drawRoiButton.setChecked(True)
-                self.chooseRoiGUI.drawRoiButton.setCheckable(True)
-                self.chooseRoiGUI.redrawRoiButton.setHidden(True)
-                self.chooseRoiGUI.drawRectangleButton.setHidden(True)
-                self.chooseRoiGUI.closeRoiButton.setHidden(True)
-
+            if (self.chooseRoiGUI.imagePathInput.text() != roiInfo["Image Name"] or 
+                self.chooseRoiGUI.phantomPathInput.text() != roiInfo["Phantom Name"]): 
+                print("Selected ROI for wrong image")
+                return
+            
+            self.chooseRoiGUI.spectralData.splineX = roiInfo["Spline X"]
+            self.chooseRoiGUI.spectralData.splineY = roiInfo["Spline Y"]
+            self.chooseRoiGUI.plotOnCanvas()
+            self.chooseRoiGUI.acceptLoadedRoiButton.setHidden(False)
+            self.chooseRoiGUI.undoLoadedRoiButton.setHidden(False)
+            self.chooseRoiGUI.newRoiButton.setHidden(True)
+            self.chooseRoiGUI.loadRoiButton.setHidden(True)
+            self.chooseRoiGUI.drawRoiButton.setChecked(True)
+            self.chooseRoiGUI.drawRoiButton.setCheckable(True)
+            self.chooseRoiGUI.redrawRoiButton.setHidden(True)
+            self.chooseRoiGUI.drawRectangleButton.setHidden(True)
+            self.chooseRoiGUI.closeRoiButton.setHidden(True)
 
             self.hide()
             self.chooseRoiGUI.show()

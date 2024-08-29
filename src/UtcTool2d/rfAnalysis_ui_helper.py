@@ -12,9 +12,9 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout
 from src.DataLayer.spectral import SpectralData
 from src.UtcTool2d.rfAnalysis_ui import Ui_rfAnalysis
 from src.UtcTool2d.exportData_ui_helper import ExportDataGUI
-from src.UtcTool2d.saveRoi_ui_helper import SaveRoiGUI
 import src.UtcTool2d.analysisParamsSelection_ui_helper as AnalysisParamsSelection
 from src.UtcTool2d.psGraphDisplay_ui_helper import PsGraphDisplay
+from src.UtcTool2d.saveConfig_ui_helper import SaveConfigGUI
 
 system = platform.system()
 
@@ -193,8 +193,8 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.lastGui: AnalysisParamsSelection.AnalysisParamsGUI
         self.spectralData: SpectralData
         self.newData = None
-        self.saveRoiGUI = SaveRoiGUI()
         self.psGraphDisplay = PsGraphDisplay()
+        self.saveConfigGUI = SaveConfigGUI()
         self.selectedImage: np.ndarray | None = None
 
         self.indMbfVal.setText("")
@@ -209,7 +209,6 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.canvas = FigureCanvas(self.figure)
         self.horizontalLayout.addWidget(self.canvas)
 
-        self.chooseWindowButton.setCheckable(True)
         self.displayMbfButton.setCheckable(True)
         self.displaySiButton.setCheckable(True)
         self.displaySsButton.setCheckable(True)
@@ -230,10 +229,16 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.backButton.clicked.connect(self.backToLastScreen)
         self.exportDataButton.clicked.connect(self.moveToExport)
         self.saveDataButton.clicked.connect(self.saveData)
-        self.saveRoiButton.clicked.connect(self.saveRoi)
         self.displayNpsButton.clicked.connect(self.displayNps)
         self.displayNpsButton.setCheckable(True)
+        self.saveConfigButton.clicked.connect(self.saveConfig)
         self.updateLegend("clear")
+
+    def saveConfig(self):
+        self.saveConfigGUI.imName = self.imagePathInput.text()
+        self.saveConfigGUI.phantomName = self.phantomPathInput.text()
+        self.saveConfigGUI.config = self.spectralData.spectralAnalysis.config
+        self.saveConfigGUI.show()
 
     def completeSpectralAnalysis(self):
         if self.spectralData.scConfig is not None:
@@ -244,6 +249,10 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         if self.spectralData.scConfig is not None:
             self.spectralData.scanConvertCmaps()
 
+        self.avMbfVal.setText(f"{np.round(np.mean(self.spectralData.mbfArr), decimals=1)}")
+        self.avSsVal.setText(f"{np.round(np.mean(self.spectralData.ssArr)*1e6, decimals=2)}")
+        self.avSiVal.setText(f"{np.round(np.mean(self.spectralData.siArr), decimals=1)}")
+
         self.plotOnCanvas()
 
     def displayNps(self):
@@ -251,10 +260,6 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.psGraphDisplay.show()
         else:
             self.psGraphDisplay.hide()
-
-    def saveRoi(self):
-        self.saveRoiGUI.rfAnalysisGUI = self
-        self.saveRoiGUI.show()
 
     def moveToExport(self):
         if len(self.spectralData.dataFrame):

@@ -7,6 +7,7 @@ import numpy as np
 from src.DataLayer.spectral import SpectralData
 from src.UtcTool2d.analysisParamsSelection_ui import Ui_analysisParams
 from src.UtcTool2d.rfAnalysis_ui_helper import RfAnalysisGUI
+from src.UtcTool2d.loadConfig_ui_helper import LoadConfigGUI
 import src.UtcTool2d.roiSelection_ui_helper as RoiSelectionSection
 
 system = platform.system()
@@ -197,12 +198,18 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             )
 
         self.rfAnalysisGUI = RfAnalysisGUI()
+        self.loadConfigGUI = LoadConfigGUI()
         self.lastGui: RoiSelectionSection.RoiSelectionGUI
         self.spectralData: SpectralData
 
         self.continueButton.clicked.connect(self.continueToRfAnalysis)
         self.backButton.clicked.connect(self.backToLastScreen)
         self.singleRoiWindowButton.clicked.connect(self.singleRoiWindow)
+        self.loadConfigButton.clicked.connect(self.loadConfig)
+
+    def loadConfig(self):
+        self.loadConfigGUI.analysisParamsGUI = self
+        self.loadConfigGUI.show()
 
     def initParams(self):
         self.axWinSizeVal.setMinimum(

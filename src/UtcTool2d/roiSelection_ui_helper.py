@@ -27,6 +27,7 @@ from src.UtcTool2d.editImageDisplay_ui_helper import EditImageDisplayGUI
 from src.UtcTool2d.analysisParamsSelection_ui_helper import AnalysisParamsGUI
 import src.UtcTool2d.selectImage_ui_helper as SelectImageSection
 from src.UtcTool2d.loadRoi_ui_helper import LoadRoiGUI
+from src.UtcTool2d.saveRoi_ui_helper import SaveRoiGUI
 from src.Utils.roiFuncs import computeSpecWindowsIQ, computeSpecWindowsRF
 
 system = platform.system()
@@ -142,6 +143,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.undoLoadedRoiButton.clicked.connect(self.undoRoiLoad)
 
         self.loadRoiGUI = LoadRoiGUI()
+        self.saveRoiGUI = SaveRoiGUI()
         self.pointsPlottedX = []
         self.pointsPlottedY = []
 
@@ -181,8 +183,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
         self.redrawRoiButton.setHidden(True)
 
-        # self.editImageDisplayButton.clicked.connect(self.openImageEditor)
-        self.editImageDisplayButton.setHidden(True)  # done for now for simplicity
+        self.editImageDisplayButton.clicked.connect(self.openImageEditor)
         self.drawRoiButton.clicked.connect(self.recordDrawRoiClicked)
         self.userDrawRectangleButton.clicked.connect(self.recordDrawRectClicked)
         self.undoLastPtButton.clicked.connect(self.undoLastPt)
@@ -195,6 +196,14 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.loadRoiButton.clicked.connect(self.openLoadRoiWindow)
         self.backFromFreehandButton.clicked.connect(self.backFromFreehand)
         self.backFromRectangleButton.clicked.connect(self.backFromRect)
+        self.saveRoiButton.clicked.connect(self.saveRoi)
+
+    def saveRoi(self):
+        self.saveRoiGUI.splineX = self.spectralData.splineX
+        self.saveRoiGUI.splineY = self.spectralData.splineY
+        self.saveRoiGUI.imName = self.imagePathInput.text()
+        self.saveRoiGUI.phantomName = self.phantomPathInput.text()
+        self.saveRoiGUI.show()
 
     def undoRoiLoad(self):
         self.undoLoadedRoiButton.setHidden(True)
@@ -640,7 +649,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.spectralData.splineX, self.spectralData.splineY = calculateSpline(
                 self.pointsPlottedX, self.pointsPlottedY
             )
-            self.spectralData.splineX = np.clip(self.spectralData.splineX, a_min=0, a_max=self.spectralData.pixDepth-1)
+            self.spectralData.splineX = np.clip(self.spectralData.splineX, a_min=0, a_max=self.spectralData.pixWidth-1)
             self.spectralData.splineY = np.clip(self.spectralData.splineY, a_min=0, a_max=self.spectralData.pixDepth-1)
 
             try:
@@ -656,58 +665,13 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             except (AttributeError, UnboundLocalError):
                 pass
 
-            self.ax.plot(
-                self.spectralData.splineX, self.spectralData.splineY, color="cyan", linewidth=0.75
-            )
-            try:
-                (image,) = self.ax.plot(
-                    [], [], marker="o", markersize=3, markerfacecolor="red"
-                )
-                image.figure.canvas.mpl_disconnect(self.cid)
-            except AttributeError:
-                image = 0  # do nothing. Means we're loading ROI
-
-            try:
-                if self.spectralData.numSamplesDrOut == 1400:
-                    # Preset 1 boundaries for 20220831121844_IQ.bin
-                    self.ax.plot(
-                        [148.76, 154.22], [0, 500], c="purple"
-                    )  # left boundary
-                    self.ax.plot(
-                        [0, 716], [358.38, 386.78], c="purple"
-                    )  # bottom boundary
-                    self.ax.plot(
-                        [572.47, 509.967], [0, 500], c="purple"
-                    )  # right boundary
-
-                elif self.spectralData.numSamplesDrOut == 1496:
-                    # Preset 2 boundaries for 20220831121752_IQ.bin
-                    self.ax.plot([146.9, 120.79], [0, 500], c="purple")  # left boundary
-                    self.ax.plot(
-                        [0, 644.76], [462.41, 500], c="purple"
-                    )  # bottom boundary
-                    self.ax.plot(
-                        [614.48, 595.84], [0, 500], c="purple"
-                    )  # right boundary
-
-                # elif self.ImDisplayInfo.numSamplesDrOut != -1:
-                #     print("No preset found!")
-            except (AttributeError, UnboundLocalError):
-                pass
-
-            self.figure.subplots_adjust(
-                left=0, right=1, bottom=0, top=1, hspace=0.2, wspace=0.2
-            )
-            self.ax.tick_params(bottom=False, left=False)
-            self.canvas.draw()
-            self.ROIDrawn = True
             self.drawRoiButton.setChecked(False)
             self.drawRoiButton.setCheckable(False)
             self.redrawRoiButton.setHidden(False)
             self.closeRoiButton.setHidden(True)
             self.crosshairCursor.set_active(False)
             self.undoLastPtButton.clicked.disconnect()
-            self.canvas.draw()
+            self.plotOnCanvas()
 
     def undoLastRoi(
         self,
@@ -943,10 +907,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.acceptROI()
 
     def acceptROI(self):
-        if (
-            len(self.pointsPlottedX) > 1
-            and self.pointsPlottedX[0] == self.pointsPlottedX[-1]
-        ):
+        if len(self.spectralData.splineX) > 1 and len(self.spectralData.splineX) == len(self.spectralData.splineY):
             self.analysisParamsGUI.spectralData = self.spectralData
             self.analysisParamsGUI.initParams()
             self.analysisParamsGUI.lastGui = self

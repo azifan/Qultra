@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1175</width>
-    <height>749</height>
+    <width>1183</width>
+    <height>735</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -372,7 +372,7 @@
   <widget class="QPushButton" name="backButton">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>20</x>
      <y>690</y>
      <width>131</width>
      <height>41</height>
@@ -1270,6 +1270,27 @@
     <string>Single ROI Window</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="loadConfigButton">
+   <property name="geometry">
+    <rect>
+     <x>170</x>
+     <y>690</y>
+     <width>161</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Load Analysis Config</string>
+   </property>
+  </widget>
   <zorder>previewFrame</zorder>
   <zorder>sidebar</zorder>
   <zorder>exportResultsSidebar</zorder>
@@ -1309,6 +1330,7 @@
   <zorder>axWavelengthRatioVal</zorder>
   <zorder>previewFrameMesh</zorder>
   <zorder>singleRoiWindowButton</zorder>
+  <zorder>loadConfigButton</zorder>
  </widget>
  <resources/>
  <connections/>
