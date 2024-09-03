@@ -242,15 +242,15 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.psGraphDisplay = PsGraphDisplay()
 
         for nps in npsArr:
-            self.psGraphDisplay.plot_graph.plot(f, nps, pen=pg.mkPen(color=(0, 0, 255, 51)))
-        self.psGraphDisplay.plot_graph.plot(f, avNps, pen=pg.mkPen(color="r", width=2))
-        self.psGraphDisplay.plot_graph.plot(x, y, pen=pg.mkPen(color=(255, 172, 28), width=2))
-        self.psGraphDisplay.plot_graph.plot(2*[self.spectralData.analysisFreqBand[0]], [np.amin(npsArr), np.amax(npsArr)], 
+            self.psGraphDisplay.plot_graph.plot(f/1e6, nps, pen=pg.mkPen(color=(0, 0, 255, 51)))
+        self.psGraphDisplay.plot_graph.plot(f/1e6, avNps, pen=pg.mkPen(color="r", width=2))
+        self.psGraphDisplay.plot_graph.plot(x/1e6, y, pen=pg.mkPen(color=(255, 172, 28), width=2))
+        self.psGraphDisplay.plot_graph.plot(2*[self.spectralData.analysisFreqBand[0]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
                                             pen=pg.mkPen(color="m", width=2))
-        self.psGraphDisplay.plot_graph.plot(2*[self.spectralData.analysisFreqBand[1]], [np.amin(npsArr), np.amax(npsArr)], 
+        self.psGraphDisplay.plot_graph.plot(2*[self.spectralData.analysisFreqBand[1]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
                                             pen=pg.mkPen(color="m", width=2))
         self.psGraphDisplay.plot_graph.setYRange(np.amin(npsArr), np.amax(npsArr))
-        
+
         self.plotOnCanvas()
 
     def displayNps(self):

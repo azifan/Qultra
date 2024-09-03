@@ -23,5 +23,7 @@ class PsGraphDisplay(Ui_psGraphWidget, QWidget):
         self.plot_graph = pg.PlotWidget()
         self.plot_graph.addLegend()
         self.plot_graph.setBackground("w")
+        self.plot_graph.setLabel("left", "Power (dB)")
+        self.plot_graph.setLabel("bottom", "Frequency (MHz)")
         self.horizontalLayout.addWidget(self.plot_graph)
 
