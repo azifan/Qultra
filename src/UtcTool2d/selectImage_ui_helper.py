@@ -148,7 +148,6 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.fileExts = None
 
         self.spectralData = SpectralData()
-        self.spectralData.dataFrame = None
 
         self.terasonButton.clicked.connect(self.terasonClicked)
         self.philipsButton.clicked.connect(self.philipsClicked)
@@ -163,7 +162,6 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.backButton.clicked.connect(self.backToWelcomeScreen)
 
     def backToWelcomeScreen(self):
-        self.welcomeGui.utc2dIqData = self.spectralData.dataFrame
         self.welcomeGui.show()
         self.hide()
 

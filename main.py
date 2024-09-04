@@ -16,15 +16,6 @@ class QusGui(Ui_qusPage, QWidget):
         self.ceus3dButton.clicked.connect(self.moveToCeus3d)
         self.ceus2dButton.clicked.connect(self.moveToCeusMc2d)
         self.nextPage = None
-        self.utc2dRfData = pd.DataFrame(
-            columns=[
-                "Patient",
-                "Phantom",
-                "Midband Fit (MBF)",
-                "Spectral Slope (SS)",
-                "Spectral Intercept (SI)",
-            ]
-        )
         self.ceus2dMcData = pd.DataFrame(
             columns=[
                 "Patient",
@@ -51,7 +42,6 @@ class QusGui(Ui_qusPage, QWidget):
     def moveToUtc2d(self):
         del self.nextPage
         self.nextPage = SelectImageGUI_UtcTool2dIQ()
-        self.nextPage.dataFrame = self.utc2dRfData
         self.nextPage.show()
         self.nextPage.welcomeGui = self
         self.hide()

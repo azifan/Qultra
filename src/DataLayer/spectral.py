@@ -2,7 +2,6 @@ from typing import List
 
 import cv2
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 
 from pyQus.spectral import SpectralAnalysis
@@ -13,7 +12,6 @@ from src.DataLayer.transforms import condenseArr, expandArr, scanConvert
 class SpectralData:
     def __init__(self):
         self.spectralAnalysis: SpectralAnalysis
-        self.dataFrame: pd.DataFrame
         self.depth: float # mm
         self.width: float # mm
         self.roiWidthScale: int
