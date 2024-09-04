@@ -238,15 +238,22 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         del self.psGraphDisplay
         self.psGraphDisplay = PsGraphDisplay()
 
+        # ps = self.spectralData.spectralAnalysis.roiWindows[0].results.ps
+        # rps = self.spectralData.spectralAnalysis.roiWindows[0].results.rPs
+        # nps = self.spectralData.spectralAnalysis.roiWindows[0].results.nps
+        # self.psGraphDisplay.plotGraph.plot(f/1e6, ps, pen=pg.mkPen(color="b"), name="PS")
+        # self.psGraphDisplay.plotGraph.plot(f/1e6, rps, pen=pg.mkPen(color="r"), name="rPS")
+        # self.psGraphDisplay.plotGraph.plot(f/1e6, nps+np.amin(ps), pen=pg.mkPen(color="g"), name="NPS")
+
         for nps in npsArr:
-            self.psGraphDisplay.plot_graph.plot(f/1e6, nps, pen=pg.mkPen(color=(0, 0, 255, 51)))
-        self.psGraphDisplay.plot_graph.plot(f/1e6, avNps, pen=pg.mkPen(color="r", width=2))
-        self.psGraphDisplay.plot_graph.plot(x/1e6, y, pen=pg.mkPen(color=(255, 172, 28), width=2))
-        self.psGraphDisplay.plot_graph.plot(2*[self.spectralData.analysisFreqBand[0]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
+            self.psGraphDisplay.plotGraph.plot(f/1e6, nps, pen=pg.mkPen(color=(0, 0, 255, 51)))
+        self.psGraphDisplay.plotGraph.plot(f/1e6, avNps, pen=pg.mkPen(color="r", width=2))
+        self.psGraphDisplay.plotGraph.plot(x/1e6, y, pen=pg.mkPen(color=(255, 172, 28), width=2))
+        self.psGraphDisplay.plotGraph.plot(2*[self.spectralData.analysisFreqBand[0]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
                                             pen=pg.mkPen(color="m", width=2))
-        self.psGraphDisplay.plot_graph.plot(2*[self.spectralData.analysisFreqBand[1]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
+        self.psGraphDisplay.plotGraph.plot(2*[self.spectralData.analysisFreqBand[1]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
                                             pen=pg.mkPen(color="m", width=2))
-        self.psGraphDisplay.plot_graph.setYRange(np.amin(npsArr), np.amax(npsArr))
+        self.psGraphDisplay.plotGraph.setYRange(np.amin(npsArr), np.amax(npsArr))
 
         self.plotOnCanvas()
 

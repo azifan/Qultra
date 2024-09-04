@@ -20,10 +20,10 @@ class PsGraphDisplay(Ui_psGraphWidget, QWidget):
         # self.ax.set_xlabel("Frequency (MHz)", fontsize=8)
         # self.ax.set_ylabel("Power (dB)", fontsize=8)
 
-        self.plot_graph = pg.PlotWidget()
-        self.plot_graph.addLegend()
-        self.plot_graph.setBackground("w")
-        self.plot_graph.setLabel("left", "Power (dB)")
-        self.plot_graph.setLabel("bottom", "Frequency (MHz)")
-        self.horizontalLayout.addWidget(self.plot_graph)
+        self.plotGraph = pg.PlotWidget()
+        self.plotGraph.addLegend()
+        self.plotGraph.setBackground("w")
+        self.plotGraph.setLabel("left", "Power (dB)")
+        self.plotGraph.setLabel("bottom", "Frequency (MHz)")
+        self.horizontalLayout.addWidget(self.plotGraph)
 

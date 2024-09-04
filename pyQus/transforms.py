@@ -54,19 +54,19 @@ def spectralAnalysisDefault6db(npsNormalized, f, db6LowF, db6HighF):
     )
     npsLinfit = np.polyval(p, fBand)  # y_linfit is a column vecotr
 
-    # Compute linear regression residuals
-    npsResid = (
-        npsNormalized[smallestDiffIndexDb6LowF:smallestDiffIndexDb6HighF] - npsLinfit
-    )
-    npsSsResid = sum(np.square(npsResid))
-    npsSsTotal = (len(npsNormalized - 1)) * np.var(npsNormalized)
-    rsqu = 1 - (npsSsResid / npsSsTotal)
+    # # Compute linear regression residuals
+    # npsResid = (
+    #     npsNormalized[smallestDiffIndexDb6LowF:smallestDiffIndexDb6HighF] - npsLinfit
+    # )
+    # npsSsResid = sum(np.square(npsResid))
+    # npsSsTotal = (len(npsNormalized - 1)) * np.var(npsNormalized)
+    # rsqu = 1 - (npsSsResid / npsSsTotal)
 
-    # Compute spectral parameters
-    ib = 0
-    for i in range(smallestDiffIndexDb6LowF, smallestDiffIndexDb6HighF):
-        ib += npsNormalized[i] * i
+    # # Compute spectral parameters
+    # ib = 0
+    # for i in range(smallestDiffIndexDb6LowF, smallestDiffIndexDb6HighF):
+    #     ib += npsNormalized[i] * i
 
     mbfit = p[0] * fBand[round(fBand.shape[0] / 2)] + p[1]
 
-    return mbfit, fBand, npsLinfit, p, rsqu, ib
+    return mbfit, fBand, npsLinfit, p #, rsqu, ib

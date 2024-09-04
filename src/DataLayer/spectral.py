@@ -63,15 +63,12 @@ class SpectralData:
         self.ssIm = self.mbfIm.copy(); self.siIm = self.ssIm.copy()
 
         for window in self.spectralAnalysis.roiWindows:
-            self.mbfIm[window.top: window.bottom+1, window.left: window.right+1] = np.array(
-                self.mbfCmap[int((255 / (self.maxMbf-self.minMbf))*(window.results.mbf-self.minMbf))]
-            ) * 255
-            self.ssIm[window.top: window.bottom+1, window.left: window.right+1] = np.array(
-                self.ssCmap[int((255 / (self.maxSs-self.minSs))*(window.results.ss-self.minSs))]
-            ) * 255
-            self.siIm[window.top: window.bottom+1, window.left: window.right+1] = np.array(
-                self.siCmap[int((255 / (self.maxSi-self.minSi))*(window.results.si-self.minSi))]
-            ) * 255
+            mbfColorIdx = int((255 / (self.maxMbf-self.minMbf))*(window.results.mbf-self.minMbf)) if self.minMbf != self.maxMbf else 125
+            ssColorIdx = int((255 / (self.maxSs-self.minSs))*(window.results.ss-self.minSs)) if self.minSs != self.maxSs else 125
+            siColorIdx = int((255 / (self.maxSi-self.minSi))*(window.results.si-self.minSi)) if self.minSi != self.maxSi else 125
+            self.mbfIm[window.top: window.bottom+1, window.left: window.right+1] = np.array(self.mbfCmap[mbfColorIdx])*255
+            self.ssIm[window.top: window.bottom+1, window.left: window.right+1] = np.array(self.ssCmap[ssColorIdx])*255
+            self.siIm[window.top: window.bottom+1, window.left: window.right+1] = np.array(self.siCmap[siColorIdx])*255
 
     def scanConvertRGB(self, image):
         condensedIm = condenseArr(image)

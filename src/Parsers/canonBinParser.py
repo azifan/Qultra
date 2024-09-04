@@ -106,8 +106,8 @@ class InfoStruct():
         # self.maxFrequency = 6200000 #Hz
         self.minFrequency = 0
         self.maxFrequency = 8000000
-        self.lowBandFreq = 2000000 #Hz
-        self.upBandFreq = 6000000 #Hz
+        self.lowBandFreq = 3000000 #Hz
+        self.upBandFreq = 5000000 #Hz
         self.centerFrequency = 4000000 #Hz
 
         self.studyMode = None

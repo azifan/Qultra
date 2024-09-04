@@ -123,7 +123,7 @@ class SpectralAnalysis:
             window.results.f = np.asarray(f)
 
             # Compute QUS parameters
-            mbf, _, _, p, _, _ = spectralAnalysisDefault6db(nps, f, lowFreq, upFreq)
+            mbf, _, _, p = spectralAnalysisDefault6db(nps, f, lowFreq, upFreq)
             window.results.mbf = mbf
             window.results.ss = p[0]
             window.results.si = p[1]
