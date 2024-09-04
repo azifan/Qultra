@@ -450,7 +450,7 @@
    <property name="geometry">
     <rect>
      <x>750</x>
-     <y>380</y>
+     <y>300</y>
      <width>131</width>
      <height>41</height>
     </rect>
@@ -471,7 +471,7 @@
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>270</y>
+     <y>190</y>
      <width>271</width>
      <height>51</height>
     </rect>
@@ -497,7 +497,7 @@
    <property name="geometry">
     <rect>
      <x>612</x>
-     <y>380</y>
+     <y>300</y>
      <width>131</width>
      <height>41</height>
     </rect>
@@ -518,7 +518,7 @@
    <property name="geometry">
     <rect>
      <x>640</x>
-     <y>330</y>
+     <y>250</y>
      <width>201</width>
      <height>31</height>
     </rect>
@@ -558,7 +558,7 @@
    <property name="geometry">
     <rect>
      <x>640</x>
-     <y>260</y>
+     <y>230</y>
      <width>201</width>
      <height>31</height>
     </rect>
@@ -574,7 +574,7 @@
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>300</y>
+     <y>270</y>
      <width>131</width>
      <height>41</height>
     </rect>
@@ -595,7 +595,7 @@
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>200</y>
+     <y>170</y>
      <width>271</width>
      <height>51</height>
     </rect>
@@ -621,7 +621,7 @@
    <property name="geometry">
     <rect>
      <x>750</x>
-     <y>300</y>
+     <y>270</y>
      <width>131</width>
      <height>41</height>
     </rect>
@@ -641,8 +641,8 @@
   <widget class="QLineEdit" name="newFileNameInput">
    <property name="geometry">
     <rect>
-     <x>650</x>
-     <y>440</y>
+     <x>640</x>
+     <y>470</y>
      <width>201</width>
      <height>31</height>
     </rect>
@@ -660,7 +660,7 @@
   <widget class="QPushButton" name="createNewFileButton">
    <property name="geometry">
     <rect>
-     <x>640</x>
+     <x>630</x>
      <y>590</y>
      <width>221</width>
      <height>41</height>
@@ -682,7 +682,7 @@
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>380</y>
+     <y>410</y>
      <width>271</width>
      <height>51</height>
     </rect>
@@ -708,7 +708,7 @@
   <widget class="QPushButton" name="appendFileButton">
    <property name="geometry">
     <rect>
-     <x>640</x>
+     <x>630</x>
      <y>520</y>
      <width>221</width>
      <height>41</height>
@@ -729,7 +729,7 @@
   <widget class="QPushButton" name="appendFileBackButton">
    <property name="geometry">
     <rect>
-     <x>640</x>
+     <x>630</x>
      <y>590</y>
      <width>221</width>
      <height>41</height>
@@ -750,7 +750,7 @@
   <widget class="QPushButton" name="newFileBackButton">
    <property name="geometry">
     <rect>
-     <x>640</x>
+     <x>630</x>
      <y>650</y>
      <width>221</width>
      <height>41</height>
@@ -772,7 +772,7 @@
    <property name="geometry">
     <rect>
      <x>540</x>
-     <y>480</y>
+     <y>510</y>
      <width>421</width>
      <height>81</height>
     </rect>
@@ -796,7 +796,7 @@ and must end in &quot;.xlsx&quot;</string>
    <property name="geometry">
     <rect>
      <x>540</x>
-     <y>490</y>
+     <y>520</y>
      <width>421</width>
      <height>81</height>
     </rect>
@@ -821,7 +821,7 @@ deleted and overwritten</string>
    <property name="geometry">
     <rect>
      <x>540</x>
-     <y>300</y>
+     <y>320</y>
      <width>421</width>
      <height>81</height>
     </rect>
@@ -840,6 +840,123 @@ deleted and overwritten</string>
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
+  <widget class="QLabel" name="roiNameLabelNew">
+   <property name="geometry">
+    <rect>
+     <x>610</x>
+     <y>310</y>
+     <width>271</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	background-color: rgba(255, 255, 255, 0);
+	color: white;
+	font-size: 17px;
+}</string>
+   </property>
+   <property name="text">
+    <string>ROI Name (Optional)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="textInteractionFlags">
+    <set>Qt::NoTextInteraction</set>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="roiNameInputNew">
+   <property name="geometry">
+    <rect>
+     <x>640</x>
+     <y>370</y>
+     <width>201</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {
+	background-color: rgb(249, 249, 249);
+	color: black;
+}</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="roiNameInputAppend">
+   <property name="geometry">
+    <rect>
+     <x>640</x>
+     <y>430</y>
+     <width>201</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {
+	background-color: rgb(249, 249, 249);
+	color: black;
+}</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="roiNameLabelAppend">
+   <property name="geometry">
+    <rect>
+     <x>600</x>
+     <y>370</y>
+     <width>271</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	background-color: rgba(255, 255, 255, 0);
+	color: white;
+	font-size: 17px;
+}</string>
+   </property>
+   <property name="text">
+    <string>ROI Name (Optional)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="textInteractionFlags">
+    <set>Qt::NoTextInteraction</set>
+   </property>
+  </widget>
+  <zorder>fileNameErrorLabel</zorder>
+  <zorder>fileNameWarningLabel</zorder>
+  <zorder>widget</zorder>
+  <zorder>frame_3</zorder>
+  <zorder>backButton</zorder>
+  <zorder>selectDataLabel</zorder>
+  <zorder>appendFileOptionButton</zorder>
+  <zorder>clearAppendFileButton</zorder>
+  <zorder>appendFileLabel</zorder>
+  <zorder>newFileOptionButton</zorder>
+  <zorder>newFolderPathInput</zorder>
+  <zorder>chooseNewFolderButton</zorder>
+  <zorder>newFolderPathLabel</zorder>
+  <zorder>clearNewFolderButton</zorder>
+  <zorder>newFileNameInput</zorder>
+  <zorder>createNewFileButton</zorder>
+  <zorder>newFileNameLabel</zorder>
+  <zorder>appendFileButton</zorder>
+  <zorder>appendFileBackButton</zorder>
+  <zorder>newFileBackButton</zorder>
+  <zorder>dataSavedSuccessfullyLabel</zorder>
+  <zorder>roiNameLabelNew</zorder>
+  <zorder>roiNameInputNew</zorder>
+  <zorder>appendFilePath</zorder>
+  <zorder>chooseAppendFileButton</zorder>
+  <zorder>roiNameInputAppend</zorder>
+  <zorder>roiNameLabelAppend</zorder>
  </widget>
  <resources/>
  <connections/>

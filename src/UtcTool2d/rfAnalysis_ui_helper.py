@@ -1,11 +1,9 @@
-import os
 import platform
 
 import numpy as np
+import pandas as pd
 import matplotlib
-import scipy.interpolate as interpolate
 import matplotlib.pyplot as plt
-from PIL import Image, ImageEnhance
 import pyqtgraph as pg
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QWidget, QHBoxLayout
@@ -169,7 +167,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             }"""
             )
 
-        self.exportDataGUI: ExportDataGUI
+        self.exportDataGUI = ExportDataGUI()
         self.lastGui: AnalysisParamsSelection.AnalysisParamsGUI
         self.spectralData: SpectralData
         self.newData = None
@@ -204,7 +202,6 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.canvasLeg.draw()
         self.backButton.clicked.connect(self.backToLastScreen)
         self.exportDataButton.clicked.connect(self.moveToExport)
-        self.saveDataButton.clicked.connect(self.saveData)
         self.displayNpsButton.clicked.connect(self.displayNps)
         self.displayNpsButton.setCheckable(True)
         self.saveConfigButton.clicked.connect(self.saveConfig)
@@ -260,29 +257,34 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.psGraphDisplay.hide()
 
     def moveToExport(self):
-        if len(self.spectralData.dataFrame):
-            del self.exportDataGUI
-            self.exportDataGUI = ExportDataGUI()
-            self.exportDataGUI.dataFrame = self.spectralData.dataFrame
-            self.exportDataGUI.lastGui = self
-            self.exportDataGUI.setFilenameDisplays(
-                self.imagePathInput.text(), self.phantomPathInput.text()
-            )
-            self.exportDataGUI.show()
-            self.hide()
-
-    def saveData(self):
-        if self.newData is None:
-            self.newData = {
+        # if len(self.spectralData.dataFrame):
+        del self.exportDataGUI
+        self.exportDataGUI = ExportDataGUI()
+        dataFrame = pd.DataFrame(
+            columns=[
+                "Patient",
+                "Phantom",
+                "Midband Fit (MBF)",
+                "Spectral Slope (SS)",
+                "Spectral Intercept (SI)",
+                "ROI Name"
+            ]
+        )
+        curData = {
                 "Patient": self.imagePathInput.text(),
                 "Phantom": self.phantomPathInput.text(),
                 "Midband Fit (MBF)": np.average(self.spectralData.mbfArr),
                 "Spectral Slope (SS)": np.average(self.spectralData.ssArr),
                 "Spectral Intercept (SI)": np.average(self.spectralData.siArr),
+                "ROI Name": ""
             }
-            self.spectralData.dataFrame = self.spectralData.dataFrame.append(
-                self.newData, ignore_index=True
-            )
+        self.exportDataGUI.dataFrame = dataFrame.append(curData, ignore_index=True)
+        self.exportDataGUI.lastGui = self
+        self.exportDataGUI.setFilenameDisplays(
+            self.imagePathInput.text(), self.phantomPathInput.text()
+        )
+        self.exportDataGUI.show()
+        self.hide()
 
     def backToLastScreen(self):
         self.psGraphDisplay.hide()

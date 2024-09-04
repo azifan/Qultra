@@ -114,6 +114,10 @@ class ExportDataGUI(Ui_exportData, QWidget):
         self.fileNameErrorLabel.setHidden(True)
         self.fileNameWarningLabel.setHidden(True)
         self.dataSavedSuccessfullyLabel.setHidden(True)
+        self.roiNameInputAppend.setHidden(True)
+        self.roiNameInputNew.setHidden(True)
+        self.roiNameLabelAppend.setHidden(True)
+        self.roiNameLabelNew.setHidden(True)
 
         self.dataFrame = None
         self.lastGui = None
@@ -173,6 +177,10 @@ class ExportDataGUI(Ui_exportData, QWidget):
         self.appendFileOptionButton.setHidden(True)
         self.newFileOptionButton.setHidden(True)
         self.selectDataLabel.setHidden(True)
+        self.roiNameInputAppend.setHidden(True)
+        self.roiNameInputNew.setHidden(True)
+        self.roiNameLabelAppend.setHidden(True)
+        self.roiNameLabelNew.setHidden(True)
 
     def createNewFile(self):
         if os.path.exists(self.newFolderPathInput.text()):
@@ -187,6 +195,8 @@ class ExportDataGUI(Ui_exportData, QWidget):
             try:
                 wb = Workbook()
                 ws = wb.active
+
+                self.dataFrame.at[0, "ROI Name"] = self.roiNameInputNew.text()
                 for r in dataframe_to_rows(self.dataFrame, index=False, header=True):
                     ws.append(r)
                 wb.save(
@@ -208,6 +218,8 @@ class ExportDataGUI(Ui_exportData, QWidget):
                 # Since writes to 'Sheet1', make sure not to change sheet names
                 wb = load_workbook(self.appendFilePath.text())
                 ws = wb.active
+
+                self.dataFrame.at[0, "ROI Name"] = self.roiNameInputAppend.text()
                 for r in dataframe_to_rows(self.dataFrame, index=False, header=False):
                     ws.append(r)
                 wb.save(self.appendFilePath.text())
@@ -232,6 +244,8 @@ class ExportDataGUI(Ui_exportData, QWidget):
         self.newFileBackButton.setHidden(False)
         self.createNewFileButton.setHidden(False)
         self.fileNameWarningLabel.setHidden(False)
+        self.roiNameInputNew.setHidden(False)
+        self.roiNameLabelNew.setHidden(False)
         self.appendFileOptionButton.setHidden(True)
         self.newFileOptionButton.setHidden(True)
 
@@ -247,6 +261,8 @@ class ExportDataGUI(Ui_exportData, QWidget):
         self.newFileBackButton.setHidden(True)
         self.fileNameWarningLabel.setHidden(True)
         self.fileNameErrorLabel.setHidden(True)
+        self.roiNameInputNew.setHidden(True)
+        self.roiNameLabelNew.setHidden(True)
         self.appendFileOptionButton.setHidden(False)
         self.newFileOptionButton.setHidden(False)
 
@@ -257,6 +273,8 @@ class ExportDataGUI(Ui_exportData, QWidget):
         self.appendFilePath.setHidden(False)
         self.clearAppendFileButton.setHidden(False)
         self.appendFileBackButton.setHidden(False)
+        self.roiNameLabelAppend.setHidden(False)
+        self.roiNameInputAppend.setHidden(False)
         self.appendFileOptionButton.setHidden(True)
         self.newFileOptionButton.setHidden(True)
 
@@ -267,6 +285,8 @@ class ExportDataGUI(Ui_exportData, QWidget):
         self.appendFilePath.setHidden(True)
         self.clearAppendFileButton.setHidden(True)
         self.appendFileBackButton.setHidden(True)
+        self.roiNameLabelAppend.setHidden(True)
+        self.roiNameInputAppend.setHidden(True)
         self.appendFileOptionButton.setHidden(False)
         self.newFileOptionButton.setHidden(False)
 
