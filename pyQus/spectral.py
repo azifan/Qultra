@@ -1,7 +1,6 @@
 from typing import List
 
 import numpy as np
-from numpy.matlib import repmat
 from PIL import Image, ImageDraw
 
 from pyQus.analysisObjects import UltrasoundImage, Config, Window

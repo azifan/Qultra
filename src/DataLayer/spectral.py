@@ -87,6 +87,27 @@ class SpectralData:
         self.scSsIm = self.scanConvertRGB(self.ssIm)
         self.scSiIm = self.scanConvertRGB(self.siIm)
 
+    def plotPsData(self):
+        _, ax = plt.subplots()
+
+        ssMean = np.mean(self.ssArr)
+        siMean = np.mean(self.siArr)
+        npsArr = [window.results.nps for window in self.spectralAnalysis.roiWindows]
+        avNps = np.mean(npsArr, axis=0)
+        f = self.spectralAnalysis.roiWindows[0].results.f
+        x = np.linspace(min(f), max(f), 100)
+        y = ssMean*x + siMean
+
+        for nps in npsArr[:-1]:
+            ax.plot(f/1e6, nps, c="b", alpha=0.2)
+        ax.plot(f/1e6, npsArr[-1], c="b", alpha=0.2, label="Window NPS")
+        ax.plot(f/1e6, avNps, color="r", label="Av NPS")
+        ax.plot(x/1e6, y, c="orange", label="Av LOBF")
+        ax.plot(2*[self.analysisFreqBand[0]/1e6], [np.amin(npsArr), np.amax(npsArr)], c="purple")
+        ax.plot(2*[self.analysisFreqBand[1]/1e6], [np.amin(npsArr), np.amax(npsArr)], c="purple", label="Analysis Band")
+        plt.legend()
+        plt.show()
+
     @property
     def bmode(self):
         assert len(self.spectralAnalysis.ultrasoundImage.bmode.shape) == 3
