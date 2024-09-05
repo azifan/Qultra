@@ -309,7 +309,8 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
     def plotOnCanvas(self):  # Plot current image on GUI
         self.ax.clear()
         self.selectedImage = self.spectralData.finalBmode if self.selectedImage is None else self.selectedImage
-        self.ax.imshow(self.selectedImage, cmap="Greys_r")
+        quotient = self.spectralData.depth / self.spectralData.width
+        self.ax.imshow(self.selectedImage, aspect=quotient*(self.selectedImage.shape[1]/self.selectedImage.shape[0]))
         self.figure.set_facecolor((0, 0, 0, 0))
         self.ax.axis("off")
 

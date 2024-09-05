@@ -96,7 +96,7 @@ class SpectralAnalysis:
     
     def computeSpecWindows(self):
         if not len(self.roiWindows):
-            print("Run 'roiWindowsGenerator' first")
+            print("Run 'generateRoiWindows' first")
             return
     
         fs = self.config.samplingFrequency

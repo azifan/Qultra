@@ -77,6 +77,11 @@ class Rfdata:
         self.echoMModeData = []
         self.miscData = []
 
+def findSignature(filepath: Path):
+    file = open(filepath, 'rb')
+    sig = list(file.read(8))
+    return sig
+
 def pruneData(lineData, lineHeader, ML_Capture):
 
     # Remove false gate data at beginning of the line
@@ -964,7 +969,7 @@ def parseRF(filepath, readOffset, readSize) -> Rfdata:
     return rfdata
 
 
-def main_parser_stanford(filepath, txBeamperFrame=125, NumSonoCTAngles=5, ML_out=2, ML_in=32, used_os=2256):
+def philipsRfParser(filepath, txBeamperFrame=125, NumSonoCTAngles=5, ML_out=2, ML_in=32, used_os=2256):
 
     rf = parseRF(filepath, 0, 2000)
 
@@ -1048,4 +1053,4 @@ def main_parser_stanford(filepath, txBeamperFrame=125, NumSonoCTAngles=5, ML_out
     savemat(destination, contents)
 
 if __name__ == "__main__":
-    main_parser_stanford("/Users/davidspector/Downloads/parserRF_pywrap-2-2/rfCapture_20220511_144204.rf")
+    philipsRfParser("/Users/davidspector/Downloads/parserRF_pywrap-2-2/rfCapture_20220511_144204.rf")

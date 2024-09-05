@@ -21,7 +21,7 @@ import src.Parsers.verasonicsMatParser as vera
 import src.Parsers.canonBinParser as canon
 import src.Parsers.terasonRfParser as tera
 from src.Parsers.philipsMatParser import getImage as philipsMatParser
-from src.Parsers.philipsRfParser import main_parser_stanford as philipsRfParser
+from src.Parsers.philipsRfParser import philipsRfParser
 from src.UtcTool2d.roiSelection_ui import Ui_constructRoi
 from src.UtcTool2d.editImageDisplay_ui_helper import EditImageDisplayGUI
 from src.UtcTool2d.analysisParamsSelection_ui_helper import AnalysisParamsGUI
@@ -199,6 +199,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.saveRoiButton.clicked.connect(self.saveRoi)
 
     def saveRoi(self):
+        del self.saveRoiGUI
+        self.saveRoiGUI = SaveRoiGUI()
+        self.acceptRect(moveOn=False)
         self.saveRoiGUI.splineX = self.spectralData.splineX
         self.saveRoiGUI.splineY = self.spectralData.splineY
         self.saveRoiGUI.imName = self.imagePathInput.text()
@@ -316,7 +319,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
     def plotOnCanvas(self):  # Plot current image on GUI
         self.ax.clear()
-        self.ax.imshow(self.spectralData.finalBmode)
+        quotient = self.spectralData.depth / self.spectralData.width
+        self.ax.imshow(self.spectralData.finalBmode, aspect=quotient*(self.spectralData.finalBmode.shape[1]/self.spectralData.finalBmode.shape[0]))
         self.figure.set_facecolor((0, 0, 0, 0))
         self.ax.axis("off")
 
@@ -421,10 +425,18 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.ultrasoundImage.scBmode = imgDataStruct.scBmodeStruct.scArr
         self.ultrasoundImage.xmap = imgDataStruct.scBmodeStruct.xmap
         self.ultrasoundImage.ymap = imgDataStruct.scBmodeStruct.ymap
+        self.ultrasoundImage.axialResRf = imgInfoStruct.depth / imgDataStruct.rf.shape[0]
+        self.ultrasoundImage.lateralResRf = self.ultrasoundImage.axialResRf * (
+            imgDataStruct.rf.shape[0]/imgDataStruct.rf.shape[1]
+        ) # placeholder
 
         self.processImage(
             imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
         )
+
+        self.editImageDisplayGUI.contrastVal.setValue(1)
+        self.editImageDisplayGUI.brightnessVal.setValue(1.4)
+        self.editImageDisplayGUI.sharpnessVal.setValue(3)
 
     def openPhilipsImage(self, imageFilePath, phantomFilePath):
         raise NotImplementedError("Not updated with refactor")
@@ -470,25 +482,27 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         )    
 
     def openImageTerason(self, imageFilePath, phantomFilePath):
-        raise NotImplementedError("Not updated with refactor")
         imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = tera.getImage(
             imageFilePath, phantomFilePath
         )
 
-        # Assumes no scan conversion
-        imArray = imgDataStruct.bMode
-        self.AnalysisInfo.computeSpecWindows = computeSpecWindowsRF
+        self.ultrasoundImage = UltrasoundImage()
+        self.ultrasoundImage.bmode = imgDataStruct.bMode
+        self.ultrasoundImage.axialResRf = imgInfoStruct.axialRes
+        self.ultrasoundImage.lateralResRf = imgInfoStruct.lateralRes
+
         self.processImage(
-            imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
+            imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
         )
+
+        self.editImageDisplayGUI.contrastVal.setValue(1)
+        self.editImageDisplayGUI.brightnessVal.setValue(1)
+        self.editImageDisplayGUI.sharpnessVal.setValue(1)
 
     def processImage(
         self, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
     ):
-        self.ultrasoundImage.axialResRf = imgInfoStruct.depth / imgDataStruct.rf.shape[0]
-        self.ultrasoundImage.lateralResRf = self.ultrasoundImage.axialResRf * (
-            imgDataStruct.rf.shape[0]/imgDataStruct.rf.shape[1]
-        ) # placeholder
+        
         self.ultrasoundImage.rf = imgDataStruct.rf
         self.ultrasoundImage.phantomRf = refDataStruct.rf
 
@@ -521,24 +535,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
 
     def displayInitialImage(self):
-        # Display images correctly
-        quotient = self.spectralData.width / self.spectralData.depth
-        if quotient > (721 / 501):
-            self.spectralData.roiWidthScale = 721
-            self.spectralData.roiDepthScale = int(self.spectralData.roiWidthScale / (
-                self.spectralData.width / self.spectralData.depth
-            ))
-        else:
-            self.spectralData.roiWidthScale = int(501 * quotient)
-            self.spectralData.roiDepthScale = 501
-        self.maskCoverImg = np.zeros(
-            [501, 721, 4]
-        )  # Hard-coded values match size of frame on GUI
-        self.yBorderMin = 190 + ((501 - self.spectralData.roiDepthScale) / 2)
-        self.yBorderMax = 671 - ((501 - self.spectralData.roiDepthScale) / 2)
-        self.xBorderMin = 400 + ((721 - self.spectralData.roiWidthScale) / 2)
-        self.xBorderMax = 1121 - ((721 - self.spectralData.roiWidthScale) / 2)
-
         flippedIm = np.flipud(self.spectralData.finalBmode).astype(np.uint8)
 
         qIm = QImage(
@@ -547,7 +543,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             flippedIm.shape[0],
             flippedIm.strides[0],
             QImage.Format_RGB888,
-        ).scaled(self.spectralData.roiWidthScale, self.spectralData.roiDepthScale)
+        )
 
         qIm.mirrored().save(
             os.path.join("Junk", "bModeImRaw.png")
@@ -568,10 +564,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 os.path.join("Junk", "bModeImRawPreSc.png")
             )  # Save as .png file
 
-        self.editImageDisplayGUI.contrastVal.setValue(1)
-        self.editImageDisplayGUI.brightnessVal.setValue(1.4)
-        self.editImageDisplayGUI.sharpnessVal.setValue(3)
-
         self.spectralData.spectralAnalysis.initAnalysisConfig()
 
         self.physicalDepthVal.setText(
@@ -582,15 +574,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         )
         self.pixelWidthVal.setText(str(self.spectralData.finalBmode.shape[1]))
         self.pixelDepthVal.setText(str(self.spectralData.finalBmode.shape[0]))
-
-        cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
-        self.spectralData.finalBmode = self.updateImageDisplay(cvIm)
-
-        if self.spectralData.scConfig is not None:
-            cvIm = Image.open(os.path.join("Junk", "bModeImRawPreSc.png"))
-            self.spectralData.bmode = self.updateImageDisplay(cvIm)
-
-        self.plotOnCanvas()
 
     def recordDrawRoiClicked(self):
         if self.drawRoiButton.isChecked():  # Set up b-mode to be drawn on
@@ -642,7 +625,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def closeInterpolation(self):  # Finish drawing ROI
         if len(self.pointsPlottedX) > 2:
             self.ax.clear()
-            self.ax.imshow(self.spectralData.finalBmode, cmap="Greys_r")
+            quotient = self.spectralData.depth / self.spectralData.width
+            self.ax.imshow(self.spectralData.finalBmode, aspect=quotient*(self.spectralData.finalBmode.shape[1]/self.spectralData.finalBmode.shape[0]))
             if self.pointsPlottedX[0] != self.pointsPlottedX[-1] and self.pointsPlottedY[0] != self.pointsPlottedY[-1]:
                 self.pointsPlottedX.append(self.pointsPlottedX[0])
                 self.pointsPlottedY.append(self.pointsPlottedY[0])
@@ -691,13 +675,12 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self,
     ):  # Updates background photo when image settings are modified
         cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
-        contrast = ImageEnhance.Contrast(cvIm)
-        imOutput = contrast.enhance(self.editImageDisplayGUI.contrastVal.value())
-        brightness = ImageEnhance.Brightness(imOutput)
-        imOutput = brightness.enhance(self.editImageDisplayGUI.brightnessVal.value())
-        sharpness = ImageEnhance.Sharpness(imOutput)
-        imOutput = sharpness.enhance(self.editImageDisplayGUI.sharpnessVal.value())
-        self.spectralData.finalBmode = np.array(imOutput)
+        self.spectralData.finalBmode = self.updateImageDisplay(cvIm)
+
+        if self.spectralData.scConfig is not None:
+            cvIm = Image.open(os.path.join("Junk", "bModeImRawPreSc.png"))
+            self.spectralData.bmode = self.updateImageDisplay(cvIm)
+        
         self.plotOnCanvas()
 
     def clearRect(self, event):
@@ -861,15 +844,13 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
             self.ax.add_patch(rect)
 
-            xScale = self.spectralData.roiWidthScale / (self.spectralData.finalBmode.shape[1])
             mplPixWidth = abs(right - left)
-            imPixWidth = mplPixWidth / xScale
+            imPixWidth = mplPixWidth * self.spectralData.lateralRes
             mmWidth = self.spectralData.lateralRes * imPixWidth  # (mm/pixel)*pixels
             self.physicalRectWidthVal.setText(str(np.round(mmWidth, decimals=2)))
 
-            yScale = self.spectralData.roiDepthScale / (self.spectralData.finalBmode.shape[0])
             mplPixHeight = abs(top - bottom)
-            imPixHeight = mplPixHeight / yScale
+            imPixHeight = mplPixHeight * self.spectralData.axialRes
             mmHeight = self.spectralData.axialRes * imPixHeight  # (mm/pixel)*pixels
             self.physicalRectHeightVal.setText(str(np.round(mmHeight, decimals=2)))
 
@@ -879,7 +860,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.ax.tick_params(bottom=False, left=False)
             self.canvas.draw()
 
-    def acceptRect(self):
+    def acceptRect(self, moveOn=True):
         if len(self.ax.patches) == 1:
             left, bottom = self.ax.patches[0].get_xy()
             left = int(left)
@@ -904,7 +885,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.spectralData.splineY = np.array(
                 self.pointsPlottedY
             )  # Image boundaries already addressed at plotting phase
-            self.acceptROI()
+            if moveOn:
+                self.acceptROI()
 
     def acceptROI(self):
         if len(self.spectralData.splineX) > 1 and len(self.spectralData.splineX) == len(self.spectralData.splineY):
@@ -915,7 +897,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 self.imagePathInput.text(),
                 self.phantomPathInput.text(),
             )
-            self.analysisParamsGUI.plotRoiPreview()
+            # self.analysisParamsGUI.plotRoiPreview()
             self.analysisParamsGUI.show()
             self.editImageDisplayGUI.hide()
             self.hide()
