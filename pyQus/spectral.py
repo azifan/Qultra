@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 from pyQus.analysisObjects import UltrasoundImage, Config, Window
-from pyQus.transforms import computePowerSpec, spectralAnalysisDefault6db
+from pyQus.transforms import computeHanningPowerSpec, computeHilbertPowerSpec, spectralAnalysisDefault6db
 
 class SpectralAnalysis:
     def __init__(self):
@@ -108,10 +108,10 @@ class SpectralAnalysis:
         for window in self.roiWindows:
             imgWindow = self.ultrasoundImage.rf[window.top : window.bottom, window.left : window.right]
             refWindow = self.ultrasoundImage.phantomRf[window.top : window.bottom, window.left : window.right]
-            f, ps = computePowerSpec(
+            f, ps = computeHanningPowerSpec(
                 imgWindow, f0, f1, fs
             )  # initially had round(img_gain), but since not used in function, we left it out
-            f, rPs = computePowerSpec(
+            f, rPs = computeHanningPowerSpec(
                 refWindow, f0, f1, fs
             )  # Same as above, except for round(ref_gain)
             nps = np.asarray(ps) - np.asarray(rPs)  # SUBTRACTION method: log data
@@ -126,3 +126,30 @@ class SpectralAnalysis:
             window.results.mbf = mbf
             window.results.ss = p[0]
             window.results.si = p[1]
+
+    
+    def attenuationCoef(rfData, refRfData, startFrequency, endFrequency, samplingFrequency, axialRes, num, verasonics=False):
+        windowDepth = rfData.shape[0]
+        num = windowDepth//32
+        depthDistance = (windowDepth-(2*num))*axialRes/10 #cm
+        rfWindowPx = rfData[:num]
+        rfWindowDs = rfData[-num:]
+        refRfWindowPx = refRfData[:num]
+        refRfWindowDs = refRfData[-num:]
+
+        f, psPx = computeHilbertPowerSpec(rfWindowPx, startFrequency, endFrequency, samplingFrequency)
+        _, psDs = computeHilbertPowerSpec(rfWindowDs, startFrequency, endFrequency, samplingFrequency)
+
+        if not verasonics:
+            _, psPxRef = computeHilbertPowerSpec(refRfWindowPx, startFrequency, endFrequency, samplingFrequency)
+            _, psDsRef = computeHilbertPowerSpec(refRfWindowDs, startFrequency, endFrequency, samplingFrequency)
+        else:
+            _, psPxRef = np.load('Parsers/verasonics_phantom_ps.npy')
+            psDsRef = psPxRef
+        
+        npsPx = np.asarray(psPx) - np.asarray(psPxRef)
+        npsDs = np.asarray(psDs) - np.asarray(psDsRef)
+        sHam = npsPx - npsDs
+
+        attCoef = sHam/(depthDistance*(f/1e6)) + 0.5
+        return attCoef, f
