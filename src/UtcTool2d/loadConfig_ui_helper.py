@@ -40,7 +40,7 @@ class LoadConfigGUI(Ui_loadConfig, QWidget):
             
             self.analysisParamsGUI.spectralData.spectralAnalysis.config = configInfo["Config"]
             self.analysisParamsGUI.initParams()
-            self.analysisParamsGUI.plotRoiPreview()
+            # self.analysisParamsGUI.plotRoiPreview()
 
             self.hide()
             self.analysisParamsGUI.show()
