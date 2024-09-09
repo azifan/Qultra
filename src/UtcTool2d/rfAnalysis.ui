@@ -778,6 +778,60 @@ QPushButton:checked {
     <string>Save Analysis Config</string>
    </property>
   </widget>
+  <widget class="QLabel" name="attCoefLabel">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>690</y>
+     <width>81</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Att. Coef:</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="attCoefVal">
+   <property name="geometry">
+    <rect>
+     <x>460</x>
+     <y>690</y>
+     <width>51</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

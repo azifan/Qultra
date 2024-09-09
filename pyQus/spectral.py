@@ -12,6 +12,7 @@ class SpectralAnalysis:
         self.config: Config
         self.roiWindows: List[Window] = []
         self.waveLength: float
+        self.attenuationCoef: List[float]
 
         self.scSplineX: List[float] = [] # pix
         self.splineX: List[float] = [] # pix
@@ -23,10 +24,11 @@ class SpectralAnalysis:
         self.waveLength = (
             speedOfSoundInTissue / self.config.centerFrequency
         ) * 1000  # mm
-        self.config.axWinSize = 10 * self.waveLength
-        self.config.latWinSize = 10 * self.waveLength
-        self.config.axialOverlap = 0.5; self.config.lateralOverlap = 0.5
-        self.config.windowThresh = 0.95
+        if self.config.axWinSize is None: # not pre-loaded config
+            self.config.axWinSize = 10 * self.waveLength
+            self.config.latWinSize = 10 * self.waveLength
+            self.config.axialOverlap = 0.5; self.config.lateralOverlap = 0.5
+            self.config.windowThresh = 0.95
 
     def splineToPreSc(self):
         self.splineX = [self.ultrasoundImage.xmap[int(y), int(x)] for x, y in zip(self.scSplineX, self.scSplineY)]
@@ -106,8 +108,8 @@ class SpectralAnalysis:
 
         # Compute spectral parameters for each window
         for window in self.roiWindows:
-            imgWindow = self.ultrasoundImage.rf[window.top : window.bottom, window.left : window.right]
-            refWindow = self.ultrasoundImage.phantomRf[window.top : window.bottom, window.left : window.right]
+            imgWindow = self.ultrasoundImage.rf[window.top: window.bottom+1, window.left: window.right+1]
+            refWindow = self.ultrasoundImage.phantomRf[window.top: window.bottom+1, window.left: window.right+1]
             f, ps = computeHanningPowerSpec(
                 imgWindow, f0, f1, fs
             )  # initially had round(img_gain), but since not used in function, we left it out
@@ -127,8 +129,22 @@ class SpectralAnalysis:
             window.results.ss = p[0]
             window.results.si = p[1]
 
+        minLeft = min([window.left for window in self.roiWindows])
+        maxRight = max([window.right for window in self.roiWindows])
+        minTop = min([window.top for window in self.roiWindows])
+        maxBottom = max([window.bottom for window in self.roiWindows])
+
+        imgWindow = self.ultrasoundImage.rf[minTop: maxBottom+1, minLeft: maxRight+1]
+        refWindow = self.ultrasoundImage.phantomRf[minTop: maxBottom+1, minLeft: maxRight+1]
+        self.attenuationCoef = self.computeAttenuationCoef(imgWindow, refWindow)
     
-    def attenuationCoef(rfData, refRfData, startFrequency, endFrequency, samplingFrequency, axialRes, num, verasonics=False):
+    def computeAttenuationCoef(self, rfData, refRfData, verasonics=False):
+        samplingFrequency = self.config.samplingFrequency
+        startFrequency = self.config.transducerFreqBand[0]
+        endFrequency = self.config.transducerFreqBand[1]
+        axialRes = self.ultrasoundImage.axialResRf
+        num = int(self.waveLength*100)
+        
         windowDepth = rfData.shape[0]
         num = windowDepth//32
         depthDistance = (windowDepth-(2*num))*axialRes/10 #cm
@@ -151,5 +167,8 @@ class SpectralAnalysis:
         npsDs = np.asarray(psDs) - np.asarray(psDsRef)
         sHam = npsPx - npsDs
 
-        attCoef = sHam/(depthDistance*(f/1e6)) + 0.5
-        return attCoef, f
+        attCoef = sHam/(depthDistance*(f/1e6))
+        finiteMask = np.isfinite(attCoef)
+        attCoef = attCoef[finiteMask]
+
+        return attCoef
