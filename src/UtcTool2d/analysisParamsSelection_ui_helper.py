@@ -242,24 +242,22 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.latOverlapVal.setValue(0)
         self.windowThresholdVal.setValue(50)
 
-        xScale = self.spectralData.roiWidthScale / (self.spectralData.pixWidth)
         mplPixWidth = max(self.spectralData.splineX) - min(
             self.spectralData.splineX
         )
-        imPixWidth = mplPixWidth / xScale
+        imPixWidth = mplPixWidth * self.spectralData.lateralRes
         mmWidth = self.spectralData.lateralRes * imPixWidth  # (mm/pixel)*pixels
 
-        yScale = self.spectralData.roiDepthScale / (self.spectralData.pixDepth)
         mplPixHeight = max(self.spectralData.splineY) - min(
             self.spectralData.splineY
         )
-        imPixHeight = mplPixHeight / yScale
+        imPixHeight = mplPixHeight * self.spectralData.axialRes
         mmHeight = self.spectralData.axialRes * imPixHeight  # (mm/pixel)*pixels
 
         self.axWinSizeVal.setValue(np.round(mmHeight, decimals=2))
         self.latWinSizeVal.setValue(np.round(mmWidth, decimals=2))
 
-        self.updateRoiSize()
+        # self.updateRoiSize()
 
     def updateRoiSize(self):
         if self.axWinSizeVal.value() > 0 and self.latWinSizeVal.value() > 0:

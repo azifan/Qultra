@@ -218,6 +218,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.spectralData.spectralAnalysis.splineToPreSc()
         self.spectralData.spectralAnalysis.generateRoiWindows()
         self.spectralData.spectralAnalysis.computeSpecWindows()
+        self.attCoefVal.setText(f"{np.round(np.mean(self.spectralData.spectralAnalysis.attenuationCoef), decimals=2)}")
         self.spectralData.drawCmaps()
         if self.spectralData.scConfig is not None:
             self.spectralData.scanConvertCmaps()
@@ -274,15 +275,17 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 "Midband Fit (MBF)",
                 "Spectral Slope (SS)",
                 "Spectral Intercept (SI)",
+                "Attenuation Coefficient",
                 "ROI Name"
             ]
         )
         curData = {
                 "Patient": self.imagePathInput.text(),
                 "Phantom": self.phantomPathInput.text(),
-                "Midband Fit (MBF)": np.average(self.spectralData.mbfArr),
-                "Spectral Slope (SS)": np.average(self.spectralData.ssArr),
-                "Spectral Intercept (SI)": np.average(self.spectralData.siArr),
+                "Midband Fit (MBF)": np.mean(self.spectralData.mbfArr),
+                "Spectral Slope (SS)": np.mean(self.spectralData.ssArr),
+                "Spectral Intercept (SI)": np.mean(self.spectralData.siArr),
+                "Attenuation Coefficient": np.mean(self.spectralData.spectralAnalysis.attenuationCoef),
                 "ROI Name": ""
             }
         self.exportDataGUI.dataFrame = dataFrame.append(curData, ignore_index=True)
