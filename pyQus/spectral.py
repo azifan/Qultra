@@ -12,7 +12,9 @@ class SpectralAnalysis:
         self.config: Config
         self.roiWindows: List[Window] = []
         self.waveLength: float
-        self.attenuationCoef: List[float]
+        self.attenuationCoef: float
+        self.attenuationCorr: float
+        self.backScatterCoef: float
 
         self.scSplineX: List[float] = [] # pix
         self.splineX: List[float] = [] # pix
@@ -136,39 +138,45 @@ class SpectralAnalysis:
 
         imgWindow = self.ultrasoundImage.rf[minTop: maxBottom+1, minLeft: maxRight+1]
         refWindow = self.ultrasoundImage.phantomRf[minTop: maxBottom+1, minLeft: maxRight+1]
-        self.attenuationCoef = self.computeAttenuationCoef(imgWindow, refWindow)
+        self.attenuationCoef, self.attenuationCorr = self.computeAttenuationCoef(imgWindow, refWindow)
+        self.backScatterCoef = self.computeBackscatterCoefficient(imgWindow, refWindow)
     
     def computeAttenuationCoef(self, rfData, refRfData, verasonics=False):
         samplingFrequency = self.config.samplingFrequency
-        startFrequency = self.config.transducerFreqBand[0]
-        endFrequency = self.config.transducerFreqBand[1]
+        startFrequency = self.config.analysisFreqBand[0]
+        endFrequency = self.config.analysisFreqBand[1]
         axialRes = self.ultrasoundImage.axialResRf
-        num = int(self.waveLength*100)
+
+        sliceDepth = 100
+
+        intensities = []
+        for i in range(rfData.shape[0]//sliceDepth):
+            sub_window_rf = rfData[i*sliceDepth: (i+1)*sliceDepth]
+            f, ps = computeHanningPowerSpec(sub_window_rf, startFrequency, endFrequency, samplingFrequency)
+            intensities.append(ps[len(f)//2])
+
+        refIntensities = []
+        for i in range(rfData.shape[0]//sliceDepth):
+            sub_window_rf = refRfData[i*sliceDepth: (i+1)*sliceDepth]
+            f, ps = computeHanningPowerSpec(sub_window_rf, startFrequency, endFrequency, samplingFrequency)
+            refIntensities.append(ps[len(f)//2])
+
+        depthCm = np.arange(len(intensities))*sliceDepth*self.ultrasoundImage.axialResRf/10
+        normalizedIntensities = np.subtract(intensities, refIntensities)
+        p = np.polyfit(depthCm, normalizedIntensities, 1)
+        y = depthCm*p[0] + p[1]
+        corr = np.corrcoef(y, normalizedIntensities)[0,1]
+        attenuationCoeff = -p[0]/(2*self.config.centerFrequency/1e6)
+        return attenuationCoeff, corr
+    
+    def computeBackscatterCoefficient(self, rfData, refRfData):
+        f, rf = computeHanningPowerSpec(rfData, self.config.analysisFreqBand[0], self.config.analysisFreqBand[1],
+                                     self.config.samplingFrequency)
+        _, refRf = computeHanningPowerSpec(refRfData, self.config.analysisFreqBand[0], self.config.analysisFreqBand[1],
+                                     self.config.samplingFrequency)
         
-        windowDepth = rfData.shape[0]
-        num = windowDepth//32
-        depthDistance = (windowDepth-(2*num))*axialRes/10 #cm
-        rfWindowPx = rfData[:num]
-        rfWindowDs = rfData[-num:]
-        refRfWindowPx = refRfData[:num]
-        refRfWindowDs = refRfData[-num:]
-
-        f, psPx = computeHilbertPowerSpec(rfWindowPx, startFrequency, endFrequency, samplingFrequency)
-        _, psDs = computeHilbertPowerSpec(rfWindowDs, startFrequency, endFrequency, samplingFrequency)
-
-        if not verasonics:
-            _, psPxRef = computeHilbertPowerSpec(refRfWindowPx, startFrequency, endFrequency, samplingFrequency)
-            _, psDsRef = computeHilbertPowerSpec(refRfWindowDs, startFrequency, endFrequency, samplingFrequency)
-        else:
-            _, psPxRef = np.load('Parsers/verasonics_phantom_ps.npy')
-            psDsRef = psPxRef
+        depthDistance = rfData.shape[0]*self.ultrasoundImage.axialResRf/10 #cm
         
-        npsPx = np.asarray(psPx) - np.asarray(psPxRef)
-        npsDs = np.asarray(psDs) - np.asarray(psDsRef)
-        sHam = npsPx - npsDs
-
-        attCoef = sHam/(depthDistance*(f/1e6))
-        finiteMask = np.isfinite(attCoef)
-        attCoef = attCoef[finiteMask]
-
-        return attCoef
+        nps = rf[len(f)//2]-refRf[len(f)//2]
+        bsc = 1e-3*nps/2*10**(-4*depthDistance*self.config.centerFrequency/1e6*-self.attenuationCoef/(self.config.samplingFrequency/1e6))
+        return abs(bsc)
