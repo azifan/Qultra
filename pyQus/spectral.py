@@ -13,6 +13,7 @@ class SpectralAnalysis:
         self.roiWindows: List[Window] = []
         self.waveLength: float
         self.attenuationCoef: List[float]
+        self.backScatterCoef: float
 
         self.scSplineX: List[float] = [] # pix
         self.splineX: List[float] = [] # pix
@@ -137,6 +138,7 @@ class SpectralAnalysis:
         imgWindow = self.ultrasoundImage.rf[minTop: maxBottom+1, minLeft: maxRight+1]
         refWindow = self.ultrasoundImage.phantomRf[minTop: maxBottom+1, minLeft: maxRight+1]
         self.attenuationCoef = self.computeAttenuationCoef(imgWindow, refWindow)
+        self.computeBackscatterCoefficient(imgWindow, refWindow)
     
     def computeAttenuationCoef(self, rfData, refRfData, verasonics=False):
         samplingFrequency = self.config.samplingFrequency
@@ -166,9 +168,42 @@ class SpectralAnalysis:
         npsPx = np.asarray(psPx) - np.asarray(psPxRef)
         npsDs = np.asarray(psDs) - np.asarray(psDsRef)
         sHam = npsPx - npsDs
+        sHam /= 2
 
         attCoef = sHam/(depthDistance*(f/1e6))
         finiteMask = np.isfinite(attCoef)
         attCoef = attCoef[finiteMask]
 
         return attCoef
+    
+    def computeBackscatterCoefficient(self, rfData, refRfData):
+        """
+        Calculates Backscatter coefficient based on calculated attenuation coefficient
+
+            .. math::
+                BSC = 10^{-3} \frac{|rf(f)|^2}{|rf_{phantom}(f)|^2} * 10^{-4*z*freq*((0.5 - ab))/20}
+
+            Test hyperlink: `Original paper <https://pubmed.ncbi.nlm.nih.gov/2184569>`_.
+
+            Args:
+                phantom (numpy.ndarray): power spectrum of phantom rf data (freq x width x nframes), :math:`|rf_{phantom}(f)|`
+                rf (numpy.ndarray): power spectrum of patient rf data (freq x width x nframes), :math:`|rf(f)|`
+                freq (float): frequency of transducer
+                p (_type_): _description_
+                ab (float): attenuation coefficient (dB/m)
+                sz (_type_): _description_
+
+            Returns:
+                (numpy.ndarray): Backscatter coefficient (freq x width x nframes)
+        """
+        _, rf = computeHanningPowerSpec(rfData, self.config.transducerFreqBand[0], self.config.transducerFreqBand[1],
+                                     self.config.samplingFrequency)
+        _, refRf = computeHanningPowerSpec(refRfData, self.config.transducerFreqBand[0], self.config.transducerFreqBand[1],
+                                     self.config.samplingFrequency)
+        
+        depthDistance = rfData.shape[0]*self.ultrasoundImage.axialResRf/10 #cm
+        
+        nps = rf-refRf
+        usedAttCoef = np.mean(self.attenuationCoef) # thinking this should only be for central freq
+        bsc = 1e-3*nps/2*10**(-4*depthDistance*self.config.centerFrequency*-usedAttCoef/(self.config.samplingFrequency/1e6))
+        return abs(bsc)
