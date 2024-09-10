@@ -15,6 +15,8 @@ class SpectralAnalysis:
         self.attenuationCoef: float
         self.attenuationCorr: float
         self.backScatterCoef: float
+        self.effectiveScattererDiameter: float
+        self.effectiveScattererConcentration: float
 
         self.scSplineX: List[float] = [] # pix
         self.splineX: List[float] = [] # pix
@@ -140,12 +142,12 @@ class SpectralAnalysis:
         refWindow = self.ultrasoundImage.phantomRf[minTop: maxBottom+1, minLeft: maxRight+1]
         self.attenuationCoef, self.attenuationCorr = self.computeAttenuationCoef(imgWindow, refWindow)
         self.backScatterCoef = self.computeBackscatterCoefficient(imgWindow, refWindow)
-    
+        self.effectiveScattererDiameter, self.effectiveScattererConcentration = self.computeEsdac(imgWindow, refWindow, apertureRadiusCm=6)
+
     def computeAttenuationCoef(self, rfData, refRfData, verasonics=False):
         samplingFrequency = self.config.samplingFrequency
         startFrequency = self.config.analysisFreqBand[0]
         endFrequency = self.config.analysisFreqBand[1]
-        axialRes = self.ultrasoundImage.axialResRf
 
         sliceDepth = 100
 
@@ -180,3 +182,26 @@ class SpectralAnalysis:
         nps = rf[len(f)//2]-refRf[len(f)//2]
         bsc = 1e-3*nps/2*10**(-4*depthDistance*self.config.centerFrequency/1e6*-self.attenuationCoef/(self.config.samplingFrequency/1e6))
         return abs(bsc)
+    
+    def computeEsdac(self, rfData, refRfData, apertureRadiusCm):
+        windowDepthCm = rfData.shape[0]*self.ultrasoundImage.axialResRf/10 # cm
+        windowLengthCm = rfData.shape[1]*self.ultrasoundImage.lateralResRf/10 #cm
+        q = apertureRadiusCm / windowDepthCm
+
+        f, rf = computeHanningPowerSpec(rfData, self.config.analysisFreqBand[0], self.config.analysisFreqBand[1],
+                                     self.config.samplingFrequency)
+        _, refRf = computeHanningPowerSpec(refRfData, self.config.analysisFreqBand[0], self.config.analysisFreqBand[1],
+                                     self.config.samplingFrequency)
+        
+        s = np.subtract((rf-refRf)/2, 10*np.log10(f**4))
+        p = np.polyfit(f**2, s, 1)
+        sl = abs(p[0])
+        esd = 2*(sl/((11.6*q**2)+52.8)) ** 0.5
+
+        b0 = self.attenuationCoef
+        # EAC=64*((10**((b+2*z*B0*freq)/10))/185*L*q*ESD**6)
+        eac = 64 * (
+            (10 ** ((p[1] + 2 * windowDepthCm * b0 * self.config.centerFrequency/1e6) / 10)) / (185 * windowLengthCm * (q**2) * esd**6)
+        )
+
+        return abs(esd), abs(eac)

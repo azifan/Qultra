@@ -280,6 +280,8 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 "Attenuation Coefficient",
                 "Attenuation Coefficient R-Score",
                 "Backscatter Coefficient",
+                "Effective Scatterer Diameter",
+                "Effective Scatterer Concentration"
                 "ROI Name"
             ]
         )
@@ -292,6 +294,8 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 "Attenuation Coefficient": self.spectralData.spectralAnalysis.attenuationCoef,
                 "Attenuation Coefficient R-Score": self.spectralData.spectralAnalysis.attenuationCorr,
                 "Backscatter Coefficient": self.spectralData.spectralAnalysis.backScatterCoef,
+                "Effective Scatterer Diameter": self.spectralData.spectralAnalysis.effectiveScattererDiameter,
+                "Effective Scatterer Concentration": self.spectralData.spectralAnalysis.effectiveScattererConcentration,
                 "ROI Name": ""
             }
         self.exportDataGUI.dataFrame = dataFrame.append(curData, ignore_index=True)
