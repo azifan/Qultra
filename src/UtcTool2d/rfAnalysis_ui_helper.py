@@ -280,6 +280,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 "Attenuation Coefficient",
                 "Attenuation Coefficient R-Score",
                 "Backscatter Coefficient",
+                "Nakagami Params",
                 "Effective Scatterer Diameter",
                 "Effective Scatterer Concentration"
                 "ROI Name"
@@ -294,6 +295,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 "Attenuation Coefficient": self.spectralData.spectralAnalysis.attenuationCoef,
                 "Attenuation Coefficient R-Score": self.spectralData.spectralAnalysis.attenuationCorr,
                 "Backscatter Coefficient": self.spectralData.spectralAnalysis.backScatterCoef,
+                "Nakagami Params": self.spectralData.spectralAnalysis.nakagamiParams,
                 "Effective Scatterer Diameter": self.spectralData.spectralAnalysis.effectiveScattererDiameter,
                 "Effective Scatterer Concentration": self.spectralData.spectralAnalysis.effectiveScattererConcentration,
                 "ROI Name": ""
