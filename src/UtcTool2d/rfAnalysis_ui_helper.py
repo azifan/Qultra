@@ -218,7 +218,9 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.spectralData.spectralAnalysis.splineToPreSc()
         self.spectralData.spectralAnalysis.generateRoiWindows()
         self.spectralData.spectralAnalysis.computeSpecWindows()
-        self.attCoefVal.setText(f"{np.round(np.mean(self.spectralData.spectralAnalysis.attenuationCoef), decimals=2)}")
+        self.attCoefVal.setText(f"{np.round(self.spectralData.spectralAnalysis.attenuationCoef, decimals=2)}")
+        self.attCorrVal.setText(f"{np.round(self.spectralData.spectralAnalysis.attenuationCorr, decimals=2)}")
+        self.bscVal.setText(f"{np.round(self.spectralData.spectralAnalysis.backScatterCoef, decimals=2)}")
         self.spectralData.drawCmaps()
         if self.spectralData.scConfig is not None:
             self.spectralData.scanConvertCmaps()
@@ -276,6 +278,8 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 "Spectral Slope (SS)",
                 "Spectral Intercept (SI)",
                 "Attenuation Coefficient",
+                "Attenuation Coefficient R-Score",
+                "Backscatter Coefficient",
                 "ROI Name"
             ]
         )
@@ -285,7 +289,9 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 "Midband Fit (MBF)": np.mean(self.spectralData.mbfArr),
                 "Spectral Slope (SS)": np.mean(self.spectralData.ssArr),
                 "Spectral Intercept (SI)": np.mean(self.spectralData.siArr),
-                "Attenuation Coefficient": np.mean(self.spectralData.spectralAnalysis.attenuationCoef),
+                "Attenuation Coefficient": self.spectralData.spectralAnalysis.attenuationCoef,
+                "Attenuation Coefficient R-Score": self.spectralData.spectralAnalysis.attenuationCorr,
+                "Backscatter Coefficient": self.spectralData.spectralAnalysis.backScatterCoef,
                 "ROI Name": ""
             }
         self.exportDataGUI.dataFrame = dataFrame.append(curData, ignore_index=True)
