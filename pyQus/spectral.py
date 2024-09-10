@@ -2,9 +2,10 @@ from typing import List
 
 import numpy as np
 from PIL import Image, ImageDraw
+from scipy.signal import hilbert
 
 from pyQus.analysisObjects import UltrasoundImage, Config, Window
-from pyQus.transforms import computeHanningPowerSpec, computeHilbertPowerSpec, spectralAnalysisDefault6db
+from pyQus.transforms import computeHanningPowerSpec, spectralAnalysisDefault6db
 
 class SpectralAnalysis:
     def __init__(self):
@@ -12,6 +13,7 @@ class SpectralAnalysis:
         self.config: Config
         self.roiWindows: List[Window] = []
         self.waveLength: float
+        self.nakagamiParams: List[float]
         self.attenuationCoef: float
         self.attenuationCorr: float
         self.backScatterCoef: float
@@ -140,12 +142,12 @@ class SpectralAnalysis:
         refWindow = self.ultrasoundImage.phantomRf[minTop: maxBottom+1, minLeft: maxRight+1]
         self.attenuationCoef, self.attenuationCorr = self.computeAttenuationCoef(imgWindow, refWindow)
         self.backScatterCoef = self.computeBackscatterCoefficient(imgWindow, refWindow)
+        self.nakagamiParams = self.computeNakagamiParams(imgWindow, refWindow) # computing for entire ROI, but could also be easily computed for each window
     
     def computeAttenuationCoef(self, rfData, refRfData, verasonics=False):
         samplingFrequency = self.config.samplingFrequency
         startFrequency = self.config.analysisFreqBand[0]
         endFrequency = self.config.analysisFreqBand[1]
-        axialRes = self.ultrasoundImage.axialResRf
 
         sliceDepth = 100
 
@@ -180,3 +182,15 @@ class SpectralAnalysis:
         nps = rf[len(f)//2]-refRf[len(f)//2]
         bsc = 1e-3*nps/2*10**(-4*depthDistance*self.config.centerFrequency/1e6*-self.attenuationCoef/(self.config.samplingFrequency/1e6))
         return abs(bsc)
+
+    def computeNakagamiParams(self, rfData, refRfData):
+        r = np.abs(hilbert(rfData, axis=1))
+        p = np.abs(hilbert(refRfData, axis=1))
+        w = np.nanmean((r / p) ** 2, axis=1)
+        u = (w**2) / np.var((r / p) ** 2, axis=1)
+
+        # Added this to get single param values - not in Sergio code
+        w = np.nanmean(w)
+        u = np.nanmean(u)
+
+        return w, u

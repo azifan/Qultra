@@ -27,24 +27,6 @@ def computeHanningPowerSpec(rfData, startFrequency, endFrequency, samplingFreque
 
     return freqChop, ps
 
-def computeHilbertPowerSpec(rfData, startFrequency, endFrequency, samplingFrequency):
-        # Frequency Range
-    frequency = np.linspace(0, samplingFrequency, NUM_FOURIER_POINTS)
-    fLow = round(startFrequency * (NUM_FOURIER_POINTS / samplingFrequency))
-    fHigh = round(endFrequency * (NUM_FOURIER_POINTS / samplingFrequency))
-    freqChop = frequency[fLow:fHigh]
-
-    # Get PS
-    from scipy.signal import hilbert
-    fft = np.square(
-        abs(np.fft.fft(hilbert(rfData, axis=1), n=NUM_FOURIER_POINTS))
-    )
-    fullPS = 10 * np.log10(np.mean(fft, axis=0))
-
-    ps = fullPS[fLow:fHigh]
-
-    return freqChop, ps
-
 
 def spectralAnalysisDefault6db(npsNormalized, f, db6LowF, db6HighF):
     # 1. in one scan / run-through of data file's f array, find the data points on
