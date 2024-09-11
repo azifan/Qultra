@@ -859,7 +859,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 "Peak Enhancement (PE)": self.pe,
                 "Time to Peak (TP)": self.tp,
                 "Mean Transit Time (MTT)": self.mtt,
-                "Normalization Factor": self.normFact,
+                "TMPPV": self.normFact,
                 "VOI Volume (mm^3)": self.voxelScale,
             }
         self.exportDataGUI.dataFrame = dataFrame.append(curData, ignore_index=True)

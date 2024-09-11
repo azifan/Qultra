@@ -14,8 +14,9 @@ from scipy.ndimage import binary_fill_holes
 
 import src.Utils.utils as ut
 from src.CeusTool3d.voiSelection_ui import Ui_constructVoi
-from src.CeusTool3d.ticAnalysis_ui_helper import TicAnalysisGUI
 from src.CeusTool3d.saveVoi_ui_helper import SaveVoiGUI
+from src.CeusTool3d.ticAnalysis_ui_helper import TicAnalysisGUI
+from src.CeusTool3d.interpolationLoading_ui_helper import InterpolationLoadingGUI
 
 system = platform.system()
 
@@ -150,6 +151,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.setMouseTracking(True)
 
         self.ticAnalysisGui = TicAnalysisGUI()
+        self.loadingGUI = InterpolationLoadingGUI()
 
         self.axCoverPixmap = QPixmap(321, 301)
         self.axCoverPixmap.fill(Qt.transparent)
@@ -1033,41 +1035,40 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                 self.changeCorSlices()
             self.update()
 
-    def voi3dInterpolation(self):
-        if len(self.pointsPlotted) == len(self.planesDrawn):
-            if len(self.planesDrawn):
-                if len(self.planesDrawn) >= 3:
-                    points = calculateSpline3D(
-                        list(chain.from_iterable(self.pointsPlotted))
-                    )
-                elif len(self.planesDrawn) == 2:
-                    return
-                else:
-                    points = set()
-                    for group in np.array(self.pointsPlotted):
-                        for point in group:
-                            points.add(tuple(point))
+    def complete3dInterpolation(self):
+        if len(self.planesDrawn):
+            if len(self.planesDrawn) >= 3:
+                points = calculateSpline3D(
+                    list(chain.from_iterable(self.pointsPlotted))
+                )
+            elif len(self.planesDrawn) == 2:
+                return
+            else:
+                points = set()
+                for group in np.array(self.pointsPlotted):
+                    for point in group:
+                        points.add(tuple(point))
 
-                self.pointsPlotted = []
+            self.pointsPlotted = []
+            self.maskCoverImg.fill(0)
+
+            for point in points:
+                if max(self.data4dImg[tuple(point)]) != 0:
+                    self.maskCoverImg[tuple(point)] = [
+                        0,
+                        0,
+                        255,
+                        int(self.curAlpha),
+                    ]
+                    self.pointsPlotted.append(tuple(point))
+            if len(self.pointsPlotted) == 0:
+                print("VOI not in US image.\nDraw new VOI over US image")
                 self.maskCoverImg.fill(0)
-
-                for point in points:
-                    if max(self.data4dImg[tuple(point)]) != 0:
-                        self.maskCoverImg[tuple(point)] = [
-                            0,
-                            0,
-                            255,
-                            int(self.curAlpha),
-                        ]
-                        self.pointsPlotted.append(tuple(point))
-                if len(self.pointsPlotted) == 0:
-                    print("VOI not in US image.\nDraw new VOI over US image")
-                    self.maskCoverImg.fill(0)
-                    self.changeAxialSlices()
-                    self.changeSagSlices()
-                    self.changeCorSlices()
-                    return
-
+                self.changeAxialSlices()
+                self.changeSagSlices()
+                self.changeCorSlices()
+                return
+            
             mask = np.zeros(
                 (
                     self.maskCoverImg.shape[0],
@@ -1135,6 +1136,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.restartVoiButton.setHidden(False)
             self.saveVoiButton.setHidden(False)
             self.restartVoiButton.clicked.connect(self.restartVoi)
+
+    def voi3dInterpolation(self):
+        if len(self.pointsPlotted) == len(self.planesDrawn):
+            self.loadingGUI.show()
+            self.update()
+            self.complete3dInterpolation()
+            self.loadingGUI.hide()
 
 
 def calculateSpline(xpts, ypts):  # 2D spline interpolation
