@@ -27,17 +27,6 @@ class QusGui(Ui_qusPage, QWidget):
                 "ROI Area (mm^2)",
             ]
         )
-        self.ceus3dData = pd.DataFrame(
-            columns=[
-                "Patient",
-                "Area Under Curve (AUC)",
-                "Peak Enhancement (PE)",
-                "Time to Peak (TP)",
-                "Mean Transit Time (MTT)",
-                "TMPPV",
-                "VOI Volume (mm^3)",
-            ]
-        )
 
     def moveToUtc2d(self):
         del self.nextPage
@@ -49,7 +38,6 @@ class QusGui(Ui_qusPage, QWidget):
     def moveToCeus3d(self):
         del self.nextPage
         self.nextPage = SelectImageGUI_CeusTool3d()
-        self.nextPage.dataFrame = self.ceus3dData
         self.nextPage.show()
         self.nextPage.welcomeGui = self
         self.hide()

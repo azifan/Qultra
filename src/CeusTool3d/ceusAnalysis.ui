@@ -794,11 +794,11 @@
      </property>
     </widget>
    </widget>
-   <widget class="QPushButton" name="saveDataButton">
+   <widget class="QPushButton" name="showHideCrossButton">
     <property name="geometry">
      <rect>
       <x>150</x>
-      <y>640</y>
+      <y>690</y>
       <width>181</width>
       <height>41</height>
      </rect>
@@ -818,7 +818,7 @@ QPushButton:checked {
 }</string>
     </property>
     <property name="text">
-     <string>Save Data</string>
+     <string>Show/Hide Cross</string>
     </property>
    </widget>
   </widget>
@@ -1429,7 +1429,7 @@ QPushButton:checked {
    <property name="geometry">
     <rect>
      <x>150</x>
-     <y>690</y>
+     <y>640</y>
      <width>181</width>
      <height>41</height>
     </rect>

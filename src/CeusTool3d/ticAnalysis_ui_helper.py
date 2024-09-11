@@ -94,7 +94,6 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.t0Slider.setValue(0)
 
         self.data4dImg = None
-        self.dataFrame = None
         self.curSliceIndex = None
         self.newXVal = None
         self.newYVal = None
@@ -163,7 +162,6 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
 
     def backToLastScreen(self):
         self.lastGui.restartVoiButton.clicked.connect(self.lastGui.restartVoi)
-        self.lastGui.dataFrame = self.dataFrame
         self.lastGui.show()
         self.hide()
 

@@ -106,8 +106,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.voiAlphaStatus.setHidden(True)
         self.voiAlphaTotal.setHidden(True)
         self.restartVoiButton.setHidden(True)
-        self.exportDataButton.setHidden(True)
-        self.saveDataButton.setHidden(True)
         self.saveVoiButton.setHidden(True)
         self.drawRoiButton.setHidden(True)
         self.undoLastPtButton.setHidden(True)
@@ -116,6 +114,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.newVoiBackButton.setHidden(True)
         self.voiAdviceLabel.setHidden(True)
         self.toggleButton.setHidden(True)
+        self.showHideCrossButton.setCheckable(True)
 
         self.sliceSpinBoxChanged = False
         self.sliceSliderChanged = False
@@ -125,7 +124,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.tp = None
         self.mtt = None
         self.tmppv = None
-        self.dataFrame = None
         self.fullPath = None
         self.bmode4dIm = None
 
@@ -146,7 +144,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.planesDrawn = []
         self.painted = "none"
         self.lastGui = None
-        self.exportDataGUI = None
         self.saveVoiGUI = None
         self.timeconst = None
 
@@ -170,6 +167,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.drawNewVoiButton.clicked.connect(self.drawNewVoi)
         self.saveVoiButton.clicked.connect(self.startSaveVoi)
         self.loadVoiButton.clicked.connect(self.loadVoi)
+        self.showHideCrossButton.clicked.connect(self.showHideCross)
 
     def startSaveVoi(self):
         del self.saveVoiGUI
@@ -282,7 +280,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.newVoiBackButton.setHidden(False)
 
     def backToLastScreen(self):
-        self.lastGui.dataFrame = self.dataFrame
         self.lastGui.timeconst = None
         self.lastGui.show()
         self.hide()
@@ -425,6 +422,14 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.changeSagSlices()
         self.changeCorSlices()
         self.updateCrosshair()
+
+    def showHideCross(self):
+        if self.showHideCrossButton.isChecked():
+            labels = [self.axCoverLabel, self.sagCoverLabel, self.corCoverLabel]
+            [label.pixmap().fill(Qt.transparent) for label in labels]
+            self.update()
+        else:
+            self.updateCrosshair()
 
     def openImage(self, bmodePath):
         self.nibImg = nib.load(self.inputTextPath, mmap=False)
@@ -773,7 +778,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.changeAxialSlices()
             self.changeSagSlices()
 
-        self.drawCrosshairs()
+        if not self.showHideCrossButton.isChecked():
+            self.drawCrosshairs()
 
     def mousePressEvent(self, event):
         self.xCur = event.x()
@@ -955,7 +961,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.computeTic()
         self.ticAnalysisGui.pointsPlotted = self.pointsPlotted
         self.ticAnalysisGui.voxelScale = self.voxelScale
-        self.ticAnalysisGui.dataFrame = self.dataFrame
         self.ticAnalysisGui.data4dImg = self.data4dImg
         self.ticAnalysisGui.curSliceIndex = self.curSliceIndex
         self.ticAnalysisGui.newXVal = self.newXVal
