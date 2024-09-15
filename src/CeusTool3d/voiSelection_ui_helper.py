@@ -9,7 +9,7 @@ import scipy.interpolate as interpolate
 from scipy.spatial import ConvexHull
 from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
 from PyQt5.QtGui import QPixmap, QPainter, QImage
-from PyQt5.QtCore import QLine, Qt
+from PyQt5.QtCore import QLine, Qt, QThread
 from scipy.ndimage import binary_fill_holes
 
 import src.Utils.utils as ut
@@ -19,7 +19,6 @@ from src.CeusTool3d.ticAnalysis_ui_helper import TicAnalysisGUI
 from src.CeusTool3d.interpolationLoading_ui_helper import InterpolationLoadingGUI
 
 system = platform.system()
-
 
 class VoiSelectionGUI(Ui_constructVoi, QWidget):
     def __init__(self):
@@ -1140,7 +1139,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
     def voi3dInterpolation(self):
         if len(self.pointsPlotted) == len(self.planesDrawn):
             self.loadingGUI.show()
-            self.update()
+            QApplication.processEvents()
             self.complete3dInterpolation()
             self.loadingGUI.hide()
 
