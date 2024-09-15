@@ -205,7 +205,6 @@ class ExportDataGUI(Ui_exportData, QWidget):
                 print(str(e))
 
     def backToAnalysis(self):
-        self.lastGui.dataFrame = self.dataFrame
         self.lastGui.show()
         self.hide()
 

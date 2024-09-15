@@ -131,7 +131,6 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
 
         self.voiSelectionGui = None
         self.welcomeGui = None
-        self.dataFrame = None
         self.imagePath = ""
         self.timeconst = None
 
@@ -156,7 +155,6 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.backButton.clicked.connect(self.backToWelcomeScreen)
 
     def backToWelcomeScreen(self):
-        self.welcomeGui.ceus3dData = self.dataFrame
         self.welcomeGui.show()
         self.hide()
 
@@ -405,7 +403,6 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
                     return
                 del self.voiSelectionGui
                 self.voiSelectionGui = VoiSelectionGUI()
-                self.voiSelectionGui.dataFrame = self.dataFrame
                 self.voiSelectionGui.timeconst = 1 / self.timeconst
                 self.voiSelectionGui.setFilenameDisplays(self.imagePath)
                 if self.bmodePath != "":

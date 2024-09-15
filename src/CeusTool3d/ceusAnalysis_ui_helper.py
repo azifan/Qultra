@@ -1,6 +1,7 @@
 import platform
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import nibabel as nib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -24,7 +25,6 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.lastGui = None
         self.painted = "none"
         self.pointsPlotted = None
-        self.dataFrame = None
         self.data4dImg = None
         self.curSliceIndex = None
         self.newXVal = None
@@ -108,9 +108,9 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.mttParamapButton.setCheckable(True)
         self.tpParamapButton.setCheckable(True)
         self.showLegendButton.setCheckable(True)
+        self.showHideCrossButton.setCheckable(True)
 
         self.backButton.clicked.connect(self.backToLastScreen)
-        self.saveDataButton.clicked.connect(self.saveData)
         self.exportDataButton.clicked.connect(self.moveToExport)
         self.curSliceSlider.valueChanged.connect(self.curSliceSliderValueChanged)
         self.curSliceSpinBox.valueChanged.connect(self.curSliceSpinBoxValueChanged)
@@ -124,6 +124,15 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.mttParamapButton.clicked.connect(self.displayMtt)
         self.paramapBackButton.clicked.connect(self.backFromParamap)
         self.showLegendButton.clicked.connect(self.displayLegend)
+        self.showHideCrossButton.clicked.connect(self.showHideCross)
+
+    def showHideCross(self):
+        if self.showHideCrossButton.isChecked():
+            labels = [self.axCoverLabel, self.sagCoverLabel, self.corCoverLabel]
+            [label.pixmap().fill(Qt.transparent) for label in labels]
+            self.update()
+        else:
+            self.updateCrosshair()
 
     def backFromParamap(self):
         self.aucParamapButton.setHidden(True)
@@ -634,13 +643,14 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             self.actualX = int((self.xCur - 401) * (self.widthAx - 1) / 321)
             self.actualY = int((self.yCur - 41) * (self.heightAx - 1) / 301)
             scrolling = "ax"
-            self.axCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.axCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            axVertLine = QLine(self.xCur - 401, 0, self.xCur - 401, 301)
-            axLatLine = QLine(0, self.yCur - 41, 321, self.yCur - 41)
-            painter.drawLines([axVertLine, axLatLine])
-            painter.end()
+            if not self.showHideCrossButton.isChecked():
+                self.axCoverLabel.pixmap().fill(Qt.transparent)
+                painter = QPainter(self.axCoverLabel.pixmap())
+                painter.setPen(Qt.yellow)
+                axVertLine = QLine(self.xCur - 401, 0, self.xCur - 401, 301)
+                axLatLine = QLine(0, self.yCur - 41, 321, self.yCur - 41)
+                painter.drawLines([axVertLine, axLatLine])
+                painter.end()
         elif (
             self.xCur < 1131
             and self.xCur > 810
@@ -651,13 +661,14 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             self.actualX = int((self.xCur - 811) * (self.widthSag - 1) / 321)
             self.actualY = int((self.yCur - 41) * (self.heightSag - 1) / 301)
             scrolling = "sag"
-            self.sagCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.sagCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            sagVertLine = QLine(self.xCur - 811, 0, self.xCur - 811, 301)
-            sagLatLine = QLine(0, self.yCur - 41, 321, self.yCur - 41)
-            painter.drawLines([sagVertLine, sagLatLine])
-            painter.end()
+            if not self.showHideCrossButton.isChecked():
+                self.sagCoverLabel.pixmap().fill(Qt.transparent)
+                painter = QPainter(self.sagCoverLabel.pixmap())
+                painter.setPen(Qt.yellow)
+                sagVertLine = QLine(self.xCur - 811, 0, self.xCur - 811, 301)
+                sagLatLine = QLine(0, self.yCur - 41, 321, self.yCur - 41)
+                painter.drawLines([sagVertLine, sagLatLine])
+                painter.end()
         elif (
             self.xCur < 1131
             and self.xCur > 810
@@ -668,54 +679,56 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             self.actualX = int((self.xCur - 811) * (self.widthCor - 1) / 321)
             self.actualY = int((self.yCur - 411) * (self.heightCor - 1) / 301)
             scrolling = "cor"
-            self.corCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.corCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            corVertLine = QLine(self.xCur - 811, 0, self.xCur - 811, 301)
-            corLatLine = QLine(0, self.yCur - 411, 321, self.yCur - 411)
-            painter.drawLines([corVertLine, corLatLine])
-            painter.end()
+            if not self.showHideCrossButton.isChecked():
+                self.corCoverLabel.pixmap().fill(Qt.transparent)
+                painter = QPainter(self.corCoverLabel.pixmap())
+                painter.setPen(Qt.yellow)
+                corVertLine = QLine(self.xCur - 811, 0, self.xCur - 811, 301)
+                corLatLine = QLine(0, self.yCur - 411, 321, self.yCur - 411)
+                painter.drawLines([corVertLine, corLatLine])
+                painter.end()
 
         if scrolling == "ax":
             self.newXVal = self.actualX
             self.newYVal = self.actualY
             self.changeSagSlices()
             self.changeCorSlices()
-            self.sagCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.sagCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            sagVertLine = QLine(
-                int(self.newZVal / self.z * 321),
-                0,
-                int(self.newZVal / self.z * 321),
-                301,
-            )
-            sagLatLine = QLine(
-                0,
-                int(self.newYVal / self.y * 301),
-                321,
-                int(self.newYVal / self.y * 301),
-            )
-            painter.drawLines([sagVertLine, sagLatLine])
-            painter.end()
+            if not self.showHideCrossButton.isChecked():
+                self.sagCoverLabel.pixmap().fill(Qt.transparent)
+                painter = QPainter(self.sagCoverLabel.pixmap())
+                painter.setPen(Qt.yellow)
+                sagVertLine = QLine(
+                    int(self.newZVal / self.z * 321),
+                    0,
+                    int(self.newZVal / self.z * 321),
+                    301,
+                )
+                sagLatLine = QLine(
+                    0,
+                    int(self.newYVal / self.y * 301),
+                    321,
+                    int(self.newYVal / self.y * 301),
+                )
+                painter.drawLines([sagVertLine, sagLatLine])
+                painter.end()
 
-            self.corCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.corCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            corVertLine = QLine(
-                int(self.newXVal / self.x * 321),
-                0,
-                int(self.newXVal / self.x * 321),
-                301,
-            )
-            corLatLine = QLine(
-                0,
-                int(self.newZVal / self.z * 301),
-                321,
-                int(self.newZVal / self.z * 301),
-            )
-            painter.drawLines([corVertLine, corLatLine])
-            painter.end()
+                self.corCoverLabel.pixmap().fill(Qt.transparent)
+                painter = QPainter(self.corCoverLabel.pixmap())
+                painter.setPen(Qt.yellow)
+                corVertLine = QLine(
+                    int(self.newXVal / self.x * 321),
+                    0,
+                    int(self.newXVal / self.x * 321),
+                    301,
+                )
+                corLatLine = QLine(
+                    0,
+                    int(self.newZVal / self.z * 301),
+                    321,
+                    int(self.newZVal / self.z * 301),
+                )
+                painter.drawLines([corVertLine, corLatLine])
+                painter.end()
             self.update()
 
         elif scrolling == "sag":
@@ -723,41 +736,42 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             self.newYVal = self.actualY
             self.changeAxialSlices()
             self.changeCorSlices()
-            self.axCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.axCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            axVertLine = QLine(
-                int(self.newXVal / self.x * 321),
-                0,
-                int(self.newXVal / self.x * 321),
-                301,
-            )
-            axLatLine = QLine(
-                0,
-                int(self.newYVal / self.y * 301),
-                321,
-                int(self.newYVal / self.y * 301),
-            )
-            painter.drawLines([axVertLine, axLatLine])
-            painter.end()
+            if not self.showHideCrossButton.isChecked():
+                self.axCoverLabel.pixmap().fill(Qt.transparent)
+                painter = QPainter(self.axCoverLabel.pixmap())
+                painter.setPen(Qt.yellow)
+                axVertLine = QLine(
+                    int(self.newXVal / self.x * 321),
+                    0,
+                    int(self.newXVal / self.x * 321),
+                    301,
+                )
+                axLatLine = QLine(
+                    0,
+                    int(self.newYVal / self.y * 301),
+                    321,
+                    int(self.newYVal / self.y * 301),
+                )
+                painter.drawLines([axVertLine, axLatLine])
+                painter.end()
 
-            self.corCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.corCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            corVertLine = QLine(
-                int(self.newXVal / self.x * 321),
-                0,
-                int(self.newXVal / self.x * 321),
-                301,
-            )
-            corLatLine = QLine(
-                0,
-                int(self.newZVal / self.z * 301),
-                321,
-                int(self.newZVal / self.z * 301),
-            )
-            painter.drawLines([corVertLine, corLatLine])
-            painter.end()
+                self.corCoverLabel.pixmap().fill(Qt.transparent)
+                painter = QPainter(self.corCoverLabel.pixmap())
+                painter.setPen(Qt.yellow)
+                corVertLine = QLine(
+                    int(self.newXVal / self.x * 321),
+                    0,
+                    int(self.newXVal / self.x * 321),
+                    301,
+                )
+                corLatLine = QLine(
+                    0,
+                    int(self.newZVal / self.z * 301),
+                    321,
+                    int(self.newZVal / self.z * 301),
+                )
+                painter.drawLines([corVertLine, corLatLine])
+                painter.end()
             self.update()
 
         elif scrolling == "cor":
@@ -765,41 +779,42 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             self.newZVal = self.actualY
             self.changeAxialSlices()
             self.changeSagSlices()
-            self.axCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.axCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            axVertLine = QLine(
-                int(self.newXVal / self.x * 321),
-                0,
-                int(self.newXVal / self.x * 321),
-                301,
-            )
-            axLatLine = QLine(
-                0,
-                int(self.newYVal / self.y * 301),
-                321,
-                int(self.newYVal / self.y * 301),
-            )
-            painter.drawLines([axVertLine, axLatLine])
-            painter.end()
+            if not self.showHideCrossButton.isChecked():
+                self.axCoverLabel.pixmap().fill(Qt.transparent)
+                painter = QPainter(self.axCoverLabel.pixmap())
+                painter.setPen(Qt.yellow)
+                axVertLine = QLine(
+                    int(self.newXVal / self.x * 321),
+                    0,
+                    int(self.newXVal / self.x * 321),
+                    301,
+                )
+                axLatLine = QLine(
+                    0,
+                    int(self.newYVal / self.y * 301),
+                    321,
+                    int(self.newYVal / self.y * 301),
+                )
+                painter.drawLines([axVertLine, axLatLine])
+                painter.end()
 
-            self.sagCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.sagCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            sagVertLine = QLine(
-                int(self.newZVal / self.z * 321),
-                0,
-                int(self.newZVal / self.z * 321),
-                301,
-            )
-            sagLatLine = QLine(
-                0,
-                int(self.newYVal / self.y * 301),
-                321,
-                int(self.newYVal / self.y * 301),
-            )
-            painter.drawLines([sagVertLine, sagLatLine])
-            painter.end()
+                self.sagCoverLabel.pixmap().fill(Qt.transparent)
+                painter = QPainter(self.sagCoverLabel.pixmap())
+                painter.setPen(Qt.yellow)
+                sagVertLine = QLine(
+                    int(self.newZVal / self.z * 321),
+                    0,
+                    int(self.newZVal / self.z * 321),
+                    301,
+                )
+                sagLatLine = QLine(
+                    0,
+                    int(self.newYVal / self.y * 301),
+                    321,
+                    int(self.newYVal / self.y * 301),
+                )
+                painter.drawLines([sagVertLine, sagLatLine])
+                painter.end()
             self.update()
 
     def alphaValueChanged(self):
@@ -825,30 +840,35 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.changeCorSlices()
 
     def moveToExport(self):
-        if len(self.dataFrame):
-            del self.exportDataGUI
-            self.exportDataGUI = ExportDataGUI()
-            self.exportDataGUI.dataFrame = self.dataFrame
-            self.exportDataGUI.lastGui = self
-            self.exportDataGUI.setFilenameDisplays(self.imagePathInput.text())
-            self.exportDataGUI.show()
-            self.hide()
-
-    def saveData(self):
-        if self.newData is None:
-            self.newData = {
+        del self.exportDataGUI
+        self.exportDataGUI = ExportDataGUI()
+        dataFrame = pd.DataFrame(
+            columns=[
+                "Patient",
+                "Area Under Curve (AUC)",
+                "Peak Enhancement (PE)",
+                "Time to Peak (TP)",
+                "Mean Transit Time (MTT)",
+                "TMPPV",
+                "VOI Volume (mm^3)",
+            ]
+        )
+        curData = {
                 "Patient": self.imagePathInput.text().split("_")[0],
                 "Area Under Curve (AUC)": self.auc,
                 "Peak Enhancement (PE)": self.pe,
                 "Time to Peak (TP)": self.tp,
                 "Mean Transit Time (MTT)": self.mtt,
-                "Normalization Factor": self.normFact,
+                "TMPPV": self.normFact,
                 "VOI Volume (mm^3)": self.voxelScale,
             }
-            self.dataFrame = self.dataFrame.append(self.newData, ignore_index=True)
+        self.exportDataGUI.dataFrame = dataFrame.append(curData, ignore_index=True)
+        self.exportDataGUI.lastGui = self
+        self.exportDataGUI.setFilenameDisplays(self.imagePathInput.text())
+        self.exportDataGUI.show()
+        self.hide()
 
     def backToLastScreen(self):
-        self.lastGui.dataFrame = self.dataFrame
         self.lastGui.show()
         self.hide()
 
@@ -859,7 +879,6 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.imagePathInput.setText(self.lastGui.imagePathInput.text())
         self.newData = None
         self.pointsPlotted = self.lastGui.pointsPlotted
-        self.dataFrame = self.lastGui.dataFrame
         self.data4dImg = self.lastGui.data4dImg
         self.curSliceIndex = self.lastGui.curSliceIndex
         self.newXVal = self.lastGui.newXVal
@@ -896,7 +915,6 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.coronalTotalFrames.setText(str(self.y + 1))
 
         self.exportDataButton.setHidden(False)
-        self.saveDataButton.setHidden(False)
 
         self.analysisParamsSidebar.setStyleSheet(
             "QFrame {\n"
@@ -976,7 +994,6 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.tp = params[2]
         self.mtt = params[3]
         self.normFact = normFact
-        self.dataFrame = self.lastGui.dataFrame
 
         self.lastGui.hide()
         self.curSliceSlider.setValue(self.lastGui.curSliceIndex)
