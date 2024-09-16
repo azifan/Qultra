@@ -16,6 +16,7 @@ class QusGui(Ui_qusPage, QWidget):
         self.ceus3dButton.clicked.connect(self.moveToCeus3d)
         self.ceus2dButton.clicked.connect(self.moveToCeusMc2d)
         self.nextPage = None
+        self.setLayout(self.verticalLayout)
         self.ceus2dMcData = pd.DataFrame(
             columns=[
                 "Patient",

@@ -100,6 +100,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.continueButton.setHidden(True)
         self.continueButton.clicked.connect(self.moveToTic)
 
+        self.drawNewVoiButton.setHidden(False)
+        self.loadVoiButton.setHidden(False)
         self.voiAlphaLabel.setHidden(True)
         self.voiAlphaOfLabel.setHidden(True)
         self.voiAlphaSpinBox.setHidden(True)
@@ -110,8 +112,10 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.drawRoiButton.setHidden(True)
         self.undoLastPtButton.setHidden(True)
         self.interpolateVoiButton.setHidden(True)
-        self.closeRoiButton.setHidden(True)
-        self.newVoiBackButton.setHidden(True)
+        self.backFromDrawButton.setHidden(True)
+        self.decisionBackButton.setHidden(True)
+        # self.closeRoiButton.setHidden(True)
+        # self.newVoiBackButton.setHidden(True)
         self.voiAdviceLabel.setHidden(True)
         self.toggleButton.setHidden(True)
         self.showHideCrossButton.setCheckable(True)
@@ -164,7 +168,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.corCoverPixmap.fill(Qt.transparent)
         self.corCoverLabel.setPixmap(self.corCoverPixmap)
         self.backButton.clicked.connect(self.backToLastScreen)
-        self.newVoiBackButton.clicked.connect(self.backFromNewVoi)
+        # self.newVoiBackButton.clicked.connect(self.backFromNewVoi)
         self.drawNewVoiButton.clicked.connect(self.drawNewVoi)
         self.saveVoiButton.clicked.connect(self.startSaveVoi)
         self.loadVoiButton.clicked.connect(self.loadVoi)
@@ -251,10 +255,10 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     def backFromNewVoi(self):
         self.drawRoiButton.setHidden(True)
-        self.closeRoiButton.setHidden(True)
+        # self.closeRoiButton.setHidden(True)
         self.redrawRoiButton.setHidden(True)
         self.interpolateVoiButton.setHidden(True)
-        self.newVoiBackButton.setHidden(True)
+        # self.newVoiBackButton.setHidden(True)
         self.loadVoiButton.setHidden(False)
         self.drawNewVoiButton.setHidden(False)
         self.voiAdviceLabel.setHidden(True)
@@ -271,14 +275,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     def drawNewVoi(self):
         self.drawRoiButton.setHidden(False)
-        self.closeRoiButton.setHidden(False)
+        # self.closeRoiButton.setHidden(False)
         self.undoLastPtButton.setHidden(False)
         self.interpolateVoiButton.setHidden(False)
         self.drawNewVoiButton.setHidden(True)
         self.loadVoiButton.setHidden(True)
-        self.newVoiBackButton.setHidden(True)
+        # self.newVoiBackButton.setHidden(True)
         self.voiAdviceLabel.setHidden(False)
-        self.newVoiBackButton.setHidden(False)
 
     def backToLastScreen(self):
         self.lastGui.timeconst = None
@@ -304,7 +307,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.redrawRoiButton.setHidden(False)
         self.interpolateVoiButton.setHidden(False)
         self.voiAdviceLabel.setHidden(False)
-        self.newVoiBackButton.setHidden(False)
+        # self.newVoiBackButton.setHidden(False)
 
         self.changeAxialSlices()
         self.changeSagSlices()
@@ -603,9 +606,9 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
         self.voiAlphaSpinBox.valueChanged.connect(self.alphaValueChanged)
 
-        self.closeRoiButton.clicked.connect(
-            self.acceptPolygon
-        )  # called to exit the paint function
+        # self.closeRoiButton.clicked.connect(
+        #     self.acceptPolygon
+        # )  # called to exit the paint function
         self.undoLastPtButton.clicked.connect(
             self.undoLastPoint
         )  # deletes last drawn rectangle if on sag or cor slices
@@ -913,7 +916,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.painted = "none"
             self.curROIDrawn = True
             self.redrawRoiButton.setHidden(False)
-            self.closeRoiButton.setHidden(True)
+            # self.closeRoiButton.setHidden(True)
             # if (len(self.planesDrawn) == 1) or (len(self.planesDrawn) >= 3 and ((self.planesDrawn[0]!=self.planesDrawn[1]) and (self.planesDrawn[1]!=self.planesDrawn[2]) and (self.planesDrawn[2]!=self.planesDrawn[0]))):
             if len(self.planesDrawn):
                 self.interpolateVoiButton.clicked.connect(self.voi3dInterpolation)
@@ -1010,10 +1013,10 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     def startRoiDraw(self):
         if self.drawRoiButton.isChecked():
-            self.closeRoiButton.setHidden(False)
+            # self.closeRoiButton.setHidden(False)
             self.redrawRoiButton.setHidden(True)
         elif not len(self.curPointsPlottedX):
-            self.closeRoiButton.setHidden(True)
+            # self.closeRoiButton.setHidden(True)
             self.redrawRoiButton.setHidden(False)
 
     def undoLastRoi(self):
@@ -1125,7 +1128,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.undoLastPtButton.setHidden(True)
             self.redrawRoiButton.setHidden(True)
             self.voiAdviceLabel.setHidden(True)
-            self.newVoiBackButton.setHidden(True)
+            # self.newVoiBackButton.setHidden(True)
 
             self.voiAlphaLabel.setHidden(False)
             self.voiAlphaOfLabel.setHidden(False)
@@ -1139,7 +1142,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
     def voi3dInterpolation(self):
         if len(self.pointsPlotted) == len(self.planesDrawn):
             self.loadingGUI.show()
-            QApplication.processEvents()
+            QApplication.processEvents() # quick solution --> not most robust but doesn't affect this use case outside of GIF
             self.complete3dInterpolation()
             self.loadingGUI.hide()
 

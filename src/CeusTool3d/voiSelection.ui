@@ -50,136 +50,6 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="drawRoiButton">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>600</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}
-QPushButton:checked {
-	color:white; 
-	font-size: 16px;
-	background: rgb(45, 0, 110);
-	border-radius: 15px;
-}
-</string>
-   </property>
-   <property name="text">
-    <string>Draw ROI</string>
-   </property>
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="undoLastPtButton">
-   <property name="geometry">
-    <rect>
-     <x>580</x>
-     <y>600</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Undo Last Point</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="interpolateVoiButton">
-   <property name="geometry">
-    <rect>
-     <x>580</x>
-     <y>660</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Interpolate VOI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="closeRoiButton">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>660</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Close ROI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="redrawRoiButton">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>660</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Undo Last ROI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
   <widget class="QLabel" name="axialPlaneLabel">
    <property name="geometry">
     <rect>
@@ -1075,7 +945,7 @@ QPushButton:checked {
   <widget class="QLabel" name="corPlane">
    <property name="geometry">
     <rect>
-     <x>810</x>
+     <x>800</x>
      <y>410</y>
      <width>321</width>
      <height>301</height>
@@ -1124,7 +994,7 @@ QPushButton:checked {
   <widget class="QLabel" name="maskLayerCor">
    <property name="geometry">
     <rect>
-     <x>810</x>
+     <x>800</x>
      <y>410</y>
      <width>321</width>
      <height>301</height>
@@ -1160,7 +1030,7 @@ QPushButton:checked {
   <widget class="QLabel" name="corCoverLabel">
    <property name="geometry">
     <rect>
-     <x>810</x>
+     <x>800</x>
      <y>410</y>
      <width>321</width>
      <height>301</height>
@@ -1188,30 +1058,6 @@ QPushButton:checked {
     <number>24</number>
    </property>
   </widget>
-  <widget class="QPushButton" name="continueButton">
-   <property name="geometry">
-    <rect>
-     <x>580</x>
-     <y>600</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Continue</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
   <widget class="QPushButton" name="backButton">
    <property name="geometry">
     <rect>
@@ -1231,30 +1077,6 @@ QPushButton:checked {
    </property>
    <property name="text">
     <string>Back</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="restartVoiButton">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>600</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Restart VOI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
    </property>
   </widget>
   <widget class="QDoubleSpinBox" name="curSliceSpinBox">
@@ -1305,102 +1127,6 @@ QPushButton:checked {
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="saveVoiButton">
-   <property name="geometry">
-    <rect>
-     <x>480</x>
-     <y>680</y>
-     <width>181</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Save VOI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="drawNewVoiButton">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>630</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Draw New VOI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="loadVoiButton">
-   <property name="geometry">
-    <rect>
-     <x>580</x>
-     <y>630</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Load VOI</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="newVoiBackButton">
-   <property name="geometry">
-    <rect>
-     <x>480</x>
-     <y>710</y>
-     <width>181</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Back</string>
-   </property>
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-  </widget>
   <widget class="QPushButton" name="toggleButton">
    <property name="geometry">
     <rect>
@@ -1430,6 +1156,374 @@ QPushButton:checked {
    <property name="checkable">
     <bool>true</bool>
    </property>
+  </widget>
+  <widget class="QWidget" name="horizontalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>380</x>
+     <y>600</y>
+     <width>390</width>
+     <height>141</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="voiApproachLayout">
+    <property name="sizeConstraint">
+     <enum>QLayout::SetDefaultConstraint</enum>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QPushButton" name="drawNewVoiButton">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>40</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+      </property>
+      <property name="text">
+       <string>Draw New VOI</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="loadVoiButton">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>40</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+      </property>
+      <property name="text">
+       <string>Load VOI</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>600</y>
+     <width>391</width>
+     <height>140</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="voiDecisionLayout">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="restartVoiButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>36</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+        </property>
+        <property name="text">
+         <string>Restart VOI</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="saveVoiButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>36</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+        </property>
+        <property name="text">
+         <string>Save VOI</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QPushButton" name="continueButton">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>36</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+      </property>
+      <property name="text">
+       <string>Continue</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="decisionBackButton">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>36</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+      </property>
+      <property name="text">
+       <string>Back</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>600</y>
+     <width>421</width>
+     <height>141</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="drawVoiLayout">
+    <item>
+     <layout class="QGridLayout" name="drawVoiLayout_2">
+      <item row="0" column="0">
+       <widget class="QPushButton" name="drawRoiButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>36</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 16px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}
+</string>
+        </property>
+        <property name="text">
+         <string>Draw ROI</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="undoLastPtButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>36</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+        </property>
+        <property name="text">
+         <string>Undo Last Point</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QPushButton" name="redrawRoiButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>36</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+        </property>
+        <property name="text">
+         <string>Undo Last ROI</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="interpolateVoiButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>36</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+        </property>
+        <property name="text">
+         <string>Interpolate VOI</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QPushButton" name="backFromDrawButton">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>36</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>-1</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 16px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+      </property>
+      <property name="text">
+       <string>Back</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>
