@@ -7,9 +7,9 @@ import numpy as np
 import pyvista as pv
 import scipy.interpolate as interpolate
 from scipy.spatial import ConvexHull
-from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
+from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog, QStackedLayout
 from PyQt5.QtGui import QPixmap, QPainter, QImage
-from PyQt5.QtCore import QLine, Qt, QThread
+from PyQt5.QtCore import QLine, Qt
 from scipy.ndimage import binary_fill_holes
 
 import src.Utils.utils as ut
