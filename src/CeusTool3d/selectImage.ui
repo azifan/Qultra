@@ -695,11 +695,6 @@
         </property>
         <item>
          <widget class="QLabel" name="frameRateLabelNifti">
-          <property name="font">
-           <font>
-            <pointsize>-1</pointsize>
-           </font>
-          </property>
           <property name="styleSheet">
            <string notr="true">QLabel {
 	font-size: 16px;
@@ -1098,11 +1093,6 @@ Select frame rate to use (fps):</string>
         </property>
         <item>
          <widget class="QLabel" name="frameRateLabelXml">
-          <property name="font">
-           <font>
-            <pointsize>-1</pointsize>
-           </font>
-          </property>
           <property name="styleSheet">
            <string notr="true">QLabel {
 	font-size: 16px;
@@ -1529,11 +1519,6 @@ Select frame rate to use (fps):</string>
             <height>16777215</height>
            </size>
           </property>
-          <property name="font">
-           <font>
-            <pointsize>-1</pointsize>
-           </font>
-          </property>
           <property name="styleSheet">
            <string notr="true">QLabel {
 	font-size: 16px;
@@ -1590,11 +1575,6 @@ Select frame rate to use (fps):</string>
             <width>173</width>
             <height>16777215</height>
            </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>-1</pointsize>
-           </font>
           </property>
           <property name="styleSheet">
            <string notr="true">QLabel {
@@ -1658,11 +1638,6 @@ Select frame rate to use (fps):</string>
         </property>
         <item>
          <widget class="QLabel" name="frameRateLabelPhilips">
-          <property name="font">
-           <font>
-            <pointsize>-1</pointsize>
-           </font>
-          </property>
           <property name="styleSheet">
            <string notr="true">QLabel {
 	font-size: 16px;

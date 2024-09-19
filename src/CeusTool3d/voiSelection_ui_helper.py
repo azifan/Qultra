@@ -1,6 +1,7 @@
 import io
 import os
 import platform
+from pathlib import Path
 from itertools import chain
 
 from PIL import Image, ImageDraw
@@ -128,21 +129,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.toggleButton.setCheckable(True)
         self.showHideCrossButton.setCheckable(True)
         self.drawRoiButton.setCheckable(True)
-
-        self.drawNewVoiButton.clicked.connect(self.drawNewVoi)
-        self.backFromDrawButton.clicked.connect(self.backFromDraw)
-        self.loadVoiButton.clicked.connect(self.loadVoi)
-        self.continueButton.clicked.connect(self.moveToTic)
-        self.drawRoiButton.clicked.connect(self.startRoiDraw)
-        # self.voiAlphaSpinBox.valueChanged.connect(self.alphaValueChanged)
-        # # self.closeRoiButton.clicked.connect(
-        # #     self.acceptPolygon
-        # # )  # called to exit the paint function
-        # self.undoLastPtButton.clicked.connect(
-        #     self.undoLastPoint
-        # )  # deletes last drawn rectangle if on sag or cor slices
-        # # self.restartVoiButton.clicked.connect(self.restartVoi)
-
+        
+        self.scrollPaused = False
         self.sliceSpinBoxChanged = False
         self.sliceSliderChanged = False
         self.newData = None
@@ -153,14 +141,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.tmppv = None
         self.fullPath = None
         self.bmode4dIm = None
-
-        self.voiAlphaSpinBox.setMinimum(0)
-        self.voiAlphaSpinBox.setMaximum(255)
-        self.voiAlphaStatus.setMinimum(0)
-        self.voiAlphaStatus.setMaximum(255)
-        self.voiAlphaStatus.setValue(255)
-        self.voiAlphaSpinBox.setValue(255)
-
         self.curSliceIndex = 0
         self.curAlpha = 255
         self.curPointsPlottedX = []
@@ -172,28 +152,31 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.saveVoiGUI = None
         self.timeconst = None
 
-        self.setMouseTracking(True)
-
         self.ticAnalysisGui = TicAnalysisGUI()
         self.loadingGUI = InterpolationLoadingGUI()
+        
+        self.voiAlphaSpinBox.setMinimum(0)
+        self.voiAlphaSpinBox.setMaximum(255)
+        self.voiAlphaStatus.setMinimum(0)
+        self.voiAlphaStatus.setMaximum(255)
+        self.voiAlphaStatus.setValue(255)
+        self.voiAlphaSpinBox.setValue(255)
 
-        self.axCoverPixmap = QPixmap(321, 301)
-        self.axCoverPixmap.fill(Qt.transparent)
-        # self.axCoverLabel.setPixmap(self.axCoverPixmap)
-
-        self.sagCoverPixmap = QPixmap(321, 301)
-        self.sagCoverPixmap.fill(Qt.transparent)
-        # self.sagCoverLabel.setPixmap(self.sagCoverPixmap)
-
-        self.corCoverPixmap = QPixmap(321, 301)
-        self.corCoverPixmap.fill(Qt.transparent)
-        # self.corCoverLabel.setPixmap(self.corCoverPixmap)
+        self.drawNewVoiButton.clicked.connect(self.drawNewVoi)
+        self.backFromDrawButton.clicked.connect(self.backFromDraw)
+        self.loadVoiButton.clicked.connect(self.loadVoi)
+        self.continueButton.clicked.connect(self.moveToTic)
+        self.drawRoiButton.clicked.connect(self.startRoiDraw)
+        self.undoLastPtButton.clicked.connect(self.undoLastPoint)
+        self.restartVoiButton.clicked.connect(self.restartVoi)
+        self.voiAlphaSpinBox.valueChanged.connect(self.alphaValueChanged)
         self.backButton.clicked.connect(self.backToLastScreen)
         self.saveVoiButton.clicked.connect(self.startSaveVoi)
         self.showHideCrossButton.clicked.connect(self.showHideCross)
+        self.interpolateVoiButton.clicked.connect(self.voi3dInterpolation)
 
     def mousePressEvent(self, event):
-        if self.drawRoiButton.isHidden() or not self.drawRoiButton.isChecked():
+        if (self.drawRoiButton.isHidden() or not self.drawRoiButton.isChecked()) and self.painted == "none":
             if self.navigatingLabel.isHidden():
                 self.navigatingLabel.show(); self.observingLabel.hide()
                 if not self.showHideCrossButton.isChecked():
@@ -210,20 +193,12 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         del self.saveVoiGUI
         self.saveVoiGUI = SaveVoiGUI()
         self.saveVoiGUI.voiSelectionGUI = self
-        pathPieces = self.fullPath.split("/")
-        fileName = pathPieces[-1]
-        pathPieces[-1] = "nifti_segmentation_QUANTUS"
-        pathPieces.append(fileName)
+        destPath = Path(self.fullPath).parent / Path("nifti_segmentation_QUANTUS")
+        destPath.mkdir(exist_ok=True)
 
-        path = pathPieces[0]
-        for i in range(len(pathPieces) - 2):
-            path = str(path + "/" + pathPieces[i + 1])
-        if not os.path.exists(path):
-            os.mkdir(path)
-
-        self.saveVoiGUI.newFolderPathInput.setText(path)
+        self.saveVoiGUI.newFolderPathInput.setText(f"{destPath}")
         self.saveVoiGUI.newFileNameInput.setText(
-            str(pathPieces[-1][:-7] + "_segmentation.nii.gz")
+            str(Path(self.fullPath).name[:-7] + "_segmentation.nii.gz")
         )
         self.saveVoiGUI.show()
 
@@ -258,23 +233,14 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         maskPoints = np.where(mask > 0)
         maskPoints = np.transpose(maskPoints)
         for point in maskPoints:
-            self.maskCoverImg[point[0], point[1], point[2]] = [
-                0,
-                0,
-                255,
-                int(self.curAlpha),
-            ]
+            self.maskCoverImg[point[0], point[1], point[2]] = [0, 0, 255, int(self.curAlpha)]
             self.pointsPlotted.append((point[0], point[1], point[2]))
         self.curFrameIndex = maskPoints[0, 0]
 
         self.hideVoiApproachLayout()
         self.showVoiDecisionLayout()
         self.showVoiAlphaLayout()
-
-        self.changeAxialSlices()
-        self.changeSagSlices()
-        self.changeCorSlices()
-        self.update()
+        self.updateCrosshairs()
 
     def backFromDraw(self):
         self.hideDrawVoiLayout()
@@ -284,6 +250,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.planesDrawn = []
         self.maskCoverImg.fill(0)
         self.painted = "none"
+        self.scrollPaused = False
         self.drawRoiButton.setChecked(False)
         self.updateCrosshairs()
 
@@ -300,28 +267,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.pointsPlotted = []
         self.planesDrawn = []
         self.maskCoverImg.fill(0)
-
-        self.voiAlphaLabel.setHidden(True)
-        self.voiAlphaOfLabel.setHidden(True)
-        self.voiAlphaSpinBox.setHidden(True)
-        self.voiAlphaStatus.setHidden(True)
-        self.voiAlphaTotal.setHidden(True)
-        self.restartVoiButton.setHidden(True)
-        self.continueButton.setHidden(True)
-        self.saveVoiButton.setHidden(True)
-
-        self.drawRoiButton.setHidden(False)
-        self.undoLastPtButton.setHidden(False)
-        self.redrawRoiButton.setHidden(False)
-        self.interpolateVoiButton.setHidden(False)
-        self.voiAdviceLabel.setHidden(False)
-        # self.newVoiBackButton.setHidden(False)
-
-        self.changeAxialSlices()
-        self.changeSagSlices()
-        self.changeCorSlices()
+        self.voiAlphaStatus.setValue(255)
+        self.voiAlphaSpinBox.setValue(255)
+        self.hideVoiAlphaLayout()
+        self.hideVoiDecisionLayout()
+        self.showVoiApproachLayout()
+        self.updateCrosshairs()
         self.backFromDraw()
-        self.update()
 
     def computeTic(self):
         times = [i * self.timeconst for i in range(1, self.OGData4dImg.shape[3] + 1)]
@@ -419,19 +371,14 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                 self.pointsPlotted[i][2],
                 3,
             ] = self.curAlpha
-        self.changeAxialSlices()
-        self.changeSagSlices()
-        self.changeCorSlices()
+        self.updateCrosshairs()
 
     def toggleIms(self):
         if self.toggleButton.isChecked():
             self.data4dImg = self.bmode4dIm
         else:
             self.data4dImg = self.OGData4dImg
-        self.changeAxialSlices()
-        self.changeSagSlices()
-        self.changeCorSlices()
-        self.updateCrosshair()
+        self.updateCrosshairs()
 
     def showHideCross(self):
         if self.showHideCrossButton.isChecked():
@@ -511,16 +458,20 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     @pyqtSlot(QPoint)
     def axPlaneClicked(self, pos):
-        if self.drawRoiButton.isChecked() and not self.drawRoiButton.isHidden() and not np.amax(self.maskCoverImg):
-            self.painted = "ax"
-        if self.painted == "ax":
-            self.axCoordChanged(pos)
-            self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
-            self.updateCrosshairs()
+        if self.drawRoiButton.isChecked():
+            if self.painted == "none":
+                self.painted = "ax"
+            if self.painted == "ax":
+                self.axCoordChanged(pos)
+                self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
+                self.curPointsPlottedX.append(self.newXVal); self.curPointsPlottedY.append(self.newYVal)
+                self.updateCrosshairs()
+        elif not self.drawRoiButton.isHidden() and self.painted == "ax":
+            self.scrollPaused = True if not self.scrollPaused else False
 
     @pyqtSlot(QPoint)
     def axCoordChanged(self, pos):
-        if self.observingLabel.isHidden() or self.painted == "ax":
+        if not self.scrollPaused and ((self.observingLabel.isHidden() and self.painted == "none") or self.painted == "ax"):
             xdiff = self.axialPlane.width() - self.axialPlane.pixmap().width()
             ydiff = self.axialPlane.height() - self.axialPlane.pixmap().height()
             xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
@@ -533,16 +484,20 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     @pyqtSlot(QPoint)
     def sagPlaneClicked(self, pos):
-        if self.drawRoiButton.isChecked() and not self.drawRoiButton.isHidden() and not np.amax(self.maskCoverImg):
-            self.painted = "sag"
-        if self.painted == "sag":
-            self.sagCoordChanged(pos)
-            self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
-            self.updateCrosshairs()
+        if self.drawRoiButton.isChecked():
+            if self.painted == "none":
+                self.painted = "sag"
+            if self.painted == "sag":
+                self.sagCoordChanged(pos)
+                self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
+                self.curPointsPlottedX.append(self.newZVal); self.curPointsPlottedY.append(self.newYVal)
+                self.updateCrosshairs()
+        elif not self.drawRoiButton.isHidden() and self.painted == "sag":
+            self.scrollPaused = True if not self.scrollPaused else False
 
     @pyqtSlot(QPoint)
     def sagCoordChanged(self, pos):
-        if self.observingLabel.isHidden() or self.painted == "sag":
+        if not self.scrollPaused and ((self.observingLabel.isHidden() and self.painted == "none") or self.painted == "sag"):
             xdiff = self.sagPlane.width() - self.sagPlane.pixmap().width()
             ydiff = self.sagPlane.height() - self.sagPlane.pixmap().height()
             xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
@@ -555,16 +510,20 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     @pyqtSlot(QPoint)
     def corPlaneClicked(self, pos):
-        if self.drawRoiButton.isChecked() and not self.drawRoiButton.isHidden() and not np.amax(self.maskCoverImg):
-            self.painted = "cor"
-        if self.painted == "cor":
-            self.corCoordChanged(pos)
-            self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
-            self.updateCrosshairs()
+        if self.drawRoiButton.isChecked():
+            if self.painted == "none":
+                self.painted = "cor"
+            if self.painted == "cor":
+                self.corCoordChanged(pos)
+                self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
+                self.curPointsPlottedX.append(self.newXVal); self.curPointsPlottedY.append(self.newZVal)
+                self.updateCrosshairs()
+        elif not self.drawRoiButton.isHidden() and self.painted == "cor":
+            self.scrollPaused = True if not self.scrollPaused else False
         
     @pyqtSlot(QPoint)
     def corCoordChanged(self, pos):
-        if self.observingLabel.isHidden() or self.painted == "cor":
+        if not self.scrollPaused and ((self.observingLabel.isHidden() and self.painted == "none") or self.painted == "cor"):
             xdiff = self.corPlane.width() - self.corPlane.pixmap().width()
             ydiff = self.corPlane.height() - self.corPlane.pixmap().height()
             xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
@@ -604,12 +563,12 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.interpolateVoiButton.hide()
         self.backFromDrawButton.hide()
         self.voiAdviceLabel.hide()
+        self.drawRoiButton.setChecked(False)
 
     def hideVoiDecisionLayout(self):
         self.restartVoiButton.hide()
         self.saveVoiButton.hide()
         self.continueButton.hide()
-        self.decisionBackButton.hide()
 
     def hideVoiApproachLayout(self):
         self.drawNewVoiButton.hide()
@@ -634,7 +593,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.restartVoiButton.show()
         self.saveVoiButton.show()
         self.continueButton.show()
-        self.decisionBackButton.show()
 
     def showVoiApproachLayout(self):
         self.drawNewVoiButton.show()
@@ -768,7 +726,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.corPlane.setPixmap(self.pixmapCor.scaled(
             self.corPlane.width(), self.corPlane.height(), Qt.KeepAspectRatio))
 
-    def acceptPolygon(self):
+    def acceptRoi(self):
         # 2d interpolation
         if len(self.curPointsPlottedX):
             self.drawRoiButton.setChecked(False)
@@ -789,25 +747,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             newROI = []
             for i in range(len(x)):
                 if self.painted == "ax":
-                    if len(newROI) == 0 or newROI[-1] != (
-                        int(x[i]),
-                        int(y[i]),
-                        self.newZVal,
-                    ):
+                    if not len(newROI) or newROI[-1] != (int(x[i]), int(y[i]), self.newZVal):
                         newROI.append((int(x[i]), int(y[i]), self.newZVal))
                 elif self.painted == "sag":
-                    if len(newROI) == 0 or newROI[-1] != (
-                        self.newXVal,
-                        int(y[i]),
-                        int(x[i]),
-                    ):
+                    if not len(newROI) or newROI[-1] != (self.newXVal, int(y[i]), int(x[i])):
                         newROI.append((self.newXVal, int(y[i]), int(x[i])))
                 elif self.painted == "cor":
-                    if len(newROI) == 0 or newROI[-1] != (
-                        int(x[i]),
-                        self.newYVal,
-                        int(y[i]),
-                    ):
+                    if not len(newROI) or newROI[-1] != (int(x[i]), self.newYVal, int(y[i])):
                         newROI.append((int(x[i]), self.newYVal, int(y[i])))
             self.pointsPlotted.append(newROI)
             for i in range(len(self.pointsPlotted)):
@@ -817,19 +763,15 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                         self.pointsPlotted[i][j][1],
                         self.pointsPlotted[i][j][2],
                     ] = [0, 0, 255, int(self.curAlpha)]
-            self.changeAxialSlices()
-            self.changeSagSlices()
-            self.changeCorSlices()
+            self.updateCrosshairs()
             self.curPointsPlottedX = []
             self.curPointsPlottedY = []
             self.planesDrawn.append(self.painted)
             self.painted = "none"
             self.curROIDrawn = True
-            self.redrawRoiButton.setHidden(False)
-            # self.closeRoiButton.setHidden(True)
-            # if (len(self.planesDrawn) == 1) or (len(self.planesDrawn) >= 3 and ((self.planesDrawn[0]!=self.planesDrawn[1]) and (self.planesDrawn[1]!=self.planesDrawn[2]) and (self.planesDrawn[2]!=self.planesDrawn[0]))):
-            if len(self.planesDrawn):
-                self.interpolateVoiButton.clicked.connect(self.voi3dInterpolation)
+            self.multiUseRoiButton.setText("Undo Last ROI")
+            self.multiUseRoiButton.clicked.disconnect()
+            self.multiUseRoiButton.clicked.connect(self.undoLastRoi)
 
     def undoLastPoint(self):
         if len(self.curPointsPlottedX) != 0:
@@ -864,11 +806,10 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                         int(self.curPointsPlottedY[i]),
                     ] = [0, 0, 255, int(self.curAlpha)]
 
-            self.changeAxialSlices()
-            self.changeSagSlices()
-            self.changeCorSlices()
-        if len(self.curPointsPlottedX) == 0:
-            self.painted == "none"
+            self.updateCrosshairs()
+        if not len(self.curPointsPlottedX):
+            self.painted = "none"
+            self.scrollPaused = False
 
     def moveToTic(self):
         self.ticAnalysisGui.timeLine = None
@@ -928,7 +869,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                 self.multiUseRoiButton.clicked.disconnect()
             except:
                 pass
-            self.multiUseRoiButton.clicked.connect(self.acceptPolygon)
+            self.multiUseRoiButton.clicked.connect(self.acceptRoi)
             self.observingLabel.show(); self.navigatingLabel.hide()
             self.axialPlane.setCursor(QCursor(Qt.ArrowCursor))
             self.sagPlane.setCursor(QCursor(Qt.ArrowCursor))
@@ -940,6 +881,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             except:
                 pass
             self.multiUseRoiButton.clicked.connect(self.undoLastRoi)
+        self.scrollPaused = False
 
     def undoLastRoi(self):
         if len(self.planesDrawn):
@@ -1040,29 +982,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                     ]
                     self.pointsPlotted.append((maskPoints[0][j], maskPoints[1][j], i))
 
-            self.changeAxialSlices()
-            self.changeSagSlices()
-            self.changeCorSlices()
-            self.interpolateVoiButton.setHidden(True)
-            self.continueButton.setHidden(False)
-
-            self.drawRoiButton.setHidden(True)
-            self.undoLastPtButton.setHidden(True)
-            self.redrawRoiButton.setHidden(True)
-            self.voiAdviceLabel.setHidden(True)
-            # self.newVoiBackButton.setHidden(True)
-
-            self.voiAlphaLabel.setHidden(False)
-            self.voiAlphaOfLabel.setHidden(False)
-            self.voiAlphaSpinBox.setHidden(False)
-            self.voiAlphaStatus.setHidden(False)
-            self.voiAlphaTotal.setHidden(False)
-            self.restartVoiButton.setHidden(False)
-            self.saveVoiButton.setHidden(False)
-            self.restartVoiButton.clicked.connect(self.restartVoi)
+            self.hideDrawVoiLayout()
+            self.showVoiDecisionLayout()
+            self.showVoiAlphaLayout()
+            self.updateCrosshairs()
 
     def voi3dInterpolation(self):
-        if len(self.pointsPlotted) == len(self.planesDrawn):
+        if len(self.planesDrawn) and len(self.pointsPlotted) == len(self.planesDrawn):
             self.loadingGUI.show()
             QApplication.processEvents() # quick solution --> not most robust but doesn't affect this use case outside of GIF
             self.complete3dInterpolation()
@@ -1158,7 +1084,6 @@ def calculateSpline3D(points):
                 output.add((int(cur_pos[0]), int(cur_pos[1]), int(cur_pos[2])))
 
     return output
-
 
 def removeDuplicates(ar):
     # Credit: https://stackoverflow.com/questions/480214/how-do-i-remove-duplicates-from-a-list-while-preserving-order

@@ -10,6 +10,9 @@
     <height>751</height>
    </rect>
   </property>
+  <property name="mouseTracking">
+   <bool>true</bool>
+  </property>
   <property name="windowTitle">
    <string>Select Volume of Interest</string>
   </property>
@@ -911,6 +914,12 @@ QPushButton:checked {
       </item>
       <item row="1" column="0">
        <layout class="QVBoxLayout" name="verticalLayout_5">
+        <property name="leftMargin">
+         <number>10</number>
+        </property>
+        <property name="rightMargin">
+         <number>10</number>
+        </property>
         <property name="bottomMargin">
          <number>10</number>
         </property>
@@ -1384,11 +1393,6 @@ QPushButton:checked {
               <height>36</height>
              </size>
             </property>
-            <property name="font">
-             <font>
-              <pointsize>-1</pointsize>
-             </font>
-            </property>
             <property name="styleSheet">
              <string notr="true">QPushButton {
 	color: white;
@@ -1503,30 +1507,6 @@ QPushButton:checked {
             </property>
             <property name="text">
              <string>Continue</string>
-            </property>
-            <property name="checkable">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="decisionBackButton">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>36</height>
-             </size>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-            </property>
-            <property name="text">
-             <string>Back</string>
             </property>
             <property name="checkable">
              <bool>false</bool>
