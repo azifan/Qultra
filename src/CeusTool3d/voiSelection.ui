@@ -520,7 +520,7 @@ QPushButton:checked {
            </size>
           </property>
           <property name="cursor">
-           <cursorShape>CrossCursor</cursorShape>
+           <cursorShape>ArrowCursor</cursorShape>
           </property>
           <property name="mouseTracking">
            <bool>true</bool>
@@ -663,7 +663,7 @@ QPushButton:checked {
            </size>
           </property>
           <property name="cursor">
-           <cursorShape>CrossCursor</cursorShape>
+           <cursorShape>ArrowCursor</cursorShape>
           </property>
           <property name="mouseTracking">
            <bool>true</bool>
@@ -809,7 +809,7 @@ QPushButton:checked {
            </size>
           </property>
           <property name="cursor">
-           <cursorShape>CrossCursor</cursorShape>
+           <cursorShape>ArrowCursor</cursorShape>
           </property>
           <property name="mouseTracking">
            <bool>true</bool>
@@ -1327,7 +1327,7 @@ QPushButton:checked {
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QPushButton" name="undoLastRoiButton">
+             <widget class="QPushButton" name="multiUseRoiButton">
               <property name="minimumSize">
                <size>
                 <width>0</width>
