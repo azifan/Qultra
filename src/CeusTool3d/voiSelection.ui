@@ -425,6 +425,44 @@ QPushButton:checked {
         <bool>true</bool>
        </property>
       </widget>
+      <widget class="QLabel" name="navigatingLabel">
+       <property name="geometry">
+        <rect>
+         <x>15</x>
+         <y>645</y>
+         <width>101</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel { background-color : rgb(42, 42, 42); color : green; }</string>
+       </property>
+       <property name="text">
+        <string>Navigating!</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="observingLabel">
+       <property name="geometry">
+        <rect>
+         <x>15</x>
+         <y>645</y>
+         <width>101</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel { background-color : rgb(42, 42, 42); color : red; }</string>
+       </property>
+       <property name="text">
+        <string>Observing!</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
       <zorder>roiSidebar</zorder>
       <zorder>rfAnalysisSidebar</zorder>
       <zorder>ticAnalysisSidebar</zorder>
@@ -433,6 +471,8 @@ QPushButton:checked {
       <zorder>backButton</zorder>
       <zorder>toggleButton</zorder>
       <zorder>imageSelectionSidebar</zorder>
+      <zorder>navigatingLabel</zorder>
+      <zorder>observingLabel</zorder>
      </widget>
     </item>
     <item>

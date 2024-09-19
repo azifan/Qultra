@@ -125,6 +125,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.hideVoiAlphaLayout()
         self.hideDrawVoiLayout()
         self.hideVoiDecisionLayout()
+        self.toggleButton.hide(); self.navigatingLabel.hide()
         self.toggleButton.setCheckable(True)
         self.showHideCrossButton.setCheckable(True)
         self.drawRoiButton.setCheckable(True)
@@ -255,72 +256,76 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.drawCrosshairs()
 
     def mousePressEvent(self, event):
-        self.xCur = event.x()
-        self.yCur = event.y()
-        self.newPointPlotted = False
-        if self.drawRoiButton.isChecked():
-            # Plot ROI points
-            if (
-                self.xCur < 721
-                and self.xCur > 400
-                and self.yCur < 341
-                and self.yCur > 40
-            ) and (self.painted == "none" or self.painted == "ax"):
-                self.newXVal = int((self.xCur - 401) * (self.widthAx - 1) / 321)
-                self.newYVal = int((self.yCur - 41) * (self.heightAx - 1) / 301)
-                self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [
-                    0,
-                    0,
-                    255,
-                    int(self.curAlpha),
-                ]
-                self.curPointsPlottedX.append(self.newXVal)
-                self.curPointsPlottedY.append(self.newYVal)
-                self.newPointPlotted = True
-                self.painted = "ax"
-                self.curROIDrawn = False
-            elif (
-                event.x() < 1131
-                and event.x() > 810
-                and event.y() < 341
-                and event.y() > 40
-            ) and (self.painted == "none" or self.painted == "sag"):
-                self.newZVal = int((self.xCur - 811) * (self.widthSag - 1) / 321)
-                self.newYVal = int((self.yCur - 41) * (self.heightSag - 1) / 301)
-                self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [
-                    0,
-                    0,
-                    255,
-                    int(self.curAlpha),
-                ]
-                self.curPointsPlottedX.append(self.newZVal)
-                self.curPointsPlottedY.append(self.newYVal)
-                self.newPointPlotted = True
-                self.painted = "sag"
-                self.curROIDrawn = False
-            elif (
-                event.x() < 1131
-                and event.x() > 810
-                and event.y() < 711
-                and event.y() > 410
-            ) and (self.painted == "none" or self.painted == "cor"):
-                self.newXVal = int((self.xCur - 811) * (self.widthCor - 1) / 321)
-                self.newZVal = int((self.yCur - 411) * (self.heightCor - 1) / 301)
-                self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [
-                    0,
-                    0,
-                    255,
-                    int(self.curAlpha),
-                ]
-                self.curPointsPlottedX.append(self.newXVal)
-                self.curPointsPlottedY.append(self.newZVal)
-                self.newPointPlotted = True
-                self.painted = "cor"
-                self.curROIDrawn = False
-            self.changeSagSlices()
-            self.changeCorSlices()
-            self.changeAxialSlices()
-            self.updateCrosshair()
+        if self.navigatingLabel.isHidden():
+            self.navigatingLabel.show(); self.observingLabel.hide()
+        else:
+            self.navigatingLabel.hide(); self.observingLabel.show()
+        # self.xCur = event.x()
+        # self.yCur = event.y()
+        # self.newPointPlotted = False
+        # if self.drawRoiButton.isChecked():
+        #     # Plot ROI points
+        #     if (
+        #         self.xCur < 721
+        #         and self.xCur > 400
+        #         and self.yCur < 341
+        #         and self.yCur > 40
+        #     ) and (self.painted == "none" or self.painted == "ax"):
+        #         self.newXVal = int((self.xCur - 401) * (self.widthAx - 1) / 321)
+        #         self.newYVal = int((self.yCur - 41) * (self.heightAx - 1) / 301)
+        #         self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [
+        #             0,
+        #             0,
+        #             255,
+        #             int(self.curAlpha),
+        #         ]
+        #         self.curPointsPlottedX.append(self.newXVal)
+        #         self.curPointsPlottedY.append(self.newYVal)
+        #         self.newPointPlotted = True
+        #         self.painted = "ax"
+        #         self.curROIDrawn = False
+        #     elif (
+        #         event.x() < 1131
+        #         and event.x() > 810
+        #         and event.y() < 341
+        #         and event.y() > 40
+        #     ) and (self.painted == "none" or self.painted == "sag"):
+        #         self.newZVal = int((self.xCur - 811) * (self.widthSag - 1) / 321)
+        #         self.newYVal = int((self.yCur - 41) * (self.heightSag - 1) / 301)
+        #         self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [
+        #             0,
+        #             0,
+        #             255,
+        #             int(self.curAlpha),
+        #         ]
+        #         self.curPointsPlottedX.append(self.newZVal)
+        #         self.curPointsPlottedY.append(self.newYVal)
+        #         self.newPointPlotted = True
+        #         self.painted = "sag"
+        #         self.curROIDrawn = False
+        #     elif (
+        #         event.x() < 1131
+        #         and event.x() > 810
+        #         and event.y() < 711
+        #         and event.y() > 410
+        #     ) and (self.painted == "none" or self.painted == "cor"):
+        #         self.newXVal = int((self.xCur - 811) * (self.widthCor - 1) / 321)
+        #         self.newZVal = int((self.yCur - 411) * (self.heightCor - 1) / 301)
+        #         self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [
+        #             0,
+        #             0,
+        #             255,
+        #             int(self.curAlpha),
+        #         ]
+        #         self.curPointsPlottedX.append(self.newXVal)
+        #         self.curPointsPlottedY.append(self.newZVal)
+        #         self.newPointPlotted = True
+        #         self.painted = "cor"
+        #         self.curROIDrawn = False
+        #     self.changeSagSlices()
+        #     self.changeCorSlices()
+        #     self.changeAxialSlices()
+        #     self.updateCrosshair()
 
     def startSaveVoi(self):
         del self.saveVoiGUI
@@ -563,7 +568,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.changeSagSlices()
             self.changeCorSlices()
         else:
-            self.updateCrosshair()
+            self.updateCrosshairs()
 
     def openImage(self, bmodePath):
         self.nibImg = nib.load(self.inputTextPath, mmap=False)
@@ -623,42 +628,45 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     @pyqtSlot(QPoint)
     def axCoordChanged(self, pos):
-        xdiff = self.axialPlane.width() - self.axialPlane.pixmap().width()
-        ydiff = self.axialPlane.height() - self.axialPlane.pixmap().height()
-        xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
+        if self.observingLabel.isHidden():
+            xdiff = self.axialPlane.width() - self.axialPlane.pixmap().width()
+            ydiff = self.axialPlane.height() - self.axialPlane.pixmap().height()
+            xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
 
-        if xCoord < 0 or yCoord < 0 or xCoord >= self.axialPlane.pixmap().width() or yCoord >= self.axialPlane.pixmap().height():
-            return
-        self.newXVal = int((xCoord/self.axialPlane.pixmap().width()) * self.x)
-        self.newYVal = int((yCoord/self.axialPlane.pixmap().height()) * self.y)
-        self.xCoord = xCoord; self.yCoord = yCoord
-        self.updateCrosshairs()
+            if xCoord < 0 or yCoord < 0 or xCoord >= self.axialPlane.pixmap().width() or yCoord >= self.axialPlane.pixmap().height():
+                return
+            self.newXVal = int((xCoord/self.axialPlane.pixmap().width()) * self.x)
+            self.newYVal = int((yCoord/self.axialPlane.pixmap().height()) * self.y)
+            self.xCoord = xCoord; self.yCoord = yCoord
+            self.updateCrosshairs()
 
     @pyqtSlot(QPoint)
     def sagCoordChanged(self, pos):
-        xdiff = self.sagPlane.width() - self.sagPlane.pixmap().width()
-        ydiff = self.sagPlane.height() - self.sagPlane.pixmap().height()
-        xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
+        if self.observingLabel.isHidden():
+            xdiff = self.sagPlane.width() - self.sagPlane.pixmap().width()
+            ydiff = self.sagPlane.height() - self.sagPlane.pixmap().height()
+            xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
 
-        if xCoord < 0 or yCoord < 0 or xCoord >= self.sagPlane.pixmap().width() or yCoord >= self.sagPlane.pixmap().height():
-            return
-        self.newZVal = int((xCoord/self.sagPlane.pixmap().width()) * self.z)
-        self.newYVal = int((yCoord/self.sagPlane.pixmap().height()) * self.y)
-        self.zCoord = xCoord; self.yCoord = yCoord
-        self.updateCrosshairs()
+            if xCoord < 0 or yCoord < 0 or xCoord >= self.sagPlane.pixmap().width() or yCoord >= self.sagPlane.pixmap().height():
+                return
+            self.newZVal = int((xCoord/self.sagPlane.pixmap().width()) * self.z)
+            self.newYVal = int((yCoord/self.sagPlane.pixmap().height()) * self.y)
+            self.zCoord = xCoord; self.yCoord = yCoord
+            self.updateCrosshairs()
         
     @pyqtSlot(QPoint)
     def CorCoordChanged(self, pos):
-        xdiff = self.corPlane.width() - self.corPlane.pixmap().width()
-        ydiff = self.corPlane.height() - self.corPlane.pixmap().height()
-        xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
+        if self.observingLabel.isHidden():
+            xdiff = self.corPlane.width() - self.corPlane.pixmap().width()
+            ydiff = self.corPlane.height() - self.corPlane.pixmap().height()
+            xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
 
-        if xCoord < 0 or yCoord < 0 or xCoord >= self.corPlane.pixmap().width() or yCoord >= self.corPlane.pixmap().height():
-            return
-        self.newXVal = int((xCoord/self.corPlane.pixmap().width()) * self.x)
-        self.newZVal = int((yCoord/self.corPlane.pixmap().height()) * self.z)
-        self.xCoord = xCoord; self.zCoord = yCoord
-        self.updateCrosshairs()
+            if xCoord < 0 or yCoord < 0 or xCoord >= self.corPlane.pixmap().width() or yCoord >= self.corPlane.pixmap().height():
+                return
+            self.newXVal = int((xCoord/self.corPlane.pixmap().width()) * self.x)
+            self.newZVal = int((yCoord/self.corPlane.pixmap().height()) * self.z)
+            self.xCoord = xCoord; self.zCoord = yCoord
+            self.updateCrosshairs()
 
     def updateCrosshairs(self):
         self.changeAxialSlices(); self.changeSagSlices(); self.changeCorSlices()
