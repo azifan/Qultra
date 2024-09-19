@@ -348,9 +348,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.fullScreenLayout.addItem(self.philipsLayout)
 
     def generateImagePhilips(self):
-        if self.imagePath != "":
-            self.imagePath = ""
-            self.bmodePath = ""
+        if self.imagePath == "":
             if os.path.exists(self.philipsImageDestinationPath.text()) and \
                 os.path.exists(self.philipsImagePathInput.text()):
                 # parse each volume individually
@@ -375,9 +373,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
             self.moveToVoiSelection()
 
     def generateImageXml(self):
-        if self.imagePath != "":
-            self.imagePath = ""
-            self.bmodePath = ""
+        if self.imagePath == "":
             if (os.path.exists(self.niftiImageDestinationPath.text())
                     and os.path.isdir(self.niftiImageDestinationPath.text())
                     and os.path.exists(self.xmlImagePathInput.text())
@@ -396,9 +392,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
             self.moveToVoiSelection()
 
     def generateImageNifti(self):
-        if self.imagePath != "":
-            self.imagePath = ""
-            self.bmodePath = ""
+        if self.imagePath == "":
             if os.path.exists(self.niftiImagePathInput.text()):
                 self.imagePath = self.niftiImagePathInput.text()
                 self.timeconst = nib.load(self.imagePath, mmap=False).header["pixdim"][4]
