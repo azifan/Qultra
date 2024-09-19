@@ -167,8 +167,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.curPointsPlottedX = []
         self.curPointsPlottedY = []
         self.pointsPlotted = []
-        self.xCur = 0
-        self.yCur = 0
+        self.xCoord = 0; self.yCoord = 0; self.zCoord = 0
         self.planesDrawn = []
         self.painted = "none"
         self.lastGui = None
@@ -196,15 +195,15 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.showHideCrossButton.clicked.connect(self.showHideCross)
 
     def drawCrosshairs(self):
-        pilImsNoCross = [self.imAxPILNoCross, self.imSagPILNoCross, self.imCorPILNoCross]
+        pilIms = [self.imAxPIL, self.imSagPIL, self.imCorPIL]
         pilImsCross = [self.imAxPILCross, self.imSagPILCross, self.imCorPILCross]
         pixmaps = [self.pixmapAx, self.pixmapSag, self.pixmapCor]
         vertVals = [self.newXVal, self.newZVal, self.newXVal]
         horizVals = [self.newYVal, self.newYVal, self.newZVal]
         vertLens = [self.x, self.z, self.x]
         horizLens = [self.y, self.y, self.z]
-        for i, pilImNoCross in enumerate(pilImsNoCross):
-            pilImsCross[i] = pilImNoCross.copy()
+        for i, pilIm in enumerate(pilIms):
+            pilImsCross[i] = pilIm.copy()
             pilImCross = pilImsCross[i]
             w, h = pilImCross.size
             draw = ImageDraw.Draw(pilImCross)
@@ -322,11 +321,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.changeCorSlices()
             self.changeAxialSlices()
             self.updateCrosshair()
-
-    def mouseMoveEvent(self, event):
-        self.xCur = event.x()
-        self.yCur = event.y()
-        # self.updateCrosshair()
 
     def startSaveVoi(self):
         del self.saveVoiGUI
@@ -561,7 +555,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     def showHideCross(self):
         if self.showHideCrossButton.isChecked():
-            pilIms = [self.imAxPILNoCross, self.imSagPILNoCross, self.imCorPILNoCross]
+            pilIms = [self.imAxPIL, self.imSagPIL, self.imCorPIL]
             pixmaps = [self.pixmapAx, self.pixmapSag, self.pixmapCor]
             for i, pilIm in enumerate(pilIms):
                 pixmaps[i] = QPixmap.fromImage(ImageQt(pilIm))
@@ -620,21 +614,64 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.changeSagSlices()
         self.changeCorSlices()
 
-        tracker = MouseTracker(self.axialPlane)
-        tracker.positionChanged.connect(self.test)
+        trackerAx = MouseTracker(self.axialPlane)
+        trackerAx.positionChanged.connect(self.axCoordChanged)
+        trackerSag = MouseTracker(self.sagPlane)
+        trackerSag.positionChanged.connect(self.sagCoordChanged)
+        trackerCor = MouseTracker(self.corPlane)
+        trackerCor.positionChanged.connect(self.CorCoordChanged)
 
     @pyqtSlot(QPoint)
-    def test(self, pos):
-        self.changeAxialSlices()
-        self.axPainter = QPainter(self.axialPlane.pixmap())
-        self.axPainter.setPen(Qt.yellow)
+    def axCoordChanged(self, pos):
         xdiff = self.axialPlane.width() - self.axialPlane.pixmap().width()
         ydiff = self.axialPlane.height() - self.axialPlane.pixmap().height()
-        vertLine = QLine(int(pos.x())-xdiff//2, 0, int(pos.x())-xdiff//2, self.axialPlane.pixmap().height())
-        latLine = QLine(0, int(pos.y())-ydiff//2, self.axialPlane.pixmap().width(), int(pos.y())-ydiff//2)
-        self.axPainter.drawLines([vertLine, latLine])
-        self.axPainter.end()
-        self.update()
+        xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
+
+        if xCoord < 0 or yCoord < 0 or xCoord >= self.axialPlane.pixmap().width() or yCoord >= self.axialPlane.pixmap().height():
+            return
+        self.newXVal = int((xCoord/self.axialPlane.pixmap().width()) * self.x)
+        self.newYVal = int((yCoord/self.axialPlane.pixmap().height()) * self.y)
+        self.xCoord = xCoord; self.yCoord = yCoord
+        self.updateCrosshairs()
+
+    @pyqtSlot(QPoint)
+    def sagCoordChanged(self, pos):
+        xdiff = self.sagPlane.width() - self.sagPlane.pixmap().width()
+        ydiff = self.sagPlane.height() - self.sagPlane.pixmap().height()
+        xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
+
+        if xCoord < 0 or yCoord < 0 or xCoord >= self.sagPlane.pixmap().width() or yCoord >= self.sagPlane.pixmap().height():
+            return
+        self.newZVal = int((xCoord/self.sagPlane.pixmap().width()) * self.z)
+        self.newYVal = int((yCoord/self.sagPlane.pixmap().height()) * self.y)
+        self.zCoord = xCoord; self.yCoord = yCoord
+        self.updateCrosshairs()
+        
+    @pyqtSlot(QPoint)
+    def CorCoordChanged(self, pos):
+        xdiff = self.corPlane.width() - self.corPlane.pixmap().width()
+        ydiff = self.corPlane.height() - self.corPlane.pixmap().height()
+        xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
+
+        if xCoord < 0 or yCoord < 0 or xCoord >= self.corPlane.pixmap().width() or yCoord >= self.corPlane.pixmap().height():
+            return
+        self.newXVal = int((xCoord/self.corPlane.pixmap().width()) * self.x)
+        self.newZVal = int((yCoord/self.corPlane.pixmap().height()) * self.z)
+        self.xCoord = xCoord; self.zCoord = yCoord
+        self.updateCrosshairs()
+
+    def updateCrosshairs(self):
+        self.changeAxialSlices(); self.changeSagSlices(); self.changeCorSlices()
+        if not self.showHideCrossButton.isChecked():
+            pixmaps = [self.axialPlane.pixmap(), self.sagPlane.pixmap(), self.corPlane.pixmap()]
+            points = [(int(self.xCoord), int(self.yCoord)), (int(self.zCoord), int(self.yCoord)), (int(self.xCoord), int(self.zCoord))]
+            for i, pixmap in enumerate(pixmaps):
+                painter = QPainter(pixmap); painter.setPen(Qt.yellow)
+                coord = points[i]
+                vertLine = QLine(coord[0], 0, coord[0], pixmap.height())
+                latLine = QLine(0, coord[1], pixmap.width(), coord[1])
+                painter.drawLines([vertLine, latLine])
+                painter.end()
 
     def hideDrawVoiLayout(self):
         self.drawRoiButton.hide()
@@ -729,9 +766,9 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             QImage.Format_ARGB32,
         )  # creating QImage
 
-        self.imAxPILNoCross = qImToPIL(qImgAx); maskAx = qImToPIL(curMaskAxIm)
-        self.imAxPILNoCross.paste(maskAx, mask=maskAx)
-        self.pixmapAx = QPixmap.fromImage(ImageQt(self.imAxPILNoCross))
+        self.imAxPIL = qImToPIL(qImgAx); maskAx = qImToPIL(curMaskAxIm)
+        self.imAxPIL.paste(maskAx, mask=maskAx)
+        self.pixmapAx = QPixmap.fromImage(ImageQt(self.imAxPIL))
 
         self.axialPlane.setPixmap(self.pixmapAx.scaled(
             self.axialPlane.width(), self.axialPlane.height(), Qt.KeepAspectRatio))
@@ -765,9 +802,9 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             QImage.Format_ARGB32,
         )
 
-        self.imSagPILNoCross = qImToPIL(qImgSag); maskSag = qImToPIL(curMaskSagIm)
-        self.imSagPILNoCross.paste(maskSag, mask=maskSag)
-        self.pixmapSag = QPixmap.fromImage(ImageQt(self.imSagPILNoCross))
+        self.imSagPIL = qImToPIL(qImgSag); maskSag = qImToPIL(curMaskSagIm)
+        self.imSagPIL.paste(maskSag, mask=maskSag)
+        self.pixmapSag = QPixmap.fromImage(ImageQt(self.imSagPIL))
 
         self.sagPlane.setPixmap(self.pixmapSag.scaled(
             self.sagPlane.width(), self.sagPlane.height(), Qt.KeepAspectRatio))
@@ -803,9 +840,9 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             QImage.Format_ARGB32,
         )
 
-        self.imCorPILNoCross = qImToPIL(qImgCor); maskCor = qImToPIL(curMaskCorIm)
-        self.imCorPILNoCross.paste(maskCor, mask=maskCor)
-        self.pixmapCor = QPixmap.fromImage(ImageQt(self.imCorPILNoCross))
+        self.imCorPIL = qImToPIL(qImgCor); maskCor = qImToPIL(curMaskCorIm)
+        self.imCorPIL.paste(maskCor, mask=maskCor)
+        self.pixmapCor = QPixmap.fromImage(ImageQt(self.imCorPIL))
         self.corPlane.setPixmap(self.pixmapCor.scaled(
             self.corPlane.width(), self.corPlane.height(), Qt.KeepAspectRatio))
 
@@ -1096,24 +1133,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             QApplication.processEvents() # quick solution --> not most robust but doesn't affect this use case outside of GIF
             self.complete3dInterpolation()
             self.loadingGUI.hide()
-
-    @property
-    def imAxPIL(self):
-        if self.imAxPILCross is None:
-            return self.imAxPILNoCross
-        return self.imAxPILCross
-
-    @property
-    def imSagPIL(self):
-        if self.imSagPILCross is None:
-            return self.imSagPILNoCross
-        return self.imSagPILCross
-
-    @property
-    def imCorPIL(self):
-        if self.imCorPILCross is None:
-            return self.imCorPILNoCross
-        return self.imCorPILCross
 
 
 def calculateSpline(xpts, ypts):  # 2D spline interpolation
