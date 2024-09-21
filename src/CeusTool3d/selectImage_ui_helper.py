@@ -240,6 +240,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
 
     def backToWelcomeScreen(self):
         self.welcomeGui.show()
+        self.welcomeGui.resize(self.size())
         self.hide()
 
     def getNiftiImagePath(self):
@@ -416,6 +417,7 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
             self.voiSelectionGui.openImage(None)
         self.voiSelectionGui.lastGui = self
         self.voiSelectionGui.show()
+        self.voiSelectionGui.resize(self.size())
         self.hide()
 
 

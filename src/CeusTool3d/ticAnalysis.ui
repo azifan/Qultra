@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1175</width>
-    <height>749</height>
+    <width>1795</width>
+    <height>790</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,788 +18,836 @@
 	background: rgb(42, 42, 42);
 }</string>
   </property>
-  <widget class="QLabel" name="analysisParamsLabel_2">
-   <property name="geometry">
-    <rect>
-     <x>470</x>
-     <y>-20</y>
-     <width>571</width>
-     <height>131</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	font-size: 29px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Time Intensity Curve (TIC) Editor:</string>
-   </property>
-   <property name="textFormat">
-    <enum>Qt::AutoText</enum>
-   </property>
-   <property name="scaledContents">
-    <bool>false</bool>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="selectT0Button">
-   <property name="geometry">
-    <rect>
-     <x>450</x>
-     <y>690</y>
-     <width>241</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Select Start Time (T0)</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="sidebar" native="true">
+  <widget class="QWidget" name="horizontalLayoutWidget_3">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>341</width>
-     <height>751</height>
+     <width>1821</width>
+     <height>785</height>
     </rect>
    </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QWidget {
+   <layout class="QHBoxLayout" name="fullScreenLayout">
+    <item>
+     <widget class="QWidget" name="sidebar" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>341</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>341</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QWidget {
 	background-color: rgb(28, 0, 101);
 }</string>
-   </property>
-   <widget class="QFrame" name="imageSelectionSidebar">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>341</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QFrame {
+      </property>
+      <widget class="QFrame" name="imageSelectionSidebar">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>341</width>
+         <height>121</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QFrame {
 	background-color: rgb(99, 0, 174);
 	border: 1px solid black;
 }</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-    <widget class="QLabel" name="imageSelectionLabelSidebar">
-     <property name="geometry">
-      <rect>
-       <x>70</x>
-       <y>0</y>
-       <width>191</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QLabel" name="imageSelectionLabelSidebar">
+        <property name="geometry">
+         <rect>
+          <x>70</x>
+          <y>0</y>
+          <width>191</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 21px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 	font-weight: bold;
 }</string>
-     </property>
-     <property name="text">
-      <string>Image Selection:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="imageLabel">
-     <property name="geometry">
-      <rect>
-       <x>-60</x>
-       <y>50</y>
-       <width>191</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
+        </property>
+        <property name="text">
+         <string>Image Selection:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="imageLabel">
+        <property name="geometry">
+         <rect>
+          <x>-60</x>
+          <y>50</y>
+          <width>191</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 16px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 	font-weight: bold;
 }</string>
-     </property>
-     <property name="text">
-      <string>Image:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="imagePathInput">
-     <property name="geometry">
-      <rect>
-       <x>100</x>
-       <y>50</y>
-       <width>241</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
+        </property>
+        <property name="text">
+         <string>Image:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="imagePathInput">
+        <property name="geometry">
+         <rect>
+          <x>100</x>
+          <y>50</y>
+          <width>241</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 14px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 }</string>
-     </property>
-     <property name="text">
-      <string>Sample filename </string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QFrame" name="roiSidebar">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>120</y>
-      <width>341</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QFrame {
+        </property>
+        <property name="text">
+         <string>Sample filename </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QFrame" name="roiSidebar">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>120</y>
+         <width>341</width>
+         <height>121</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QFrame {
 	background-color: rgb(99, 0, 174);
 	border: 1px solid black;
 }</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-    <widget class="QLabel" name="roiSidebarLabel">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>30</y>
-       <width>341</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QLabel" name="roiSidebarLabel">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>30</y>
+          <width>341</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 21px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 	font-weight: bold;
 }</string>
-     </property>
-     <property name="text">
-      <string>Volume of Interest (VOI) Selection</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QFrame" name="rfAnalysisSidebar">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>480</y>
-      <width>341</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QFrame {
+        </property>
+        <property name="text">
+         <string>Volume of Interest (VOI) Selection</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QFrame" name="rfAnalysisSidebar">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>480</y>
+         <width>341</width>
+         <height>121</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QFrame {
 	background-color:  rgb(49, 0, 124);
 	border: 1px solid black;
 }</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-    <widget class="QLabel" name="rfAnalysisLabel">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>30</y>
-       <width>341</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QLabel" name="rfAnalysisLabel">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>30</y>
+          <width>341</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 21px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 	font-weight: bold;
 }</string>
-     </property>
-     <property name="text">
-      <string>Export Results</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QFrame" name="ticAnalysisSidebar">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>360</y>
-      <width>341</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QFrame {
+        </property>
+        <property name="text">
+         <string>Export Results</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QFrame" name="ticAnalysisSidebar">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>360</y>
+         <width>341</width>
+         <height>121</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QFrame {
 	background-color:  rgb(49, 0, 124);
 	border: 1px solid black;
 }</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-    <widget class="QLabel" name="ticAnalysisLabel">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>30</y>
-       <width>341</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QLabel" name="ticAnalysisLabel">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>30</y>
+          <width>341</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 21px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 	font-weight: bold;
 }</string>
-     </property>
-     <property name="text">
-      <string>Contrast-Enhanced Ultrasound
+        </property>
+        <property name="text">
+         <string>Contrast-Enhanced Ultrasound
 (CEUS) Analysis</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </widget>
-  </widget>
-  <widget class="QFrame" name="analysisParamsSidebar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>240</y>
-     <width>341</width>
-     <height>121</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QFrame {
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QFrame" name="analysisParamsSidebar">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>240</y>
+         <width>341</width>
+         <height>121</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QFrame {
 	background-color: rgb(99, 0, 174);
 	border: 1px solid black;
 }</string>
-   </property>
-   <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
-   </property>
-   <widget class="QLabel" name="analysisParamsLabel">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>30</y>
-      <width>341</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QLabel {
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QLabel" name="analysisParamsLabel">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>30</y>
+          <width>341</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 21px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 	font-weight:bold;
 }</string>
-    </property>
-    <property name="text">
-     <string>TIC Modification</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QFrame" name="ticFrame">
-   <property name="geometry">
-    <rect>
-     <x>400</x>
-     <y>360</y>
-     <width>721</width>
-     <height>311</height>
-    </rect>
-   </property>
-   <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
-   </property>
-  </widget>
-  <widget class="QSlider" name="t0Slider">
-   <property name="geometry">
-    <rect>
-     <x>490</x>
-     <y>690</y>
-     <width>281</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="acceptT0Button">
-   <property name="geometry">
-    <rect>
-     <x>870</x>
-     <y>690</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
+        </property>
+        <property name="text">
+         <string>TIC Modification</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QPushButton" name="backButton">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>690</y>
+         <width>131</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
 	color: white;
 	font-size: 16px;
 	background: rgb(90, 37, 255);
 	border-radius: 15px;
 }</string>
-   </property>
-   <property name="text">
-    <string>Accept T0</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="deSelectLastPointButton">
-   <property name="geometry">
-    <rect>
-     <x>350</x>
-     <y>690</y>
-     <width>181</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
+       </property>
+       <property name="text">
+        <string>Back</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="observingLabel">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>640</y>
+         <width>101</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel { background-color : rgb(42, 42, 42); color : red; }</string>
+       </property>
+       <property name="text">
+        <string>Observing!</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="navigatingLabel">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>640</y>
+         <width>101</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel { background-color : rgb(42, 42, 42); color : green; }</string>
+       </property>
+       <property name="text">
+        <string>Navigating!</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="toggleButton">
+       <property name="geometry">
+        <rect>
+         <x>150</x>
+         <y>690</y>
+         <width>181</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
 	color: white;
-	font-size: 16px;
+	font-size: 12px;
 	background: rgb(90, 37, 255);
 	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>De-Select Last Point</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="removeSelectedPointsButton">
-   <property name="geometry">
-    <rect>
-     <x>560</x>
-     <y>690</y>
-     <width>181</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
 	border-radius: 15px;
 }</string>
-   </property>
-   <property name="text">
-    <string>Remove Selected Points</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="restoreLastPointsButton">
-   <property name="geometry">
-    <rect>
-     <x>770</x>
-     <y>690</y>
-     <width>181</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
+       </property>
+       <property name="text">
+        <string>Toggle B-Mode/CEUS</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,1,0">
+      <property name="spacing">
+       <number>15</number>
+      </property>
+      <property name="topMargin">
+       <number>10</number>
+      </property>
+      <property name="bottomMargin">
+       <number>10</number>
+      </property>
+      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+       <widget class="QLabel" name="analysisParamsLabel_2">
+        <property name="minimumSize">
+         <size>
+          <width>500</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+	font-size: 29px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
 }</string>
-   </property>
-   <property name="text">
-    <string>Restore Last Points</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="acceptTicButton">
-   <property name="geometry">
-    <rect>
-     <x>980</x>
-     <y>690</y>
-     <width>181</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Accept TIC</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="backButton">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>690</y>
-     <width>131</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Back</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="maskLayerAx">
-   <property name="geometry">
-    <rect>
-     <x>360</x>
-     <y>120</y>
-     <width>231</width>
-     <height>211</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	background-color: transparent;
-}</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
-  <widget class="QLabel" name="axCoverLabel">
-   <property name="geometry">
-    <rect>
-     <x>360</x>
-     <y>120</y>
-     <width>231</width>
-     <height>211</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	background-color: transparent;
-}</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
-  <widget class="QLabel" name="axialPlaneLabel">
-   <property name="geometry">
-    <rect>
-     <x>340</x>
-     <y>80</y>
-     <width>271</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
+        </property>
+        <property name="text">
+         <string>Time Intensity Curve (TIC) Editor:</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::AutoText</enum>
+        </property>
+        <property name="scaledContents">
+         <bool>false</bool>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="vizLayout" stretch="1,1,1">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <item>
+         <layout class="QVBoxLayout" name="axPlaneVizLayout" stretch="0,1">
+          <property name="spacing">
+           <number>15</number>
+          </property>
+          <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+           <widget class="QLabel" name="axialPlaneLabel">
+            <property name="styleSheet">
+             <string notr="true">QLabel {
 	font-size: 18px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 }</string>
-   </property>
-   <property name="text">
-    <string>Axial Plane</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="textInteractionFlags">
-    <set>Qt::NoTextInteraction</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="axialPlane">
-   <property name="geometry">
-    <rect>
-     <x>360</x>
-     <y>120</y>
-     <width>231</width>
-     <height>211</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
-  <widget class="QLabel" name="sagCoverLabel">
-   <property name="geometry">
-    <rect>
-     <x>640</x>
-     <y>120</y>
-     <width>231</width>
-     <height>211</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	background-color: transparent;
-}</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
-  <widget class="QLabel" name="maskLayerSag">
-   <property name="geometry">
-    <rect>
-     <x>640</x>
-     <y>120</y>
-     <width>231</width>
-     <height>211</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	background-color: transparent;
-}</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
-  <widget class="QLabel" name="sagittalPlaneLabel">
-   <property name="geometry">
-    <rect>
-     <x>620</x>
-     <y>80</y>
-     <width>271</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
+            </property>
+            <property name="text">
+             <string>Axial Plane</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::NoTextInteraction</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="axialPlane">
+            <property name="minimumSize">
+             <size>
+              <width>220</width>
+              <height>140</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="mouseTracking">
+             <bool>true</bool>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="sagPlaneVizLayout" stretch="0,1">
+          <property name="spacing">
+           <number>15</number>
+          </property>
+          <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+           <widget class="QLabel" name="sagittalPlaneLabel">
+            <property name="styleSheet">
+             <string notr="true">QLabel {
 	font-size: 18px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 }</string>
-   </property>
-   <property name="text">
-    <string>Sagittal Plane</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="textInteractionFlags">
-    <set>Qt::NoTextInteraction</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="sagPlane">
-   <property name="geometry">
-    <rect>
-     <x>640</x>
-     <y>120</y>
-     <width>231</width>
-     <height>211</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
-  <widget class="QLabel" name="corPlane">
-   <property name="geometry">
-    <rect>
-     <x>920</x>
-     <y>120</y>
-     <width>231</width>
-     <height>211</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
-  <widget class="QLabel" name="maskLayerCor">
-   <property name="geometry">
-    <rect>
-     <x>920</x>
-     <y>120</y>
-     <width>231</width>
-     <height>211</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	background-color: transparent;
-}</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
-  <widget class="QLabel" name="corCoverLabel">
-   <property name="geometry">
-    <rect>
-     <x>920</x>
-     <y>120</y>
-     <width>231</width>
-     <height>211</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	background-color: transparent;
-}</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
-  <widget class="QLabel" name="coronalPlaneLabel">
-   <property name="geometry">
-    <rect>
-     <x>900</x>
-     <y>80</y>
-     <width>271</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
+            </property>
+            <property name="text">
+             <string>Sagittal Plane</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::NoTextInteraction</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="sagPlane">
+            <property name="minimumSize">
+             <size>
+              <width>220</width>
+              <height>140</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="mouseTracking">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="corPlaneVizLayout" stretch="0,1">
+          <property name="spacing">
+           <number>15</number>
+          </property>
+          <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+           <widget class="QLabel" name="coronalPlaneLabel">
+            <property name="styleSheet">
+             <string notr="true">QLabel {
 	font-size: 18px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 }</string>
-   </property>
-   <property name="text">
-    <string>Coronal Plane</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="textInteractionFlags">
-    <set>Qt::NoTextInteraction</set>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="automaticallySelectT0Button">
-   <property name="geometry">
-    <rect>
-     <x>820</x>
-     <y>690</y>
-     <width>241</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
+            </property>
+            <property name="text">
+             <string>Coronal Plane</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::NoTextInteraction</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="corPlane">
+            <property name="minimumSize">
+             <size>
+              <width>220</width>
+              <height>140</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="mouseTracking">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QFrame" name="ticFrame">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>300</height>
+         </size>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="buttonLayout" stretch="0,0,0,0,0,0,0,0">
+        <property name="spacing">
+         <number>10</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="deSelectLastPointButton">
+          <property name="minimumSize">
+           <size>
+            <width>181</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
 	color: white;
 	font-size: 16px;
 	background: rgb(90, 37, 255);
 	border-radius: 15px;
 }</string>
-   </property>
-   <property name="text">
-    <string>Automatically Select T0 Later</string>
-   </property>
+          </property>
+          <property name="text">
+           <string>De-Select Last Point</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="selectT0Button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+          </property>
+          <property name="text">
+           <string>Select Start Time (T0)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="automaticallySelectT0Button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+          </property>
+          <property name="text">
+           <string>Automatically Select T0 Later</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="removeSelectedPointsButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+          </property>
+          <property name="text">
+           <string>Remove Selected Points</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="restoreLastPointsButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+          </property>
+          <property name="text">
+           <string>Restore Last Points</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="acceptTicButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+          </property>
+          <property name="text">
+           <string>Accept TIC</string>
+          </property>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QSlider" name="t0Slider">
+          <property name="minimumSize">
+           <size>
+            <width>281</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QSlider {
+	background: rgb(90, 37, 255);
+}</string>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QPushButton" name="acceptT0Button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>175</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+          </property>
+          <property name="text">
+           <string>Accept T0</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
   </widget>
-  <zorder>axialPlane</zorder>
-  <zorder>sagPlane</zorder>
-  <zorder>maskLayerSag</zorder>
-  <zorder>analysisParamsLabel_2</zorder>
-  <zorder>selectT0Button</zorder>
-  <zorder>sidebar</zorder>
-  <zorder>analysisParamsSidebar</zorder>
-  <zorder>ticFrame</zorder>
-  <zorder>t0Slider</zorder>
-  <zorder>acceptT0Button</zorder>
-  <zorder>deSelectLastPointButton</zorder>
-  <zorder>removeSelectedPointsButton</zorder>
-  <zorder>restoreLastPointsButton</zorder>
-  <zorder>acceptTicButton</zorder>
-  <zorder>backButton</zorder>
-  <zorder>maskLayerAx</zorder>
-  <zorder>axCoverLabel</zorder>
-  <zorder>axialPlaneLabel</zorder>
-  <zorder>sagCoverLabel</zorder>
-  <zorder>sagittalPlaneLabel</zorder>
-  <zorder>corPlane</zorder>
-  <zorder>maskLayerCor</zorder>
-  <zorder>corCoverLabel</zorder>
-  <zorder>coronalPlaneLabel</zorder>
-  <zorder>automaticallySelectT0Button</zorder>
  </widget>
  <resources/>
  <connections/>

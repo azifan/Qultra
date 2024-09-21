@@ -1,19 +1,16 @@
-import io
 import os
 import platform
 from pathlib import Path
 from itertools import chain
 
-from PIL import Image, ImageDraw
 from PIL.ImageQt import ImageQt
 import nibabel as nib
 import numpy as np
-import pyvista as pv
 import scipy.interpolate as interpolate
 from scipy.spatial import ConvexHull
 from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
 from PyQt5.QtGui import QPixmap, QImage, QResizeEvent, QPainter, QCursor
-from PyQt5.QtCore import QObject, Qt, QBuffer, QPoint, QEvent, QLine, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import Qt, QPoint, QLine, pyqtSlot
 from scipy.ndimage import binary_fill_holes
 
 import src.Utils.utils as ut
@@ -21,29 +18,10 @@ from src.CeusTool3d.voiSelection_ui import Ui_constructVoi
 from src.CeusTool3d.saveVoi_ui_helper import SaveVoiGUI
 from src.CeusTool3d.ticAnalysis_ui_helper import TicAnalysisGUI
 from src.CeusTool3d.interpolationLoading_ui_helper import InterpolationLoadingGUI
+from src.DataLayer.qtSupport import MouseTracker, qImToPIL
+from src.DataLayer.transforms import calculateSpline3D, calculateSpline, removeDuplicates
 
 system = platform.system()
-
-class MouseTracker(QObject):
-    positionChanged = pyqtSignal(QPoint)
-    positionClicked = pyqtSignal(QPoint)
-
-    def __init__(self, widget):
-        super().__init__(widget)
-        self._widget = widget
-        self.widget.setMouseTracking(True)
-        self.widget.installEventFilter(self)
-
-    @property
-    def widget(self):
-        return self._widget
-
-    def eventFilter(self, o, e):
-        if o is self.widget and e.type() == QEvent.MouseMove:
-            self.positionChanged.emit(e.pos())
-        elif o is self.widget and e.type() == QEvent.MouseButtonPress:
-            self.positionClicked.emit(e.pos())
-        return super().eventFilter(o, e)
 
 class VoiSelectionGUI(Ui_constructVoi, QWidget):
     def __init__(self):
@@ -140,7 +118,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.mtt = None
         self.tmppv = None
         self.fullPath = None
-        self.bmode4dIm = None
+        self.bmode4dImg = None
         self.curSliceIndex = 0
         self.curAlpha = 255
         self.curPointsPlottedX = []
@@ -152,7 +130,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.saveVoiGUI = None
         self.timeconst = None
 
-        self.ticAnalysisGui = TicAnalysisGUI()
+        self.ticAnalysisGui = None
         self.loadingGUI = InterpolationLoadingGUI()
         
         self.voiAlphaSpinBox.setMinimum(0)
@@ -174,6 +152,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.saveVoiButton.clicked.connect(self.startSaveVoi)
         self.showHideCrossButton.clicked.connect(self.showHideCross)
         self.interpolateVoiButton.clicked.connect(self.voi3dInterpolation)
+        self.toggleButton.clicked.connect(self.toggleIms)
 
     def mousePressEvent(self, event):
         if (self.drawRoiButton.isHidden() or not self.drawRoiButton.isChecked()) and self.painted == "none":
@@ -261,6 +240,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
     def backToLastScreen(self):
         self.lastGui.timeconst = None
         self.lastGui.show()
+        self.lastGui.resize(self.size())
         self.hide()
 
     def restartVoi(self):
@@ -276,7 +256,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.backFromDraw()
 
     def computeTic(self):
-        times = [i * self.timeconst for i in range(1, self.OGData4dImg.shape[3] + 1)]
+        times = [i * self.timeconst for i in range(1, self.ceus4dImg.shape[3] + 1)]
         self.voxelScale = (
             self.header[1] * self.header[2] * self.header[3]
         )  # /1000/1000/1000 # mm^3
@@ -286,7 +266,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         print("Num voxels:", len(self.pointsPlotted))
         simplifiedMask = self.maskCoverImg[:, :, :, 2]
         TIC = ut.generate_TIC(
-            self.OGData4dImg, simplifiedMask, times, 24.09, self.voxelScale
+            self.ceus4dImg, simplifiedMask, times, 24.09, self.voxelScale
         )  # hard-coded for now
 
         # Bunch of checks
@@ -375,9 +355,9 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     def toggleIms(self):
         if self.toggleButton.isChecked():
-            self.data4dImg = self.bmode4dIm
+            self.data4dImg = self.bmode4dImg
         else:
-            self.data4dImg = self.OGData4dImg
+            self.data4dImg = self.ceus4dImg
         self.updateCrosshairs()
 
     def showHideCross(self):
@@ -401,8 +381,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.nibImg = nib.load(self.inputTextPath, mmap=False)
         self.dataNibImg = self.nibImg.get_fdata()
         self.dataNibImg = self.dataNibImg.astype(np.uint8)
-
-        self.OGData4dImg = self.dataNibImg.copy()
+        self.ceus4dImg = self.dataNibImg.copy()
 
         self.data4dImg = self.dataNibImg
         self.x, self.y, self.z, self.numSlices = self.data4dImg.shape
@@ -410,13 +389,12 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.curSliceSlider.setMaximum(self.numSlices - 1)
 
         if bmodePath is not None:
-            self.bmode4dIm = nib.load(bmodePath, mmap=False).get_fdata().astype(np.uint8)
-            self.toggleButton.setHidden(False)
-            self.toggleButton.clicked.connect(self.toggleIms)
+            self.bmode4dImg = nib.load(bmodePath, mmap=False).get_fdata().astype(np.uint8)
+            self.toggleButton.show()
 
         self.header = self.nibImg.header["pixdim"]  # [dims, voxel dims (3 vals), timeconst, 0, 0, 0], assume mm/pix
         self.sliceArray = np.round(
-            [i * self.timeconst for i in range(1, self.OGData4dImg.shape[3] + 1)],
+            [i * self.timeconst for i in range(1, self.ceus4dImg.shape[3] + 1)],
             decimals=2,
         )
         self.curSliceSpinBox.setMaximum(self.sliceArray[-1])
@@ -427,24 +405,16 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.curSliceSlider.valueChanged.connect(self.curSliceSliderValueChanged)
         self.curSliceSpinBox.valueChanged.connect(self.curSliceSpinBoxValueChanged)
 
-        self.x -= 1
-        self.y -= 1
-        self.z -= 1
-
         self.axialTotalFrames.setText(str(self.z + 1))
         self.sagittalTotalFrames.setText(str(self.x + 1))
         self.coronalTotalFrames.setText(str(self.y + 1))
-
         self.axialFrameNum.setText("1")
         self.sagittalFrameNum.setText("1")
         self.coronalFrameNum.setText("1")
 
-        self.newXVal = 0
-        self.newYVal = 0
-        self.newZVal = 0
-        self.changeAxialSlices()
-        self.changeSagSlices()
-        self.changeCorSlices()
+        self.x -= 1; self.y -= 1; self.z -= 1
+        self.newXVal = 0; self.newYVal = 0; self.newZVal = 0
+        self.updateCrosshairs()
 
         trackerAx = MouseTracker(self.axialPlane)
         trackerAx.positionChanged.connect(self.axCoordChanged)
@@ -543,7 +513,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         xCoordCor = int((self.newXVal/self.x) * self.corPlane.pixmap().width())
         yCoordCor = int((self.newZVal/self.z) * self.corPlane.pixmap().height())
 
-        self.zCoord = (self.newZVal/self.z) * self.corPlane.pixmap().height()
         if not self.showHideCrossButton.isChecked():
             pixmaps = [self.axialPlane.pixmap(), self.sagPlane.pixmap(), self.corPlane.pixmap()]
             points = [(xCoordAx, yCoordAx), (xCoordSag, yCoordSag), (xCoordCor, yCoordCor)]
@@ -615,110 +584,72 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
     def changeAxialSlices(self):
         self.axialFrameNum.setText(str(self.newZVal + 1))
 
-        self.data2dAx = self.data4dImg[:, :, self.newZVal, self.curSliceIndex]
-        self.data2dAx = np.rot90(np.flipud(self.data2dAx), 3)
-        self.data2dAx = np.require(self.data2dAx, np.uint8, "C")
-        self.heightAx, self.widthAx = self.data2dAx.shape  # getting height and width for each plane
-        self.bytesLineAx, _ = self.data2dAx.strides
+        data2dAx = self.data4dImg[:, :, self.newZVal, self.curSliceIndex]
+        data2dAx = np.rot90(np.flipud(data2dAx), 3)
+        data2dAx = np.require(data2dAx, np.uint8, "C")
+        heightAx, widthAx = data2dAx.shape  # getting height and width for each plane
+        bytesLineAx, _ = data2dAx.strides
 
-        qImgAx = QImage(
-            self.data2dAx,
-            self.widthAx,
-            self.heightAx,
-            self.bytesLineAx,
-            QImage.Format_Grayscale8,
-        )
+        qImgAx = QImage(data2dAx, widthAx, heightAx, bytesLineAx, QImage.Format_Grayscale8)
         qImgAx = qImgAx.convertToFormat(QImage.Format_ARGB32)
 
         tempAx = self.maskCoverImg[:, :, self.newZVal, :]  # 2D data for axial
         tempAx = np.rot90(np.flipud(tempAx), 3)
         tempAx = np.require(tempAx, np.uint8, "C")
-        self.maskAxH, self.maskAxW = tempAx[:, :, 0].shape
-        self.maskBytesLineAx, _ = tempAx[:, :, 0].strides
+        maskAxH, maskAxW = tempAx[:, :, 0].shape
+        maskBytesLineAx, _ = tempAx[:, :, 0].strides
 
-        curMaskAxIm = QImage(
-            tempAx,
-            self.maskAxW,
-            self.maskAxH,
-            self.maskBytesLineAx,
-            QImage.Format_ARGB32,
-        )  # creating QImage
+        curMaskAxIm = QImage(tempAx, maskAxW, maskAxH, maskBytesLineAx, QImage.Format_ARGB32)
 
         self.imAxPIL = qImToPIL(qImgAx); maskAx = qImToPIL(curMaskAxIm)
         self.imAxPIL.paste(maskAx, mask=maskAx)
         self.pixmapAx = QPixmap.fromImage(ImageQt(self.imAxPIL))
-
         self.axialPlane.setPixmap(self.pixmapAx.scaled(
             self.axialPlane.width(), self.axialPlane.height(), Qt.KeepAspectRatio))
 
     def changeSagSlices(self):
         self.sagittalFrameNum.setText(str(self.newXVal + 1))
 
-        self.data2dSag = self.data4dImg[self.newXVal, :, :, self.curSliceIndex]
-        self.data2dSag = np.require(self.data2dSag, np.uint8, "C")
-        self.heightSag, self.widthSag = self.data2dSag.shape  # getting height and width for each plane
-        self.bytesLineSag, _ = self.data2dSag.strides
+        data2dSag = self.data4dImg[self.newXVal, :, :, self.curSliceIndex]
+        data2dSag = np.require(data2dSag, np.uint8, "C")
+        heightSag, widthSag = data2dSag.shape
+        bytesLineSag, _ = data2dSag.strides
         
-        qImgSag = QImage(
-            self.data2dSag,
-            self.widthSag,
-            self.heightSag,
-            self.bytesLineSag,
-            QImage.Format_Grayscale8,
-        )
+        qImgSag = QImage(data2dSag, widthSag, heightSag, bytesLineSag, QImage.Format_Grayscale8)
         qImgSag = qImgSag.convertToFormat(QImage.Format_ARGB32)
 
         tempSag = self.maskCoverImg[self.newXVal, :, :, :]  # 2D data for sagittal
         tempSag = np.require(tempSag, np.uint8, "C")
-        self.maskSagH, self.maskSagW = tempSag[:, :, 0].shape
-        self.maskBytesLineSag, _ = tempSag[:, :, 0].strides
+        maskSagH, maskSagW = tempSag[:, :, 0].shape
+        maskBytesLineSag, _ = tempSag[:, :, 0].strides
 
-        curMaskSagIm = QImage(
-            tempSag,
-            self.maskSagW,
-            self.maskSagH,
-            self.maskBytesLineSag,
-            QImage.Format_ARGB32,
-        )
+        curMaskSagIm = QImage(tempSag, maskSagW, maskSagH, maskBytesLineSag, QImage.Format_ARGB32)
 
         self.imSagPIL = qImToPIL(qImgSag); maskSag = qImToPIL(curMaskSagIm)
         self.imSagPIL.paste(maskSag, mask=maskSag)
         self.pixmapSag = QPixmap.fromImage(ImageQt(self.imSagPIL))
-
         self.sagPlane.setPixmap(self.pixmapSag.scaled(
             self.sagPlane.width(), self.sagPlane.height(), Qt.KeepAspectRatio))
 
     def changeCorSlices(self):
         self.coronalFrameNum.setText(str(self.newYVal + 1))
 
-        self.data2dCor = self.data4dImg[:, self.newYVal, :, self.curSliceIndex]
-        self.data2dCor = np.fliplr(np.rot90(self.data2dCor, 3))
-        self.data2dCor = np.require(self.data2dCor, np.uint8, "C")
-        self.heightCor, self.widthCor = self.data2dCor.shape  # getting height and width for each plane
-        self.bytesLineCor, _ = self.data2dCor.strides
+        data2dCor = self.data4dImg[:, self.newYVal, :, self.curSliceIndex]
+        data2dCor = np.fliplr(np.rot90(data2dCor, 3))
+        data2dCor = np.require(data2dCor, np.uint8, "C")
+        heightCor, widthCor = data2dCor.shape
+        bytesLineCor, _ = data2dCor.strides
 
-        qImgCor = QImage(
-            self.data2dCor,
-            self.widthCor,
-            self.heightCor,
-            self.bytesLineCor,
-            QImage.Format_Grayscale8,
-        )
+        qImgCor = QImage(data2dCor, widthCor, heightCor, bytesLineCor, QImage.Format_Grayscale8)
         qImgCor = qImgCor.convertToFormat(QImage.Format_ARGB32)
 
         tempCor = self.maskCoverImg[:, self.newYVal, :, :]  # 2D data for coronal
         tempCor = np.fliplr(np.rot90(tempCor, 3))
         tempCor = np.require(tempCor, np.uint8, "C")
-        self.maskCorH, self.maskCorW = tempCor[:, :, 0].shape
-        self.maskBytesLineCor, _ = tempCor[:, :, 0].strides
+        maskCorH, maskCorW = tempCor[:, :, 0].shape
+        maskBytesLineCor, _ = tempCor[:, :, 0].strides
 
-        curMaskCorIm = QImage(
-            tempCor,
-            self.maskCorW,
-            self.maskCorH,
-            self.maskBytesLineCor,
-            QImage.Format_ARGB32,
-        )
+        curMaskCorIm = QImage(tempCor, maskCorW, maskCorH, maskBytesLineCor, QImage.Format_ARGB32)
 
         self.imCorPIL = qImToPIL(qImgCor); maskCor = qImToPIL(curMaskCorIm)
         self.imCorPIL.paste(maskCor, mask=maskCor)
@@ -812,10 +743,19 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.scrollPaused = False
 
     def moveToTic(self):
+        del self.ticAnalysisGui
+        self.ticAnalysisGui = TicAnalysisGUI()
+        if self.bmode4dImg is not None:
+            self.ticAnalysisGui.toggleButton.show()
+            if self.toggleButton.isChecked():
+                self.ticAnalysisGui.toggleButton.setChecked(True)
         self.ticAnalysisGui.timeLine = None
         self.computeTic()
+        self.voiAlphaSpinBox.setValue(100)
         self.ticAnalysisGui.pointsPlotted = self.pointsPlotted
         self.ticAnalysisGui.voxelScale = self.voxelScale
+        self.ticAnalysisGui.ceus4dImg = self.ceus4dImg
+        self.ticAnalysisGui.bmode4dImg = self.bmode4dImg
         self.ticAnalysisGui.data4dImg = self.data4dImg
         self.ticAnalysisGui.curSliceIndex = self.curSliceIndex
         self.ticAnalysisGui.newXVal = self.newXVal
@@ -825,41 +765,12 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.ticAnalysisGui.y = self.y
         self.ticAnalysisGui.z = self.z
         self.ticAnalysisGui.maskCoverImg = self.maskCoverImg
-        self.ticAnalysisGui.widthAx = self.widthAx
-        self.ticAnalysisGui.heightAx = self.heightAx
-        self.ticAnalysisGui.bytesLineAx = self.bytesLineAx
-        self.ticAnalysisGui.maskAxW = self.maskAxW
-        self.ticAnalysisGui.maskAxH = self.maskAxH
-        self.ticAnalysisGui.maskBytesLineAx = self.maskBytesLineAx
-        self.ticAnalysisGui.widthSag = self.widthSag
-        self.ticAnalysisGui.heightSag = self.heightSag
-        self.ticAnalysisGui.bytesLineSag = self.bytesLineSag
-        self.ticAnalysisGui.maskSagW = self.maskSagW
-        self.ticAnalysisGui.maskSagH = self.maskSagH
-        self.ticAnalysisGui.maskBytesLineSag = self.maskBytesLineSag
-        self.ticAnalysisGui.widthCor = self.widthCor
-        self.ticAnalysisGui.heightCor = self.heightCor
-        self.ticAnalysisGui.bytesLineCor = self.bytesLineCor
-        self.ticAnalysisGui.maskCorW = self.maskCorW
-        self.ticAnalysisGui.maskCorH = self.maskCorH
-        self.ticAnalysisGui.maskBytesLineCor = self.maskBytesLineCor
         self.ticAnalysisGui.sliceArray = self.sliceArray
-        self.voiAlphaSpinBox.setValue(100)
-        self.alphaValueChanged()
-        self.ticAnalysisGui.changeAxialSlices()
-        self.ticAnalysisGui.changeSagSlices()
-        self.ticAnalysisGui.changeCorSlices()
-        self.ticAnalysisGui.deSelectLastPointButton.setHidden(True)
-        self.ticAnalysisGui.removeSelectedPointsButton.setHidden(True)
-        self.ticAnalysisGui.restoreLastPointsButton.setHidden(True)
-        self.ticAnalysisGui.acceptTicButton.setHidden(True)
-        self.ticAnalysisGui.acceptT0Button.setHidden(True)
-        self.ticAnalysisGui.t0Slider.setHidden(True)
-        self.ticAnalysisGui.selectT0Button.setHidden(False)
-        self.ticAnalysisGui.automaticallySelectT0Button.setHidden(False)
-        self.ticAnalysisGui.show()
         self.ticAnalysisGui.lastGui = self
         self.ticAnalysisGui.imagePathInput.setText(self.imagePathInput.text())
+        self.ticAnalysisGui.updateCrosshairs()
+        self.ticAnalysisGui.show()
+        self.ticAnalysisGui.resize(self.size())
         self.hide()
 
     def startRoiDraw(self):
@@ -896,10 +807,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                             self.pointsPlotted[i][j][1],
                             self.pointsPlotted[i][j][2],
                         ] = [0, 0, 255, int(self.curAlpha)]
-                self.changeAxialSlices()
-                self.changeSagSlices()
-                self.changeCorSlices()
-            self.update()
+                self.updateCrosshairs()
 
     def complete3dInterpolation(self):
         if len(self.planesDrawn):
@@ -920,19 +828,12 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
             for point in points:
                 if max(self.data4dImg[tuple(point)]) != 0:
-                    self.maskCoverImg[tuple(point)] = [
-                        0,
-                        0,
-                        255,
-                        int(self.curAlpha),
-                    ]
+                    self.maskCoverImg[tuple(point)] = [0, 0, 255, int(self.curAlpha)]
                     self.pointsPlotted.append(tuple(point))
             if len(self.pointsPlotted) == 0:
                 print("VOI not in US image.\nDraw new VOI over US image")
                 self.maskCoverImg.fill(0)
-                self.changeAxialSlices()
-                self.changeSagSlices()
-                self.changeCorSlices()
+                self.updateCrosshairs()
                 return
             
             mask = np.zeros(
@@ -974,12 +875,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                 mask[:, :, i] = binary_fill_holes(mask[:, :, i])
                 maskPoints = np.array(np.where(filledMask > 0))
                 for j in range(len(maskPoints[0])):
-                    self.maskCoverImg[maskPoints[0][j], maskPoints[1][j], i] = [
-                        0,
-                        0,
-                        255,
-                        int(self.curAlpha),
-                    ]
+                    self.maskCoverImg[maskPoints[0][j], maskPoints[1][j], i] = [0, 0, 255, int(self.curAlpha)]
                     self.pointsPlotted.append((maskPoints[0][j], maskPoints[1][j], i))
 
             self.hideDrawVoiLayout()
@@ -993,109 +889,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             QApplication.processEvents() # quick solution --> not most robust but doesn't affect this use case outside of GIF
             self.complete3dInterpolation()
             self.loadingGUI.hide()
-
-
-def calculateSpline(xpts, ypts):  # 2D spline interpolation
-    cv = []
-    for i in range(len(xpts)):
-        cv.append([xpts[i], ypts[i]])
-    cv = np.array(cv)
-    if len(xpts) == 2:
-        tck, _ = interpolate.splprep(cv.T, s=0.0, k=1)
-    elif len(xpts) == 3:
-        tck, _ = interpolate.splprep(cv.T, s=0.0, k=2)
-    else:
-        tck, _ = interpolate.splprep(cv.T, s=0.0, k=3)
-    x, y = np.array(interpolate.splev(np.linspace(0, 1, 1000), tck))
-    return x, y
-
-
-def ellipsoidFitLS(pos):
-    # centre coordinates on origin
-    pos = pos - np.mean(pos, axis=0)
-
-    # build our regression matrix
-    A = pos**2
-
-    # vector of ones
-    Ones = np.ones(len(A))
-
-    # least squares solver
-    B, _, _, _ = np.linalg.lstsq(A, Ones, rcond=None)
-
-    # solving for a, b, c
-    a_ls = np.sqrt(1.0 / B[0])
-    b_ls = np.sqrt(1.0 / B[1])
-    c_ls = np.sqrt(1.0 / B[2])
-
-    return (a_ls, b_ls, c_ls)
-
-
-def calculateSpline3D(points):
-    # Calculate ellipsoid of best fit
-    # points = np.array(points)
-    # a,b,c = ellipsoidFitLS(points)
-    # output = set()
-
-    # u = np.linspace(0., np.pi*2., 1000)
-    # v = np.linspace(0., np.pi, 1000)
-    # u, v = np.meshgrid(u,v)
-
-    # x = a*np.cos(u)*np.sin(v)
-    # y = b*np.sin(u)*np.sin(v)
-    # z = c*np.cos(v)
-
-    # # turn this data into 1d arrays
-    # x = x.flatten()
-    # y = y.flatten()
-    # z = z.flatten()
-    # x += np.mean(points, axis=0)[0]
-    # y += np.mean(points, axis=0)[1]
-    # z += np.mean(points, axis=0)[2]
-
-    # for i in range(len(x)):
-    #     output.add((int(x[i]), int(y[i]), int(z[i])))
-    # return output
-
-    cloud = pv.PolyData(points, force_float=False)
-    volume = cloud.delaunay_3d(alpha=100.0)
-    shell = volume.extract_geometry()
-    final = shell.triangulate()
-    final.smooth(n_iter=1000)
-    faces = final.faces.reshape((-1, 4))
-    faces = faces[:, 1:]
-    arr = final.points[faces]
-
-    arr = np.array(arr)
-
-    output = set()
-    for tri in arr:
-        slope_2 = tri[2] - tri[1]
-        start_2 = tri[1]
-        slope_3 = tri[0] - tri[1]
-        start_3 = tri[1]
-        for i in range(100, -1, -1):
-            bound_one = start_2 + ((i / 100) * slope_2)
-            bound_two = start_3 + ((i / 100) * slope_3)
-            cur_slope = bound_one - bound_two
-            cur_start = bound_two
-            for j in range(100, -1, -1):
-                cur_pos = cur_start + ((j / 100) * cur_slope)
-                output.add((int(cur_pos[0]), int(cur_pos[1]), int(cur_pos[2])))
-
-    return output
-
-def removeDuplicates(ar):
-    # Credit: https://stackoverflow.com/questions/480214/how-do-i-remove-duplicates-from-a-list-while-preserving-order
-    seen = set()
-    seen_add = seen.add
-    return [x for x in ar if not (tuple(x) in seen or seen_add(tuple(x)))]
-
-def qImToPIL(qIm: QImage) -> Image:
-    buffer = QBuffer()
-    buffer.open(QBuffer.ReadWrite)
-    qIm.save(buffer, "PNG")
-    return Image.open(io.BytesIO(buffer.data()))
 
 
 if __name__ == "__main__":

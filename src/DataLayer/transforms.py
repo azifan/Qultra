@@ -1,4 +1,6 @@
 import numpy as np
+import pyvista as pv
+import scipy.interpolate as interpolate
 from numpy.matlib import repmat
 
 class OutImStruct():
@@ -133,3 +135,99 @@ def scanConvert(inIm, width, tilt, startDepth, stopDepth, desiredHeight=500):
     OutIm.ymap = inIm_indy
     OutIm.xmap = inIm_indx
     return OutIm, hCm, wCm
+
+def removeDuplicates(ar):
+    # Credit: https://stackoverflow.com/questions/480214/how-do-i-remove-duplicates-from-a-list-while-preserving-order
+    seen = set()
+    seenAdd = seen.add
+    return [x for x in ar if not (tuple(x) in seen or seenAdd(tuple(x)))]
+
+def calculateSpline(xpts, ypts):  # 2D spline interpolation
+    cv = []
+    for i in range(len(xpts)):
+        cv.append([xpts[i], ypts[i]])
+    cv = np.array(cv)
+    if len(xpts) == 2:
+        tck, _ = interpolate.splprep(cv.T, s=0.0, k=1)
+    elif len(xpts) == 3:
+        tck, _ = interpolate.splprep(cv.T, s=0.0, k=2)
+    else:
+        tck, _ = interpolate.splprep(cv.T, s=0.0, k=3)
+    x, y = np.array(interpolate.splev(np.linspace(0, 1, 1000), tck))
+    return x, y
+
+
+def ellipsoidFitLS(pos):
+    # centre coordinates on origin
+    pos = pos - np.mean(pos, axis=0)
+
+    # build our regression matrix
+    A = pos**2
+
+    # vector of ones
+    Ones = np.ones(len(A))
+
+    # least squares solver
+    B, _, _, _ = np.linalg.lstsq(A, Ones, rcond=None)
+
+    # solving for a, b, c
+    a_ls = np.sqrt(1.0 / B[0])
+    b_ls = np.sqrt(1.0 / B[1])
+    c_ls = np.sqrt(1.0 / B[2])
+
+    return (a_ls, b_ls, c_ls)
+
+
+def calculateSpline3D(points):
+    # Calculate ellipsoid of best fit
+    # points = np.array(points)
+    # a,b,c = ellipsoidFitLS(points)
+    # output = set()
+
+    # u = np.linspace(0., np.pi*2., 1000)
+    # v = np.linspace(0., np.pi, 1000)
+    # u, v = np.meshgrid(u,v)
+
+    # x = a*np.cos(u)*np.sin(v)
+    # y = b*np.sin(u)*np.sin(v)
+    # z = c*np.cos(v)
+
+    # # turn this data into 1d arrays
+    # x = x.flatten()
+    # y = y.flatten()
+    # z = z.flatten()
+    # x += np.mean(points, axis=0)[0]
+    # y += np.mean(points, axis=0)[1]
+    # z += np.mean(points, axis=0)[2]
+
+    # for i in range(len(x)):
+    #     output.add((int(x[i]), int(y[i]), int(z[i])))
+    # return output
+
+    cloud = pv.PolyData(points, force_float=False)
+    volume = cloud.delaunay_3d(alpha=100.0)
+    shell = volume.extract_geometry()
+    final = shell.triangulate()
+    final.smooth(n_iter=1000)
+    faces = final.faces.reshape((-1, 4))
+    faces = faces[:, 1:]
+    arr = final.points[faces]
+
+    arr = np.array(arr)
+
+    output = set()
+    for tri in arr:
+        slope_2 = tri[2] - tri[1]
+        start_2 = tri[1]
+        slope_3 = tri[0] - tri[1]
+        start_3 = tri[1]
+        for i in range(100, -1, -1):
+            bound_one = start_2 + ((i / 100) * slope_2)
+            bound_two = start_3 + ((i / 100) * slope_3)
+            cur_slope = bound_one - bound_two
+            cur_start = bound_two
+            for j in range(100, -1, -1):
+                cur_pos = cur_start + ((j / 100) * cur_slope)
+                output.add((int(cur_pos[0]), int(cur_pos[1]), int(cur_pos[2])))
+
+    return output

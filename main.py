@@ -40,6 +40,7 @@ class QusGui(Ui_qusPage, QWidget):
         del self.nextPage
         self.nextPage = SelectImageGUI_CeusTool3d()
         self.nextPage.show()
+        self.nextPage.resize(self.size())
         self.nextPage.welcomeGui = self
         self.hide()
 
