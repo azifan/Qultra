@@ -9,7 +9,7 @@ import numpy as np
 import scipy.interpolate as interpolate
 from scipy.spatial import ConvexHull
 from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
-from PyQt5.QtGui import QPixmap, QImage, QResizeEvent, QPainter, QCursor
+from PyQt5.QtGui import QPixmap, QImage, QResizeEvent, QWheelEvent, QPainter, QCursor
 from PyQt5.QtCore import Qt, QPoint, QLine, pyqtSlot
 from scipy.ndimage import binary_fill_holes
 
@@ -243,6 +243,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.lastGui.show()
         self.lastGui.resize(self.size())
         self.hide()
+
+    def wheelEvent(self, event: QWheelEvent):
+        curTime = self.curSliceSpinBox.value()
+        if event.angleDelta().y() > 0:
+            self.curSliceSpinBox.setValue(curTime+1)
+        else:
+            self.curSliceSpinBox.setValue(curTime-1)
 
     def restartVoi(self):
         self.pointsPlotted = []
