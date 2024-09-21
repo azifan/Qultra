@@ -685,6 +685,13 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.lastGui.resize(self.size())
         self.hide()
 
+    def wheelEvent(self, event):
+        curTime = self.curSliceSpinBox.value()
+        if event.angleDelta().y() > 0:
+            self.curSliceSpinBox.setValue(curTime+1)
+        else:
+            self.curSliceSpinBox.setValue(curTime-1)
+
     def acceptTICt0(self):
         self.acceptTIC(1)
 
