@@ -154,6 +154,11 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.selectDataLabelNifti.show()
         self.selectImageErrorMsgNifti.show()
 
+    def hideFrameRateLabels(self):
+        self.frameRateLabelNifti.hide(); self.frameRateValueNifti.hide()
+        self.frameRateLabelPhilips.hide(); self.frameRateValuePhilips.hide()
+        self.frameRateLabelXml.hide(); self.frameRateValueXml.hide()
+
     def hidePhilipsLayout(self):
         self.choosePhilipsImageFileButton.hide()
         self.clearPhilipsImageFileButton.hide()
@@ -393,12 +398,11 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
             self.moveToVoiSelection()
 
     def generateImageNifti(self):
-        if self.imagePath == "":
-            if os.path.exists(self.niftiImagePathInput.text()):
+        if self.imagePath == "" and os.path.exists(self.niftiImagePathInput.text()):
                 self.imagePath = self.niftiImagePathInput.text()
                 self.timeconst = nib.load(self.imagePath, mmap=False).header["pixdim"][4]
-            if len(self.niftiBmodePathInput.text()) and os.path.exists(self.niftiBmodePathInput.text()):
-                self.bmodePath = self.niftiBmodePathInput.text()
+        if len(self.niftiBmodePathInput.text()) and os.path.exists(self.niftiBmodePathInput.text()):
+            self.bmodePath = self.niftiBmodePathInput.text()
         if not self.timeconst:
             self.frameRateLabelNifti.show()
             self.frameRateValueNifti.show()

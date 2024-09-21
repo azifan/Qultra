@@ -46,12 +46,9 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.horizLayout.addWidget(self.canvas)
         self.canvas.draw()
         self.ax = self.fig.add_subplot(111)
-        self.ax.set_xlabel("Time (s)", fontsize=4, labelpad=0.5)
-        self.ax.set_ylabel("Signal Amplitude", fontsize=4, labelpad=0.5)
-        self.ax.set_title("Time Intensity Curve (TIC)", fontsize=5, pad=1.5)
-        self.ax.tick_params("both", pad=0.3, labelsize=3.6)
-        plt.xticks(fontsize=3)
-        plt.yticks(fontsize=3)
+        self.ax.set_xlabel("Time (s)")
+        self.ax.set_ylabel("Signal Amplitude")
+        plt.tight_layout()
 
         self.voiAlphaSpinBox.setValue(100)
         self.aucParamapButton.setCheckable(True)
@@ -680,10 +677,12 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.exportDataGUI.lastGui = self
         self.exportDataGUI.setFilenameDisplays(self.imagePathInput.text())
         self.exportDataGUI.show()
+        self.exportDataGUI.resize(self.size())
         self.hide()
 
     def backToLastScreen(self):
         self.lastGui.show()
+        self.lastGui.resize(self.size())
         self.hide()
 
     def acceptTICt0(self):
@@ -719,13 +718,6 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
         self.ax.clear()
         self.ax.plot(self.lastGui.ticX[:, 0], self.lastGui.ticY)
-
-        # self.sliceArray = self.ticEditor.ticX[:,1]
-        # if self.curSliceIndex>= len(self.sliceArray):
-        #     self.curSliceSlider.setValue(len(self.sliceArray)-1)
-        #     self.curSliceSliderValueChanged()
-        # self.curSliceSlider.setMaximum(len(self.sliceArray)-1)
-        # self.curSliceSpinBox.setMaximum(len(self.sliceArray)-1)
 
         normFact = np.max(self.lastGui.ticY)
         self.lastGui.ticY = self.lastGui.ticY / normFact

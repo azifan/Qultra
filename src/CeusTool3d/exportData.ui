@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1175</width>
-    <height>749</height>
+    <height>1449</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,779 +18,922 @@
 	background: rgb(42, 42, 42);
 }</string>
   </property>
-  <widget class="QLabel" name="selectDataLabel">
-   <property name="geometry">
-    <rect>
-     <x>530</x>
-     <y>60</y>
-     <width>431</width>
-     <height>131</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	font-size: 29px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Select Data Export Method:</string>
-   </property>
-   <property name="textFormat">
-    <enum>Qt::AutoText</enum>
-   </property>
-   <property name="scaledContents">
-    <bool>false</bool>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="wordWrap">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="appendFileOptionButton">
-   <property name="geometry">
-    <rect>
-     <x>600</x>
-     <y>320</y>
-     <width>301</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Append Data onto Existing Excel File</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="clearAppendFileButton">
-   <property name="geometry">
-    <rect>
-     <x>750</x>
-     <y>380</y>
-     <width>131</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Clear Path</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="appendFileLabel">
-   <property name="geometry">
-    <rect>
-     <x>610</x>
-     <y>270</y>
-     <width>271</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	background-color: rgba(255, 255, 255, 0);
-	color: white;
-	font-size: 17px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Excel File to Append to:</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="textInteractionFlags">
-    <set>Qt::NoTextInteraction</set>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="chooseAppendFileButton">
-   <property name="geometry">
-    <rect>
-     <x>612</x>
-     <y>380</y>
-     <width>131</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Choose File</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="appendFilePath">
-   <property name="geometry">
-    <rect>
-     <x>640</x>
-     <y>330</y>
-     <width>201</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLineEdit {
-	background-color: rgb(249, 249, 249);
-	color: black;
-}</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="newFileOptionButton">
-   <property name="geometry">
-    <rect>
-     <x>600</x>
-     <y>430</y>
-     <width>301</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Save to New Excel File</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="newFolderPathInput">
-   <property name="geometry">
-    <rect>
-     <x>640</x>
-     <y>260</y>
-     <width>201</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLineEdit {
-	background-color: rgb(249, 249, 249);
-	color: black;
-}</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="chooseNewFolderButton">
-   <property name="geometry">
-    <rect>
-     <x>610</x>
-     <y>300</y>
-     <width>131</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Choose Folder</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="newFolderPathLabel">
-   <property name="geometry">
-    <rect>
-     <x>610</x>
-     <y>200</y>
-     <width>271</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	background-color: rgba(255, 255, 255, 0);
-	color: white;
-	font-size: 17px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Folder to save new file in:</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="textInteractionFlags">
-    <set>Qt::NoTextInteraction</set>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="clearNewFolderButton">
-   <property name="geometry">
-    <rect>
-     <x>750</x>
-     <y>300</y>
-     <width>131</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Clear Path</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="newFileNameInput">
-   <property name="geometry">
-    <rect>
-     <x>650</x>
-     <y>440</y>
-     <width>201</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLineEdit {
-	background-color: rgb(249, 249, 249);
-	color: black;
-}</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="createNewFileButton">
-   <property name="geometry">
-    <rect>
-     <x>640</x>
-     <y>590</y>
-     <width>221</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Create File</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="newFileNameLabel">
-   <property name="geometry">
-    <rect>
-     <x>610</x>
-     <y>380</y>
-     <width>271</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	background-color: rgba(255, 255, 255, 0);
-	color: white;
-	font-size: 17px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Type name of new file:
-(no spaces,  must end in &quot;.xlsx&quot;)</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="textInteractionFlags">
-    <set>Qt::NoTextInteraction</set>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="appendFileButton">
-   <property name="geometry">
-    <rect>
-     <x>640</x>
-     <y>520</y>
-     <width>221</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Append Data to File</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="appendFileBackButton">
-   <property name="geometry">
-    <rect>
-     <x>640</x>
-     <y>590</y>
-     <width>221</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Back</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="newFileBackButton">
-   <property name="geometry">
-    <rect>
-     <x>640</x>
-     <y>650</y>
-     <width>221</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-   </property>
-   <property name="text">
-    <string>Back</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="fileNameErrorLabel">
-   <property name="geometry">
-    <rect>
-     <x>540</x>
-     <y>480</y>
-     <width>421</width>
-     <height>81</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: rgb(255, 0, 23);
-	font-size: 20px;
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-   </property>
-   <property name="text">
-    <string>ERROR: Filename must not contain a space
-and must end in &quot;.xlsx&quot;</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="fileNameWarningLabel">
-   <property name="geometry">
-    <rect>
-     <x>540</x>
-     <y>490</y>
-     <width>421</width>
-     <height>81</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: rgb(255, 0, 23);
-	font-size: 20px;
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-   </property>
-   <property name="text">
-    <string>WARNING: If file of specified folder and filename
-already exists,  that file will be
-deleted and overwritten</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="dataSavedSuccessfullyLabel">
-   <property name="geometry">
-    <rect>
-     <x>540</x>
-     <y>300</y>
-     <width>421</width>
-     <height>81</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: rgb(23, 255, 0);
-	font-size: 30px;
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Data saved successfully!</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QWidget" name="sidebar" native="true">
+  <widget class="QWidget" name="horizontalLayoutWidget_3">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>341</width>
-     <height>751</height>
+     <width>1223</width>
+     <height>1509</height>
     </rect>
    </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QWidget {
+   <layout class="QHBoxLayout" name="fullScreenLayout">
+    <item>
+     <widget class="QWidget" name="sidebar" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>341</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>341</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QWidget {
 	background-color: rgb(28, 0, 101);
 }</string>
-   </property>
-   <widget class="QFrame" name="imageSelectionSidebar">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>341</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QFrame {
+      </property>
+      <widget class="QFrame" name="imageSelectionSidebar">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>341</width>
+         <height>121</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QFrame {
 	background-color: rgb(99, 0, 174);
 	border: 1px solid black;
 }</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-    <widget class="QLabel" name="imageSelectionLabelSidebar">
-     <property name="geometry">
-      <rect>
-       <x>70</x>
-       <y>0</y>
-       <width>191</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QLabel" name="imageSelectionLabelSidebar">
+        <property name="geometry">
+         <rect>
+          <x>70</x>
+          <y>0</y>
+          <width>191</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 21px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 	font-weight: bold;
 }</string>
-     </property>
-     <property name="text">
-      <string>Image Selection:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="imageLabel">
-     <property name="geometry">
-      <rect>
-       <x>-60</x>
-       <y>50</y>
-       <width>191</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
+        </property>
+        <property name="text">
+         <string>Image Selection:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="imageLabel">
+        <property name="geometry">
+         <rect>
+          <x>-60</x>
+          <y>50</y>
+          <width>191</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 16px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 	font-weight: bold;
 }</string>
-     </property>
-     <property name="text">
-      <string>Image:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="imagePathInput">
-     <property name="geometry">
-      <rect>
-       <x>100</x>
-       <y>50</y>
-       <width>241</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
+        </property>
+        <property name="text">
+         <string>Image:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="imagePathInput">
+        <property name="geometry">
+         <rect>
+          <x>100</x>
+          <y>50</y>
+          <width>241</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 14px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 }</string>
-     </property>
-     <property name="text">
-      <string>Sample filename </string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QFrame" name="roiSidebar">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>120</y>
-      <width>341</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QFrame {
+        </property>
+        <property name="text">
+         <string>Sample filename </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QFrame" name="roiSidebar">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>120</y>
+         <width>341</width>
+         <height>121</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QFrame {
 	background-color: rgb(99, 0, 174);
 	border: 1px solid black;
 }</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-    <widget class="QLabel" name="roiSidebarLabel">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>30</y>
-       <width>341</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QLabel" name="roiSidebarLabel">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>30</y>
+          <width>341</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 21px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 	font-weight: bold;
 }</string>
-     </property>
-     <property name="text">
-      <string>Volume of Interest (VOI) Selection</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QFrame" name="rfAnalysisSidebar">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>480</y>
-      <width>341</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QFrame {
+        </property>
+        <property name="text">
+         <string>Volume of Interest (VOI) Selection</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QFrame" name="rfAnalysisSidebar">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>480</y>
+         <width>341</width>
+         <height>121</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QFrame {
 	background-color:  rgb(99, 0, 174);
 	border: 1px solid black;
 }</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-    <widget class="QLabel" name="rfAnalysisLabel">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>30</y>
-       <width>341</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QLabel" name="rfAnalysisLabel">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>30</y>
+          <width>341</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 21px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 	font-weight: bold;
 }</string>
-     </property>
-     <property name="text">
-      <string>Export Results</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QFrame" name="ticAnalysisSidebar">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>360</y>
-      <width>341</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QFrame {
+        </property>
+        <property name="text">
+         <string>Export Results</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QFrame" name="ticAnalysisSidebar">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>360</y>
+         <width>341</width>
+         <height>121</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QFrame {
 	background-color:  rgb(99, 0, 174);
 	border: 1px solid black;
 }</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-    <widget class="QLabel" name="ticAnalysisLabel">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>30</y>
-       <width>341</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QLabel" name="ticAnalysisLabel">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>30</y>
+          <width>341</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 21px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 	font-weight: bold;
 }</string>
-     </property>
-     <property name="text">
-      <string>Contrast-Enhanced Ultrasound
+        </property>
+        <property name="text">
+         <string>Contrast-Enhanced Ultrasound
 (CEUS) Analysis</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QFrame" name="analysisParamsSidebar">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>240</y>
-      <width>341</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QFrame {
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QFrame" name="analysisParamsSidebar">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>240</y>
+         <width>341</width>
+         <height>121</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QFrame {
 	background-color: rgb(99, 0, 174);
 	border: 1px solid black;
 }</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-    <widget class="QLabel" name="analysisParamsLabel">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>30</y>
-       <width>341</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QLabel" name="analysisParamsLabel">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>30</y>
+          <width>341</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
 	font-size: 21px;
 	color: rgb(255, 255, 255);
 	background-color: rgba(255, 255, 255, 0);
 	border: 0px;
 	font-weight:bold;
 }</string>
-     </property>
-     <property name="text">
-      <string>TIC Modification</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </widget>
-  </widget>
-  <widget class="QPushButton" name="backButton">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>690</y>
-     <width>131</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
+        </property>
+        <property name="text">
+         <string>TIC Modification</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QPushButton" name="backButton">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>690</y>
+         <width>131</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
 	color: white;
 	font-size: 16px;
 	background: rgb(90, 37, 255);
 	border-radius: 15px;
 }</string>
-   </property>
-   <property name="text">
-    <string>Back</string>
-   </property>
+       </property>
+       <property name="text">
+        <string>Back</string>
+       </property>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <layout class="QVBoxLayout" name="approachSelectionLayout">
+        <property name="spacing">
+         <number>50</number>
+        </property>
+        <property name="leftMargin">
+         <number>30</number>
+        </property>
+        <property name="rightMargin">
+         <number>30</number>
+        </property>
+        <property name="bottomMargin">
+         <number>200</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="selectDataLabel">
+          <property name="styleSheet">
+           <string notr="true">QLabel {
+	font-size: 29px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+          </property>
+          <property name="text">
+           <string>Select Data Export Method:</string>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::AutoText</enum>
+          </property>
+          <property name="scaledContents">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="newFileOptionButton">
+          <property name="minimumSize">
+           <size>
+            <width>421</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+          </property>
+          <property name="text">
+           <string>Save to New Excel File</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="appendFileOptionButton">
+          <property name="minimumSize">
+           <size>
+            <width>421</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+          </property>
+          <property name="text">
+           <string>Append Data onto Existing Excel File</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="appendFileHeading">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+	font-size: 29px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+        </property>
+        <property name="text">
+         <string>Specify File To Append To:</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::AutoText</enum>
+        </property>
+        <property name="scaledContents">
+         <bool>false</bool>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="newFileHeading">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+	font-size: 29px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+        </property>
+        <property name="text">
+         <string>Specify New File Destination:</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::AutoText</enum>
+        </property>
+        <property name="scaledContents">
+         <bool>false</bool>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QLabel" name="appendFileLabel">
+          <property name="styleSheet">
+           <string notr="true">QLabel {
+	background-color: rgba(255, 255, 255, 0);
+	color: white;
+	font-size: 17px;
+}</string>
+          </property>
+          <property name="text">
+           <string>Excel File to Append to:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::NoTextInteraction</set>
+          </property>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QLineEdit" name="appendFilePath">
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLineEdit {
+	background-color: rgb(249, 249, 249);
+	color: black;
+}</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <property name="spacing">
+           <number>6</number>
+          </property>
+          <item alignment="Qt::AlignRight|Qt::AlignVCenter">
+           <widget class="QPushButton" name="chooseAppendFileButton">
+            <property name="minimumSize">
+             <size>
+              <width>181</width>
+              <height>41</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>221</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+            </property>
+            <property name="text">
+             <string>Choose File</string>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+           <widget class="QPushButton" name="clearAppendFileButton">
+            <property name="minimumSize">
+             <size>
+              <width>181</width>
+              <height>41</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>221</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+            </property>
+            <property name="text">
+             <string>Clear Path</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+       <widget class="QPushButton" name="appendFileButton">
+        <property name="minimumSize">
+         <size>
+          <width>221</width>
+          <height>41</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>321</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+        </property>
+        <property name="text">
+         <string>Append Data to File</string>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+       <widget class="QPushButton" name="appendFileBackButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>221</width>
+          <height>41</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>321</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+        </property>
+        <property name="text">
+         <string>Back</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QLabel" name="newFolderPathLabel">
+          <property name="styleSheet">
+           <string notr="true">QLabel {
+	background-color: rgba(255, 255, 255, 0);
+	color: white;
+	font-size: 17px;
+}</string>
+          </property>
+          <property name="text">
+           <string>Folder to save new file in:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::NoTextInteraction</set>
+          </property>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QLineEdit" name="newFolderPathInput">
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLineEdit {
+	background-color: rgb(249, 249, 249);
+	color: black;
+}</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item alignment="Qt::AlignRight|Qt::AlignVCenter">
+           <widget class="QPushButton" name="chooseNewFolderButton">
+            <property name="minimumSize">
+             <size>
+              <width>181</width>
+              <height>41</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>221</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+            </property>
+            <property name="text">
+             <string>Choose Folder</string>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+           <widget class="QPushButton" name="clearNewFolderButton">
+            <property name="minimumSize">
+             <size>
+              <width>181</width>
+              <height>41</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>221</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+            </property>
+            <property name="text">
+             <string>Clear Path</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QLabel" name="newFileNameLabel">
+          <property name="styleSheet">
+           <string notr="true">QLabel {
+	background-color: rgba(255, 255, 255, 0);
+	color: white;
+	font-size: 17px;
+}</string>
+          </property>
+          <property name="text">
+           <string>Type name of new file:
+(no spaces,  must end in &quot;.xlsx&quot;)</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::NoTextInteraction</set>
+          </property>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QLineEdit" name="newFileNameInput">
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLineEdit {
+	background-color: rgb(249, 249, 249);
+	color: black;
+}</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="fileNameWarningLabel">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+	color: rgb(255, 148, 37);
+	font-size: 20px;
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+        </property>
+        <property name="text">
+         <string>WARNING: If file of specified folder and filename
+already exists,  that file will be
+deleted and overwritten</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="fileNameErrorLabel">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+	color: rgb(255, 0, 23);
+	font-size: 20px;
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+        </property>
+        <property name="text">
+         <string>ERROR: Filename must not contain a space
+and must end in &quot;.xlsx&quot;</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+       <widget class="QPushButton" name="createNewFileButton">
+        <property name="minimumSize">
+         <size>
+          <width>221</width>
+          <height>41</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>321</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+        </property>
+        <property name="text">
+         <string>Create File</string>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+       <widget class="QPushButton" name="newFileBackButton">
+        <property name="minimumSize">
+         <size>
+          <width>221</width>
+          <height>41</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>321</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+        </property>
+        <property name="text">
+         <string>Back</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="dataSavedSuccessfullyLabel">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+	color: rgb(23, 255, 0);
+	font-size: 30px;
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+        </property>
+        <property name="text">
+         <string>Data saved successfully!</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>

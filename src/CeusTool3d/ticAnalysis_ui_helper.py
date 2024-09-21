@@ -192,6 +192,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
 
     def backToLastScreen(self):
         self.lastGui.show()
+        self.lastGui.resize(self.size())
         self.hide()
 
     def findSliceFromTime(self, inputtedTime):
