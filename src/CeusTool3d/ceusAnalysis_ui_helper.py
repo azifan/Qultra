@@ -1,17 +1,21 @@
 import platform
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import nibabel as nib
+from PIL.ImageQt import ImageQt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QWidget, QFileDialog, QHBoxLayout
-from PyQt5.QtGui import QImage, QPixmap, QPainter
-from PyQt5.QtCore import QLine, Qt
+from PyQt5.QtGui import QImage, QPixmap, QPainter, QCursor, QResizeEvent
+from PyQt5.QtCore import QLine, Qt, QPoint, pyqtSlot
 
+import src.Utils.lognormalFunctions as lf
 from src.CeusTool3d.ceusAnalysis_ui import Ui_ceusAnalysis
 from src.CeusTool3d.exportData_ui_helper import ExportDataGUI
 from src.CeusTool3d.legend_ui_helper import LegendDisplay
-import src.Utils.lognormalFunctions as lf
+from src.DataLayer.qtSupport import MouseTracker, qImToPIL
+
 
 system = platform.system()
 
@@ -20,74 +24,21 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.setLayout(self.fullScreenLayout)
 
-        self.lastGui = None
-        self.painted = "none"
-        self.pointsPlotted = None
-        self.dataFrame = None
-        self.data4dImg = None
-        self.curSliceIndex = None
-        self.newXVal = None
-        self.newYVal = None
-        self.newZVal = None
-        self.x = None
-        self.y = None
-        self.z = None
-        self.maskCoverImg = None
-        self.widthAx = None
-        self.heightAx = None
-        self.bytesLineAx = None
-        self.maskAxW = None
-        self.maskAxH = None
-        self.maskBytesLineAx = None
-        self.widthSag = None
-        self.heightSag = None
-        self.bytesLineSag = None
-        self.maskSagW = None
-        self.maskSagH = None
-        self.maskBytesLineSag = None
-        self.widthCor = None
-        self.heightCor = None
-        self.bytesLineCor = None
-        self.maskCorW = None
-        self.maskCorH = None
-        self.maskBytesLineCor = None
-        self.sliceArray = None
-        self.voxelScale = None
-        self.sliceSpinBoxChanged = False
-        self.sliceSliderChanged = False
-        self.masterParamap = None
-        self.paramapPoints = None
-        self.curParamap = None
-        self.cmap = None
-        self.newData = None
-        self.exportDataGUI = None
-        self.legendDisplay = LegendDisplay()
+        self.lastGui = None; self.pointsPlotted = None
+        self.data4dImg = None; self.curSliceIndex = None
+        self.newXVal = None; self.newYVal = None; self.newZVal = None
+        self.x = None; self.y = None; self.z = None
+        self.maskCoverImg = None; self.sliceArray = None
+        self.voxelScale = None; self.sliceSpinBoxChanged = False
+        self.sliceSliderChanged = False; self.masterParamap = None
+        self.paramapPoints = None; self.curParamap = None; self.cmap = None
+        self.newData = None; self.exportDataGUI = None
+        self.bmode4dImg = None; self.ceus4dImg = None
 
-        self.ticDisplay.setHidden(True)
-        self.aucParamapButton.setHidden(True)
-        self.peParamapButton.setHidden(True)
-        self.mttParamapButton.setHidden(True)
-        self.tpParamapButton.setHidden(True)
-        self.ticBackButton.setHidden(True)
-        self.paramapBackButton.setHidden(True)
-        self.chooseParamapLabel.setHidden(True)
-        self.legendDisplay.legendFrame.setHidden(True)
-        self.showLegendButton.setHidden(True)
-
-        self.setMouseTracking(True)
-
-        self.axCoverPixmap = QPixmap(321, 301)
-        self.axCoverPixmap.fill(Qt.transparent)
-        self.axCoverLabel.setPixmap(self.axCoverPixmap)
-
-        self.sagCoverPixmap = QPixmap(321, 301)
-        self.sagCoverPixmap.fill(Qt.transparent)
-        self.sagCoverLabel.setPixmap(self.sagCoverPixmap)
-
-        self.corCoverPixmap = QPixmap(321, 301)
-        self.corCoverPixmap.fill(Qt.transparent)
-        self.corCoverLabel.setPixmap(self.corCoverPixmap)
+        self.hideParamapDisplayLayout(); self.hideTicDisplayLayout()
+        self.showResultsViewLayout(); self.navigatingLabel.hide()
 
         self.horizLayout = QHBoxLayout(self.ticDisplay)
         self.fig = plt.figure()
@@ -95,12 +46,9 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.horizLayout.addWidget(self.canvas)
         self.canvas.draw()
         self.ax = self.fig.add_subplot(111)
-        self.ax.set_xlabel("Time (s)", fontsize=4, labelpad=0.5)
-        self.ax.set_ylabel("Signal Amplitude", fontsize=4, labelpad=0.5)
-        self.ax.set_title("Time Intensity Curve (TIC)", fontsize=5, pad=1.5)
-        self.ax.tick_params("both", pad=0.3, labelsize=3.6)
-        plt.xticks(fontsize=3)
-        plt.yticks(fontsize=3)
+        self.ax.set_xlabel("Time (s)")
+        self.ax.set_ylabel("Signal Amplitude")
+        plt.tight_layout()
 
         self.voiAlphaSpinBox.setValue(100)
         self.aucParamapButton.setCheckable(True)
@@ -108,9 +56,9 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.mttParamapButton.setCheckable(True)
         self.tpParamapButton.setCheckable(True)
         self.showLegendButton.setCheckable(True)
-
+        self.showHideCrossButton.setCheckable(True)
+        
         self.backButton.clicked.connect(self.backToLastScreen)
-        self.saveDataButton.clicked.connect(self.saveData)
         self.exportDataButton.clicked.connect(self.moveToExport)
         self.curSliceSlider.valueChanged.connect(self.curSliceSliderValueChanged)
         self.curSliceSpinBox.valueChanged.connect(self.curSliceSpinBoxValueChanged)
@@ -124,44 +72,127 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.mttParamapButton.clicked.connect(self.displayMtt)
         self.paramapBackButton.clicked.connect(self.backFromParamap)
         self.showLegendButton.clicked.connect(self.displayLegend)
+        self.showHideCrossButton.clicked.connect(self.showHideCross)
+        self.toggleButton.clicked.connect(self.toggleIms)
+
+        trackerAx = MouseTracker(self.axialPlane)
+        trackerAx.positionChanged.connect(self.axCoordChanged)
+        trackerSag = MouseTracker(self.sagPlane)
+        trackerSag.positionChanged.connect(self.sagCoordChanged)
+        trackerCor = MouseTracker(self.corPlane)
+        trackerCor.positionChanged.connect(self.corCoordChanged) 
+
+    def toggleIms(self):
+        if self.toggleButton.isChecked():
+            self.data4dImg = self.bmode4dImg
+        else:
+            self.data4dImg = self.ceus4dImg
+        self.updateCrosshairs() 
+
+    def hideTicDisplayLayout(self):
+        self.ticBackButton.hide()
+        self.ticDisplay.hide()
+    
+    def showTicDisplayLayout(self):
+        self.ticBackButton.show()
+        self.ticDisplay.show()
+
+    def hideResultsViewLayout(self):
+        self.loadParamapsButton.hide()
+        self.showTicButton.hide()
+
+    def showResultsViewLayout(self):
+        self.loadParamapsButton.show()
+        self.showTicButton.show()
+    
+    def hideParamapDisplayLayout(self):
+        self.aucParamapButton.hide()
+        self.mttParamapButton.hide()
+        self.paramapBackButton.hide()
+        self.peParamapButton.hide()
+        self.showLegendButton.hide()
+        self.tpParamapButton.hide()
+        self.chooseParamapLabel.hide()
+
+    def showParamapDisplayLayout(self):
+        self.aucParamapButton.show()
+        self.mttParamapButton.show()
+        self.paramapBackButton.show()
+        self.peParamapButton.show()
+        self.showLegendButton.show()
+        self.tpParamapButton.show()
+        self.chooseParamapLabel.show()
+
+    @pyqtSlot(QPoint)
+    def axCoordChanged(self, pos):
+        if self.observingLabel.isHidden():
+            xdiff = self.axialPlane.width() - self.axialPlane.pixmap().width()
+            ydiff = self.axialPlane.height() - self.axialPlane.pixmap().height()
+            xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
+
+            if xCoord < 0 or yCoord < 0 or xCoord >= self.axialPlane.pixmap().width() or yCoord >= self.axialPlane.pixmap().height():
+                return
+            self.newXVal = int((xCoord/self.axialPlane.pixmap().width()) * self.x)
+            self.newYVal = int((yCoord/self.axialPlane.pixmap().height()) * self.y)
+            self.updateCrosshairs()
+
+    @pyqtSlot(QPoint)
+    def sagCoordChanged(self, pos):
+        if self.observingLabel.isHidden():
+            xdiff = self.sagPlane.width() - self.sagPlane.pixmap().width()
+            ydiff = self.sagPlane.height() - self.sagPlane.pixmap().height()
+            xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
+
+            if xCoord < 0 or yCoord < 0 or xCoord >= self.sagPlane.pixmap().width() or yCoord >= self.sagPlane.pixmap().height():
+                return
+            self.newZVal = int((xCoord/self.sagPlane.pixmap().width()) * self.z)
+            self.newYVal = int((yCoord/self.sagPlane.pixmap().height()) * self.y)
+            self.updateCrosshairs()
+        
+    @pyqtSlot(QPoint)
+    def corCoordChanged(self, pos):
+        if self.observingLabel.isHidden():
+            xdiff = self.corPlane.width() - self.corPlane.pixmap().width()
+            ydiff = self.corPlane.height() - self.corPlane.pixmap().height()
+            xCoord = pos.x() - xdiff/2; yCoord = pos.y() - ydiff/2
+
+            if xCoord < 0 or yCoord < 0 or xCoord >= self.corPlane.pixmap().width() or yCoord >= self.corPlane.pixmap().height():
+                return
+            self.newXVal = int((xCoord/self.corPlane.pixmap().width()) * self.x)
+            self.newZVal = int((yCoord/self.corPlane.pixmap().height()) * self.z)
+            self.updateCrosshairs()
+
+    def showHideCross(self):
+        if self.showHideCrossButton.isChecked():
+            pilIms = [self.imAxPIL, self.imSagPIL, self.imCorPIL]
+            pixmaps = [self.pixmapAx, self.pixmapSag, self.pixmapCor]
+            for i, pilIm in enumerate(pilIms):
+                pixmaps[i] = QPixmap.fromImage(ImageQt(pilIm))
+            self.changeAxialSlices(); self.changeSagSlices(); self.changeCorSlices()
+            self.axialPlane.setCursor(QCursor(Qt.ArrowCursor))
+            self.sagPlane.setCursor(QCursor(Qt.ArrowCursor))
+            self.corPlane.setCursor(QCursor(Qt.ArrowCursor))
+        else:
+            if self.observingLabel.isHidden():
+                self.axialPlane.setCursor(QCursor(Qt.BlankCursor))
+                self.sagPlane.setCursor(QCursor(Qt.BlankCursor))
+                self.corPlane.setCursor(QCursor(Qt.BlankCursor))
+            self.updateCrosshairs()
 
     def backFromParamap(self):
-        self.aucParamapButton.setHidden(True)
-        self.peParamapButton.setHidden(True)
-        self.mttParamapButton.setHidden(True)
-        self.tpParamapButton.setHidden(True)
-        self.paramapBackButton.setHidden(True)
-        self.showLegendButton.setHidden(True)
-        self.showTicButton.setHidden(False)
-        self.loadParamapsButton.setHidden(False)
+        self.hideParamapDisplayLayout(); self.showResultsViewLayout()
 
-        self.aucParamapButton.setChecked(False)
-        self.peParamapButton.setChecked(False)
-        self.tpParamapButton.setChecked(False)
-        self.mttParamapButton.setChecked(False)
-        self.showLegendButton.setChecked(False)
-        self.legendDisplay.hide()
+        self.aucParamapButton.setChecked(False); self.peParamapButton.setChecked(False)
+        self.tpParamapButton.setChecked(False); self.mttParamapButton.setChecked(False)
+        self.showLegendButton.setChecked(False); self.legendDisplay.hide()
 
         self.masterParamap = None
         self.clearParamap()
 
     def clearParamap(self):
-        try:
-            self.paramapLayerAx.pixmap().fill(Qt.transparent)
-            self.paramapLayerSag.pixmap().fill(Qt.transparent)
-            self.paramapLayerCor.pixmap().fill(Qt.transparent)
-        except AttributeError:
-            pass
-
         self.cmap = None
-        self.maskLayerAx.setHidden(False)
-        self.maskLayerSag.setHidden(False)
-        self.maskLayerCor.setHidden(False)
-        self.legendDisplay.legendFrame.setHidden(True)
-        self.changeAxialSlices()
-        self.changeSagSlices()
-        self.changeCorSlices()
-        self.update()
+        self.legendDisplay.legendFrame.hide()
+        self.updateCrosshairs()
 
     def displayLegend(self):
         if not self.showLegendButton.isChecked():
@@ -179,10 +210,6 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 self.mttParamapButton.setChecked(False)
             if self.tpParamapButton.isChecked():
                 self.tpParamapButton.setChecked(False)
-
-            self.maskLayerAx.setHidden(True)
-            self.maskLayerSag.setHidden(True)
-            self.maskLayerCor.setHidden(True)
 
             self.cmap = plt.get_cmap("viridis").colors
 
@@ -239,10 +266,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                     int(self.curAlpha),
                 ]
 
-            self.changeAxialSlices()
-            self.changeSagSlices()
-            self.changeCorSlices()
-            self.update()
+            self.updateCrosshairs()
 
     def displayPe(self):
         if not self.peParamapButton.isChecked():
@@ -254,10 +278,6 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 self.mttParamapButton.setChecked(False)
             if self.tpParamapButton.isChecked():
                 self.tpParamapButton.setChecked(False)
-
-            self.maskLayerAx.setHidden(True)
-            self.maskLayerSag.setHidden(True)
-            self.maskLayerCor.setHidden(True)
 
             arr = np.linspace(0, 100, 1000).reshape((1000, 1))
             self.legendDisplay.ax.clear()
@@ -309,10 +329,14 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                     int(self.curAlpha),
                 ]
 
-            self.changeAxialSlices()
-            self.changeSagSlices()
-            self.changeCorSlices()
-            self.update()
+            self.updateCrosshairs()
+
+    def resizeEvent(self, event: QResizeEvent):
+        super().resizeEvent(event)
+        self.axialPlane.setAlignment(Qt.AlignCenter)
+        self.sagPlane.setAlignment(Qt.AlignCenter)
+        self.corPlane.setAlignment(Qt.AlignCenter)
+        self.updateCrosshairs()
 
     def displayTp(self):
         if not self.tpParamapButton.isChecked():
@@ -324,10 +348,6 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 self.mttParamapButton.setChecked(False)
             if self.peParamapButton.isChecked():
                 self.peParamapButton.setChecked(False)
-
-            self.maskLayerAx.setHidden(True)
-            self.maskLayerSag.setHidden(True)
-            self.maskLayerCor.setHidden(True)
 
             self.cmap = plt.get_cmap("plasma").colors
 
@@ -379,10 +399,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                     int(self.curAlpha),
                 ]
 
-            self.changeAxialSlices()
-            self.changeSagSlices()
-            self.changeCorSlices()
-            self.update()
+            self.updateCrosshairs()
 
     def displayMtt(self):
         if not self.mttParamapButton.isChecked():
@@ -450,10 +467,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                     int(self.curAlpha),
                 ]
 
-            self.changeAxialSlices()
-            self.changeSagSlices()
-            self.changeCorSlices()
-            self.update()
+            self.updateCrosshairs()
 
     def loadParamaps(self):
         fileName, _ = QFileDialog.getOpenFileName(
@@ -595,261 +609,80 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                         self.pointsPlotted[i][2],
                     ][3]
 
-        self.showTicButton.setHidden(True)
-        self.loadParamapsButton.setHidden(True)
-        self.aucParamapButton.setHidden(False)
-        self.peParamapButton.setHidden(False)
-        self.mttParamapButton.setHidden(False)
-        self.tpParamapButton.setHidden(False)
-        self.paramapBackButton.setHidden(False)
-        self.showLegendButton.setHidden(False)
+        self.hideResultsViewLayout(); self.showParamapDisplayLayout()
 
     def backFromTic(self):
-        self.ticDisplay.setHidden(True)
-        self.showTicButton.setHidden(False)
-        self.loadParamapsButton.setHidden(False)
-        self.ticBackButton.setHidden(True)
+        self.hideTicDisplayLayout(); self.showResultsViewLayout()
 
     def showTic(self):
-        self.ticDisplay.setHidden(False)
-        self.showTicButton.setHidden(True)
-        self.loadParamapsButton.setHidden(True)
-        self.ticBackButton.setHidden(False)
+        self.hideResultsViewLayout(); self.showTicDisplayLayout()
 
-    def mouseMoveEvent(self, event):
-        self.xCur = event.x()
-        self.yCur = event.y()
-        self.updateCrosshair()
+    def mousePressEvent(self, event):
+        if self.navigatingLabel.isHidden():
+            self.navigatingLabel.show(); self.observingLabel.hide()
+            if not self.showHideCrossButton.isChecked():
+                self.axialPlane.setCursor(QCursor(Qt.BlankCursor))
+                self.sagPlane.setCursor(QCursor(Qt.BlankCursor))
+                self.corPlane.setCursor(QCursor(Qt.BlankCursor))
+        else:
+            self.navigatingLabel.hide(); self.observingLabel.show()
+            self.axialPlane.setCursor(QCursor(Qt.ArrowCursor))
+            self.sagPlane.setCursor(QCursor(Qt.ArrowCursor))
+            self.corPlane.setCursor(QCursor(Qt.ArrowCursor))
 
-    def updateCrosshair(self):
-        scrolling = "none"
-        # if self.scrolling:
-        if (
-            self.xCur < 721
-            and self.xCur > 400
-            and self.yCur < 341
-            and self.yCur > 40
-            and (self.painted == "none" or self.painted == "ax")
-        ):
-            self.actualX = int((self.xCur - 401) * (self.widthAx - 1) / 321)
-            self.actualY = int((self.yCur - 41) * (self.heightAx - 1) / 301)
-            scrolling = "ax"
-            self.axCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.axCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            axVertLine = QLine(self.xCur - 401, 0, self.xCur - 401, 301)
-            axLatLine = QLine(0, self.yCur - 41, 321, self.yCur - 41)
-            painter.drawLines([axVertLine, axLatLine])
-            painter.end()
-        elif (
-            self.xCur < 1131
-            and self.xCur > 810
-            and self.yCur < 341
-            and self.yCur > 40
-            and (self.painted == "none" or self.painted == "sag")
-        ):
-            self.actualX = int((self.xCur - 811) * (self.widthSag - 1) / 321)
-            self.actualY = int((self.yCur - 41) * (self.heightSag - 1) / 301)
-            scrolling = "sag"
-            self.sagCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.sagCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            sagVertLine = QLine(self.xCur - 811, 0, self.xCur - 811, 301)
-            sagLatLine = QLine(0, self.yCur - 41, 321, self.yCur - 41)
-            painter.drawLines([sagVertLine, sagLatLine])
-            painter.end()
-        elif (
-            self.xCur < 1131
-            and self.xCur > 810
-            and self.yCur < 711
-            and self.yCur > 410
-            and (self.painted == "none" or self.painted == "cor")
-        ):
-            self.actualX = int((self.xCur - 811) * (self.widthCor - 1) / 321)
-            self.actualY = int((self.yCur - 411) * (self.heightCor - 1) / 301)
-            scrolling = "cor"
-            self.corCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.corCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            corVertLine = QLine(self.xCur - 811, 0, self.xCur - 811, 301)
-            corLatLine = QLine(0, self.yCur - 411, 321, self.yCur - 411)
-            painter.drawLines([corVertLine, corLatLine])
-            painter.end()
+    def updateCrosshairs(self):
+        self.changeAxialSlices(); self.changeSagSlices(); self.changeCorSlices()
+        xCoordAx = int((self.newXVal/self.x) * self.axialPlane.pixmap().width())
+        yCoordAx = int((self.newYVal/self.y) * self.axialPlane.pixmap().height())
+        xCoordSag = int((self.newZVal/self.z) * self.sagPlane.pixmap().width())
+        yCoordSag = int((self.newYVal/self.y) * self.sagPlane.pixmap().height())
+        xCoordCor = int((self.newXVal/self.x) * self.corPlane.pixmap().width())
+        yCoordCor = int((self.newZVal/self.z) * self.corPlane.pixmap().height())
 
-        if scrolling == "ax":
-            self.newXVal = self.actualX
-            self.newYVal = self.actualY
-            self.changeSagSlices()
-            self.changeCorSlices()
-            self.sagCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.sagCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            sagVertLine = QLine(
-                int(self.newZVal / self.z * 321),
-                0,
-                int(self.newZVal / self.z * 321),
-                301,
-            )
-            sagLatLine = QLine(
-                0,
-                int(self.newYVal / self.y * 301),
-                321,
-                int(self.newYVal / self.y * 301),
-            )
-            painter.drawLines([sagVertLine, sagLatLine])
-            painter.end()
-
-            self.corCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.corCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            corVertLine = QLine(
-                int(self.newXVal / self.x * 321),
-                0,
-                int(self.newXVal / self.x * 321),
-                301,
-            )
-            corLatLine = QLine(
-                0,
-                int(self.newZVal / self.z * 301),
-                321,
-                int(self.newZVal / self.z * 301),
-            )
-            painter.drawLines([corVertLine, corLatLine])
-            painter.end()
-            self.update()
-
-        elif scrolling == "sag":
-            self.newZVal = self.actualX
-            self.newYVal = self.actualY
-            self.changeAxialSlices()
-            self.changeCorSlices()
-            self.axCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.axCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            axVertLine = QLine(
-                int(self.newXVal / self.x * 321),
-                0,
-                int(self.newXVal / self.x * 321),
-                301,
-            )
-            axLatLine = QLine(
-                0,
-                int(self.newYVal / self.y * 301),
-                321,
-                int(self.newYVal / self.y * 301),
-            )
-            painter.drawLines([axVertLine, axLatLine])
-            painter.end()
-
-            self.corCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.corCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            corVertLine = QLine(
-                int(self.newXVal / self.x * 321),
-                0,
-                int(self.newXVal / self.x * 321),
-                301,
-            )
-            corLatLine = QLine(
-                0,
-                int(self.newZVal / self.z * 301),
-                321,
-                int(self.newZVal / self.z * 301),
-            )
-            painter.drawLines([corVertLine, corLatLine])
-            painter.end()
-            self.update()
-
-        elif scrolling == "cor":
-            self.newXVal = self.actualX
-            self.newZVal = self.actualY
-            self.changeAxialSlices()
-            self.changeSagSlices()
-            self.axCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.axCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            axVertLine = QLine(
-                int(self.newXVal / self.x * 321),
-                0,
-                int(self.newXVal / self.x * 321),
-                301,
-            )
-            axLatLine = QLine(
-                0,
-                int(self.newYVal / self.y * 301),
-                321,
-                int(self.newYVal / self.y * 301),
-            )
-            painter.drawLines([axVertLine, axLatLine])
-            painter.end()
-
-            self.sagCoverLabel.pixmap().fill(Qt.transparent)
-            painter = QPainter(self.sagCoverLabel.pixmap())
-            painter.setPen(Qt.yellow)
-            sagVertLine = QLine(
-                int(self.newZVal / self.z * 321),
-                0,
-                int(self.newZVal / self.z * 321),
-                301,
-            )
-            sagLatLine = QLine(
-                0,
-                int(self.newYVal / self.y * 301),
-                321,
-                int(self.newYVal / self.y * 301),
-            )
-            painter.drawLines([sagVertLine, sagLatLine])
-            painter.end()
-            self.update()
-
-    def alphaValueChanged(self):
-        self.curAlpha = int(self.voiAlphaSpinBox.value())
-        self.voiAlphaSpinBoxChanged = False
-        self.voiAlphaStatus.setValue(self.curAlpha)
-        for i in range(len(self.pointsPlotted)):
-            self.maskCoverImg[
-                self.pointsPlotted[i][0],
-                self.pointsPlotted[i][1],
-                self.pointsPlotted[i][2],
-                3,
-            ] = self.curAlpha
-            if self.cmap is not None and self.masterParamap is not None:
-                self.paramap[
-                    self.pointsPlotted[i][0],
-                    self.pointsPlotted[i][1],
-                    self.pointsPlotted[i][2],
-                    3,
-                ] = self.curAlpha
-        self.changeAxialSlices()
-        self.changeSagSlices()
-        self.changeCorSlices()
+        if not self.showHideCrossButton.isChecked():
+            pixmaps = [self.axialPlane.pixmap(), self.sagPlane.pixmap(), self.corPlane.pixmap()]
+            points = [(xCoordAx, yCoordAx), (xCoordSag, yCoordSag), (xCoordCor, yCoordCor)]
+            for i, pixmap in enumerate(pixmaps):
+                painter = QPainter(pixmap); painter.setPen(Qt.yellow)
+                coord = points[i]
+                vertLine = QLine(coord[0], 0, coord[0], pixmap.height())
+                latLine = QLine(0, coord[1], pixmap.width(), coord[1])
+                painter.drawLines([vertLine, latLine])
+                painter.end()
 
     def moveToExport(self):
-        if len(self.dataFrame):
-            del self.exportDataGUI
-            self.exportDataGUI = ExportDataGUI()
-            self.exportDataGUI.dataFrame = self.dataFrame
-            self.exportDataGUI.lastGui = self
-            self.exportDataGUI.setFilenameDisplays(self.imagePathInput.text())
-            self.exportDataGUI.show()
-            self.hide()
-
-    def saveData(self):
-        if self.newData is None:
-            self.newData = {
+        del self.exportDataGUI
+        self.exportDataGUI = ExportDataGUI()
+        dataFrame = pd.DataFrame(
+            columns=[
+                "Patient",
+                "Area Under Curve (AUC)",
+                "Peak Enhancement (PE)",
+                "Time to Peak (TP)",
+                "Mean Transit Time (MTT)",
+                "TMPPV",
+                "VOI Volume (mm^3)",
+            ]
+        )
+        curData = {
                 "Patient": self.imagePathInput.text().split("_")[0],
                 "Area Under Curve (AUC)": self.auc,
                 "Peak Enhancement (PE)": self.pe,
                 "Time to Peak (TP)": self.tp,
                 "Mean Transit Time (MTT)": self.mtt,
-                "Normalization Factor": self.normFact,
+                "TMPPV": self.normFact,
                 "VOI Volume (mm^3)": self.voxelScale,
             }
-            self.dataFrame = self.dataFrame.append(self.newData, ignore_index=True)
+        self.exportDataGUI.dataFrame = dataFrame.append(curData, ignore_index=True)
+        self.exportDataGUI.lastGui = self
+        self.exportDataGUI.setFilenameDisplays(self.imagePathInput.text())
+        self.exportDataGUI.show()
+        self.exportDataGUI.resize(self.size())
+        self.hide()
 
     def backToLastScreen(self):
-        self.lastGui.dataFrame = self.dataFrame
         self.lastGui.show()
+        self.lastGui.resize(self.size())
         self.hide()
 
     def acceptTICt0(self):
@@ -859,8 +692,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.imagePathInput.setText(self.lastGui.imagePathInput.text())
         self.newData = None
         self.pointsPlotted = self.lastGui.pointsPlotted
-        self.dataFrame = self.lastGui.dataFrame
-        self.data4dImg = self.lastGui.data4dImg
+        self.ceus4dImg = self.lastGui.ceus4dImg
+        self.bmode4dImg = self.lastGui.bmode4dImg
         self.curSliceIndex = self.lastGui.curSliceIndex
         self.newXVal = self.lastGui.newXVal
         self.newYVal = self.lastGui.newYVal
@@ -869,58 +702,22 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.y = self.lastGui.y
         self.z = self.lastGui.z
         self.maskCoverImg = self.lastGui.maskCoverImg
-        self.widthAx = self.lastGui.widthAx
-        self.heightAx = self.lastGui.heightAx
-        self.bytesLineAx = self.lastGui.bytesLineAx
-        self.maskAxW = self.lastGui.maskAxW
-        self.maskAxH = self.lastGui.maskAxH
-        self.maskBytesLineAx = self.lastGui.maskBytesLineAx
-        self.widthSag = self.lastGui.widthSag
-        self.heightSag = self.lastGui.heightSag
-        self.bytesLineSag = self.lastGui.bytesLineSag
-        self.maskSagW = self.lastGui.maskSagW
-        self.maskSagH = self.lastGui.maskSagH
-        self.maskBytesLineSag = self.lastGui.maskBytesLineSag
-        self.widthCor = self.lastGui.widthCor
-        self.heightCor = self.lastGui.heightCor
-        self.bytesLineCor = self.lastGui.bytesLineCor
-        self.maskCorW = self.lastGui.maskCorW
-        self.maskCorH = self.lastGui.maskCorH
-        self.maskBytesLineCor = self.lastGui.maskBytesLineCor
         self.sliceArray = self.lastGui.sliceArray
         self.voxelScale = self.lastGui.voxelScale
         self.curSliceTotal.setText(str(self.sliceArray[-1]))
+        self.data4dImg = self.lastGui.data4dImg
+        
+        if self.bmode4dImg is None:
+            self.toggleButton.hide()
+        elif self.lastGui.toggleButton.isChecked():
+            self.toggleButton.setChecked(True)
 
         self.axialTotalFrames.setText(str(self.z + 1))
         self.sagittalTotalFrames.setText(str(self.x + 1))
         self.coronalTotalFrames.setText(str(self.y + 1))
 
-        self.exportDataButton.setHidden(False)
-        self.saveDataButton.setHidden(False)
-
-        self.analysisParamsSidebar.setStyleSheet(
-            "QFrame {\n"
-            "	background-color: rgb(99, 0, 174);\n"
-            "	border: 1px solid black;\n"
-            "}"
-        )
-
-        self.ticAnalysisSidebar.setStyleSheet(
-            "QFrame {\n"
-            "	background-color: rgb(99, 0, 174);\n"
-            "	border: 1px solid black;\n"
-            "}"
-        )
-
         self.ax.clear()
         self.ax.plot(self.lastGui.ticX[:, 0], self.lastGui.ticY)
-
-        # self.sliceArray = self.ticEditor.ticX[:,1]
-        # if self.curSliceIndex>= len(self.sliceArray):
-        #     self.curSliceSlider.setValue(len(self.sliceArray)-1)
-        #     self.curSliceSliderValueChanged()
-        # self.curSliceSlider.setMaximum(len(self.sliceArray)-1)
-        # self.curSliceSpinBox.setMaximum(len(self.sliceArray)-1)
 
         normFact = np.max(self.lastGui.ticY)
         self.lastGui.ticY = self.lastGui.ticY / normFact
@@ -946,7 +743,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 xmax=max(self.lastGui.ticX[:, 0]) + (0.05 * range),
             )
         except RuntimeError:
-            print("RunTimeError")
+            print("RunTimeError in Lognormal Fitting")
             params = np.array(
                 [
                     np.max(self.lastGui.ticY) * normFact,
@@ -976,7 +773,6 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.tp = params[2]
         self.mtt = params[3]
         self.normFact = normFact
-        self.dataFrame = self.lastGui.dataFrame
 
         self.lastGui.hide()
         self.curSliceSlider.setValue(self.lastGui.curSliceIndex)
@@ -987,6 +783,20 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.curSliceSliderValueChanged()
         self.alphaValueChanged()
         self.show()
+        self.resize(self.lastGui.size())
+
+    def alphaValueChanged(self):
+        self.curAlpha = int(self.voiAlphaSpinBox.value())
+        self.voiAlphaSpinBoxChanged = False
+        self.voiAlphaStatus.setValue(self.curAlpha)
+        for i in range(len(self.pointsPlotted)):
+            self.maskCoverImg[
+                self.pointsPlotted[i][0],
+                self.pointsPlotted[i][1],
+                self.pointsPlotted[i][2],
+                3,
+            ] = self.curAlpha
+        self.updateCrosshairs()
 
     def curSliceSpinBoxValueChanged(self):
         if not self.sliceSliderChanged:
@@ -1012,9 +822,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             self.curSliceIndex = int(self.curSliceSlider.value())
             self.curSliceSpinBox.setValue(self.sliceArray[self.curSliceIndex])
             self.sliceSliderChanged = False
-        self.changeAxialSlices()
-        self.changeSagSlices()
-        self.changeCorSlices()
+        self.updateCrosshairs()
 
     def findSliceFromTime(self, inputtedTime):
         i = 0
@@ -1036,170 +844,114 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
     def changeAxialSlices(self):
         self.axialFrameNum.setText(str(self.newZVal + 1))
 
-        self.data2dAx = self.data4dImg[
-            :, :, self.newZVal, self.curSliceIndex
-        ]  # , self.curSliceIndex #defining 2D data for axial
-        self.data2dAx = np.flipud(self.data2dAx)  # flipud
-        self.data2dAx = np.rot90(self.data2dAx, 3)  # rotate
-        self.data2dAx = np.require(self.data2dAx, np.uint8, "C")
+        data2dAx = self.data4dImg[:, :, self.newZVal, self.curSliceIndex]
+        data2dAx = np.rot90(np.flipud(data2dAx), 3)
+        data2dAx = np.require(data2dAx, np.uint8, "C")
+        heightAx, widthAx = data2dAx.shape  # getting height and width for each plane
+        bytesLineAx, _ = data2dAx.strides
 
-        self.bytesLineAx, _ = self.data2dAx.strides
-        self.qImgAx = QImage(
-            self.data2dAx,
-            self.widthAx,
-            self.heightAx,
-            self.bytesLineAx,
-            QImage.Format_Grayscale8,
-        )
-
-        tempAx = self.maskCoverImg[:, :, self.newZVal, :]  # 2D data for axial
-        tempAx = np.flipud(tempAx)  # flipud
-        tempAx = np.rot90(tempAx, 3)  # rotate ccw 270
-        tempAx = np.require(tempAx, np.uint8, "C")
-
-        self.curMaskAxIm = QImage(
-            tempAx,
-            self.maskAxW,
-            self.maskAxH,
-            self.maskBytesLineAx,
-            QImage.Format_ARGB32,
-        )  # creating QImage
+        qImgAx = QImage(data2dAx, widthAx, heightAx, bytesLineAx, QImage.Format_Grayscale8)
+        qImgAx = qImgAx.convertToFormat(QImage.Format_ARGB32)
+        self.imAxPIL = qImToPIL(qImgAx)
 
         if self.masterParamap is not None and self.cmap is not None:
             paramapAx = self.paramap[:, :, self.newZVal, :]
-            paramapAx = np.flipud(paramapAx)
-            paramapAx = np.rot90(paramapAx, 3)
+            paramapAx = np.rot90(np.flipud(paramapAx), 3)
             paramapAx = np.require(paramapAx, np.uint8, "C")
 
             bytesLineAxParamap, _ = paramapAx[:, :, 0].strides
-            paramapAxIm = QImage(
-                paramapAx,
-                paramapAx.shape[1],
-                paramapAx.shape[0],
-                bytesLineAxParamap,
-                QImage.Format_ARGB32,
-            )
-            self.paramapLayerAx.setPixmap(
-                QPixmap.fromImage(paramapAxIm).scaled(321, 301)
-            )
+            paramapAxIm = QImage(paramapAx, paramapAx.shape[1], paramapAx.shape[0], bytesLineAxParamap, QImage.Format_ARGB32)
 
-        self.maskLayerAx.setPixmap(
-            QPixmap.fromImage(self.curMaskAxIm).scaled(321, 301)
-        )  # displaying QPixmap in the QLabels
-        self.axialPlane.setPixmap(
-            QPixmap.fromImage(self.qImgAx).scaled(321, 301)
-        )  # otherwise, would just display the normal unmodified q_img
+            pmapAxPIL = qImToPIL(paramapAxIm)
+            self.imAxPIL.paste(pmapAxPIL, mask=pmapAxPIL)
+        else:
+            tempAx = self.maskCoverImg[:, :, self.newZVal, :]  # 2D data for axial
+            tempAx = np.rot90(np.flipud(tempAx), 3)
+            tempAx = np.require(tempAx, np.uint8, "C")
+            maskAxH, maskAxW = tempAx[:, :, 0].shape
+            maskBytesLineAx, _ = tempAx[:, :, 0].strides
+
+            curMaskAxIm = QImage(tempAx, maskAxW, maskAxH, maskBytesLineAx, QImage.Format_ARGB32)
+
+            maskAx = qImToPIL(curMaskAxIm)
+            self.imAxPIL.paste(maskAx, mask=maskAx)
+
+        self.pixmapAx = QPixmap.fromImage(ImageQt(self.imAxPIL))
+        self.axialPlane.setPixmap(self.pixmapAx.scaled(
+            self.axialPlane.width(), self.axialPlane.height(), Qt.KeepAspectRatio))
 
     def changeSagSlices(self):
         self.sagittalFrameNum.setText(str(self.newXVal + 1))
 
-        self.data2dSag = self.data4dImg[
-            self.newXVal, :, :, self.curSliceIndex
-        ]  # , self.curSliceIndex
-        self.data2dSag = np.flipud(self.data2dSag)  # flipud
-        self.data2dSag = np.rot90(self.data2dSag, 2)  # rotate
-        self.data2dSag = np.fliplr(self.data2dSag)
-        self.data2dSag = np.require(self.data2dSag, np.uint8, "C")
+        data2dSag = self.data4dImg[self.newXVal, :, :, self.curSliceIndex]
+        data2dSag = np.require(data2dSag, np.uint8, "C")
+        heightSag, widthSag = data2dSag.shape  # getting height and width for each plane
+        bytesLineSag, _ = data2dSag.strides
 
-        self.bytesLineSag, _ = self.data2dSag.strides
-        self.qImgSag = QImage(
-            self.data2dSag,
-            self.widthSag,
-            self.heightSag,
-            self.bytesLineSag,
-            QImage.Format_Grayscale8,
-        )
-
-        tempSag = self.maskCoverImg[self.newXVal, :, :, :]  # 2D data for sagittal
-        tempSag = np.flipud(tempSag)  # flipud
-        tempSag = np.rot90(tempSag, 2)  # rotate ccw 180
-        tempSag = np.fliplr(tempSag)
-        tempSag = np.require(tempSag, np.uint8, "C")
-
-        self.curMaskSagIm = QImage(
-            tempSag,
-            self.maskSagW,
-            self.maskSagH,
-            self.maskBytesLineSag,
-            QImage.Format_ARGB32,
-        )
+        qImgSag = QImage(data2dSag, widthSag, heightSag, bytesLineSag, QImage.Format_Grayscale8)
+        qImgSag = qImgSag.convertToFormat(QImage.Format_ARGB32)
+        self.imSagPIL = qImToPIL(qImgSag)
 
         if self.masterParamap is not None and self.cmap is not None:
             paramapSag = self.paramap[self.newXVal, :, :, :]
-            paramapSag = np.flipud(paramapSag)
-            paramapSag = np.rot90(paramapSag, 2)
-            paramapSag = np.fliplr(paramapSag)
             paramapSag = np.require(paramapSag, np.uint8, "C")
 
             bytesLineSagParamap, _ = paramapSag[:, :, 0].strides
-            paramapSagIm = QImage(
-                paramapSag,
-                paramapSag.shape[1],
-                paramapSag.shape[0],
-                bytesLineSagParamap,
-                QImage.Format_ARGB32,
-            )
-            self.paramapLayerSag.setPixmap(
-                QPixmap.fromImage(paramapSagIm).scaled(321, 301)
-            )
+            paramapSagIm = QImage(paramapSag, paramapSag.shape[1], paramapSag.shape[0], bytesLineSagParamap, QImage.Format_ARGB32)
 
-        self.maskLayerSag.setPixmap(
-            QPixmap.fromImage(self.curMaskSagIm).scaled(321, 301)
-        )
-        self.sagPlane.setPixmap(QPixmap.fromImage(self.qImgSag).scaled(321, 301))
+            pmapSagPIL = qImToPIL(paramapSagIm)
+            self.imSagPIL.paste(pmapSagPIL, mask=pmapSagPIL)
+        else:
+            tempSag = self.maskCoverImg[self.newXVal, :, :, :]
+            tempSag = np.require(tempSag, np.uint8, "C")
+            maskSagH, maskSagW = tempSag[:, :, 0].shape
+            maskBytesLineSag, _ = tempSag[:, :, 0].strides
+
+            curMaskSagIm = QImage(tempSag, maskSagW, maskSagH, maskBytesLineSag, QImage.Format_ARGB32)
+
+            maskSag = qImToPIL(curMaskSagIm)
+            self.imSagPIL.paste(maskSag, mask=maskSag)
+
+        self.pixmapSag = QPixmap.fromImage(ImageQt(self.imSagPIL))
+        self.sagPlane.setPixmap(self.pixmapSag.scaled(
+            self.sagPlane.width(), self.sagPlane.height(), Qt.KeepAspectRatio))
 
     def changeCorSlices(self):
         self.coronalFrameNum.setText(str(self.newYVal + 1))
 
-        self.data2dCor = self.data4dImg[
-            :, self.newYVal, :, self.curSliceIndex
-        ]  # , self.curSliceIndex
-        self.data2dCor = np.rot90(self.data2dCor, 1)  # rotate
-        self.data2dCor = np.flipud(self.data2dCor)  # flipud
-        self.data2dCor = np.require(self.data2dCor, np.uint8, "C")
+        data2dCor = self.data4dImg[:, self.newYVal, :, self.curSliceIndex]
+        data2dCor = np.fliplr(np.rot90(data2dCor, 3))
+        data2dCor = np.require(data2dCor, np.uint8, "C")
+        heightCor, widthCor = data2dCor.shape  # getting height and width for each plane
+        bytesLineCor, _ = data2dCor.strides
 
-        self.bytesLineCor, _ = self.data2dCor.strides
-        self.qImgCor = QImage(
-            self.data2dCor,
-            self.widthCor,
-            self.heightCor,
-            self.bytesLineCor,
-            QImage.Format_Grayscale8,
-        )
-
-        tempCor = self.maskCoverImg[:, self.newYVal, :, :]  # 2D data for coronal
-        tempCor = np.rot90(tempCor, 1)  # rotate ccw 90
-        tempCor = np.flipud(tempCor)  # flipud
-        tempCor = np.require(tempCor, np.uint8, "C")
-
-        self.curMaskCorIm = QImage(
-            tempCor,
-            self.maskCorW,
-            self.maskCorH,
-            self.maskBytesLineCor,
-            QImage.Format_ARGB32,
-        )
+        qImgCor = QImage(data2dCor, widthCor, heightCor, bytesLineCor, QImage.Format_Grayscale8)
+        qImgCor = qImgCor.convertToFormat(QImage.Format_ARGB32)
+        self.imCorPIL = qImToPIL(qImgCor)
 
         if self.masterParamap is not None and self.cmap is not None:
             paramapCor = self.paramap[:, self.newYVal, :, :]
-            paramapCor = np.rot90(paramapCor, 1)
-            paramapCor = np.flipud(paramapCor)
+            paramapCor = np.fliplr(np.rot90(tempCor, 3))
             paramapCor = np.require(paramapCor, np.uint8, "C")
 
             bytesLineCorParamap, _ = paramapCor[:, :, 0].strides
-            paramapCorIm = QImage(
-                paramapCor,
-                paramapCor.shape[1],
-                paramapCor.shape[0],
-                bytesLineCorParamap,
-                QImage.Format_ARGB32,
-            )
-            self.paramapLayerCor.setPixmap(
-                QPixmap.fromImage(paramapCorIm).scaled(321, 301)
-            )
+            paramapCorIm = QImage(paramapCor, paramapCor.shape[1], paramapCor.shape[0], bytesLineCorParamap, QImage.Format_ARGB32)
 
-        self.maskLayerCor.setPixmap(
-            QPixmap.fromImage(self.curMaskCorIm).scaled(321, 301)
-        )
-        self.corPlane.setPixmap(QPixmap.fromImage(self.qImgCor).scaled(321, 301))
+            pmapCorPIL = qImToPIL(paramapCorIm)
+            self.imCorPIL.paste(pmapCorPIL, mask=pmapCorPIL)
+        else:
+            tempCor = self.maskCoverImg[:, self.newYVal, :, :] 
+            tempCor = np.fliplr(np.rot90(tempCor, 3))
+            tempCor = np.require(tempCor, np.uint8, "C")
+            maskCorH, maskCorW = tempCor[:, :, 0].shape
+            maskBytesLineCor, _ = tempCor[:, :, 0].strides
+
+            curMaskCorIm = QImage(tempCor, maskCorW, maskCorH, maskBytesLineCor, QImage.Format_ARGB32)
+
+            maskCor = qImToPIL(curMaskCorIm)
+            self.imCorPIL.paste(maskCor, mask=maskCor)
+
+        self.pixmapCor = QPixmap.fromImage(ImageQt(self.imCorPIL))
+        self.corPlane.setPixmap(self.pixmapCor.scaled(
+            self.corPlane.width(), self.corPlane.height(), Qt.KeepAspectRatio))
 

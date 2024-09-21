@@ -15,6 +15,7 @@ class ExportDataGUI(Ui_exportData, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.setLayout(self.fullScreenLayout)
 
         if system == "Windows":
             self.imageSelectionLabelSidebar.setStyleSheet(
@@ -80,23 +81,9 @@ class ExportDataGUI(Ui_exportData, QWidget):
             }"""
             )
 
-        self.newFolderPathInput.setHidden(True)
-        self.newFileNameInput.setHidden(True)
-        self.newFolderPathLabel.setHidden(True)
-        self.newFileNameLabel.setHidden(True)
-        self.chooseAppendFileButton.setHidden(True)
-        self.chooseNewFolderButton.setHidden(True)
-        self.appendFileButton.setHidden(True)
-        self.createNewFileButton.setHidden(True)
-        self.appendFileLabel.setHidden(True)
-        self.appendFilePath.setHidden(True)
-        self.clearAppendFileButton.setHidden(True)
-        self.clearNewFolderButton.setHidden(True)
-        self.appendFileBackButton.setHidden(True)
-        self.newFileBackButton.setHidden(True)
-        self.fileNameErrorLabel.setHidden(True)
-        self.fileNameWarningLabel.setHidden(True)
-        self.dataSavedSuccessfullyLabel.setHidden(True)
+        self.hideAppendToFileLayout()
+        self.hideNewFileLayout()
+        self.dataSavedSuccessfullyLabel.hide()
 
         self.dataFrame = None
         self.lastGui = None
@@ -112,6 +99,43 @@ class ExportDataGUI(Ui_exportData, QWidget):
         self.chooseAppendFileButton.clicked.connect(self.selectExistingFile)
         self.clearNewFolderButton.clicked.connect(self.clearNewFolder)
         self.clearAppendFileButton.clicked.connect(self.clearNewFile)
+
+    def hideApproachSelectionLayout(self):
+        self.approachSelectionLayout.setContentsMargins(0, 0, 0, 0)
+        self.selectDataLabel.hide(); self.newFileOptionButton.hide()
+        self.appendFileOptionButton.hide()
+
+    def showApproachSelectionLayout(self):
+        self.approachSelectionLayout.setContentsMargins(30, 0, 30, 200)
+        self.selectDataLabel.show(); self.newFileOptionButton.show()
+        self.appendFileOptionButton.show()
+    
+    def hideAppendToFileLayout(self):
+        self.appendFileHeading.hide(); self.appendFileLabel.hide()
+        self.appendFilePath.hide(); self.chooseAppendFileButton.hide()
+        self.clearAppendFileButton.hide(); self.appendFileButton.hide()
+        self.appendFileBackButton.hide()
+
+    def showAppendToFileLayout(self):
+        self.appendFileHeading.show(); self.appendFileLabel.show()
+        self.appendFilePath.show(); self.chooseAppendFileButton.show()
+        self.clearAppendFileButton.show(); self.appendFileButton.show()
+        self.appendFileBackButton.show()
+
+    def hideNewFileLayout(self):
+        self.newFileHeading.hide(); self.newFolderPathLabel.hide()
+        self.newFolderPathInput.hide(); self.chooseNewFolderButton.hide()
+        self.clearNewFolderButton.hide(); self.newFileNameLabel.hide()
+        self.newFileNameInput.hide(); self.fileNameWarningLabel.hide()
+        self.fileNameErrorLabel.hide(); self.createNewFileButton.hide()
+        self.newFileBackButton.hide()
+
+    def showNewFileLayout(self):
+        self.newFileHeading.show(); self.newFolderPathLabel.show()
+        self.newFolderPathInput.show(); self.chooseNewFolderButton.show()
+        self.clearNewFolderButton.show(); self.newFileNameLabel.show()
+        self.newFileNameInput.show(); self.fileNameWarningLabel.show()
+        self.createNewFileButton.show(); self.newFileBackButton.show()
 
     def clearNewFolder(self):
         self.newFolderPathInput.clear()
@@ -138,26 +162,9 @@ class ExportDataGUI(Ui_exportData, QWidget):
             self.appendFilePath.setText(fileName)
 
     def dataSavedSuccessfully(self):
-        self.dataSavedSuccessfullyLabel.setHidden(False)
-        self.newFolderPathInput.setHidden(True)
-        self.newFileNameInput.setHidden(True)
-        self.newFolderPathLabel.setHidden(True)
-        self.newFileNameLabel.setHidden(True)
-        self.chooseAppendFileButton.setHidden(True)
-        self.chooseNewFolderButton.setHidden(True)
-        self.appendFileButton.setHidden(True)
-        self.createNewFileButton.setHidden(True)
-        self.appendFileLabel.setHidden(True)
-        self.appendFilePath.setHidden(True)
-        self.clearAppendFileButton.setHidden(True)
-        self.clearNewFolderButton.setHidden(True)
-        self.appendFileBackButton.setHidden(True)
-        self.newFileBackButton.setHidden(True)
-        self.fileNameErrorLabel.setHidden(True)
-        self.fileNameWarningLabel.setHidden(True)
-        self.appendFileOptionButton.setHidden(True)
-        self.newFileOptionButton.setHidden(True)
-        self.selectDataLabel.setHidden(True)
+        self.hideAppendToFileLayout()
+        self.hideNewFileLayout()
+        self.dataSavedSuccessfullyLabel.show()
 
     def createNewFile(self):
         if os.path.exists(self.newFolderPathInput.text()):
@@ -166,8 +173,7 @@ class ExportDataGUI(Ui_exportData, QWidget):
                 and (self.newFileNameInput.text() != ".xlsx")
                 and (not bool(re.search(r"\s", self.newFileNameInput.text())))
             ):
-                self.fileNameWarningLabel.setHidden(True)
-                self.fileNameErrorLabel.setHidden(False)
+                self.fileNameErrorLabel.show()
                 return
             try:
                 wb = Workbook()
@@ -205,59 +211,25 @@ class ExportDataGUI(Ui_exportData, QWidget):
                 print(str(e))
 
     def backToAnalysis(self):
-        self.lastGui.dataFrame = self.dataFrame
         self.lastGui.show()
+        self.lastGui.resize(self.size())
         self.hide()
 
     def newFileOptionSelected(self):
-        self.chooseNewFolderButton.setHidden(False)
-        self.newFolderPathInput.setHidden(False)
-        self.newFolderPathLabel.setHidden(False)
-        self.clearNewFolderButton.setHidden(False)
-        self.chooseNewFolderButton.setHidden(False)
-        self.newFileNameInput.setHidden(False)
-        self.newFileNameLabel.setHidden(False)
-        self.newFileBackButton.setHidden(False)
-        self.createNewFileButton.setHidden(False)
-        self.fileNameWarningLabel.setHidden(False)
-        self.appendFileOptionButton.setHidden(True)
-        self.newFileOptionButton.setHidden(True)
+        self.hideApproachSelectionLayout()
+        self.showNewFileLayout()
 
     def backFromNewFileOption(self):
-        self.chooseNewFolderButton.setHidden(True)
-        self.newFolderPathInput.setHidden(True)
-        self.newFolderPathLabel.setHidden(True)
-        self.clearNewFolderButton.setHidden(True)
-        self.chooseNewFolderButton.setHidden(True)
-        self.newFileNameInput.setHidden(True)
-        self.newFileNameLabel.setHidden(True)
-        self.createNewFileButton.setHidden(True)
-        self.newFileBackButton.setHidden(True)
-        self.fileNameWarningLabel.setHidden(True)
-        self.fileNameErrorLabel.setHidden(True)
-        self.appendFileOptionButton.setHidden(False)
-        self.newFileOptionButton.setHidden(False)
+        self.hideNewFileLayout()
+        self.showApproachSelectionLayout()
 
     def appendOptionSelected(self):
-        self.chooseAppendFileButton.setHidden(False)
-        self.appendFileButton.setHidden(False)
-        self.appendFileLabel.setHidden(False)
-        self.appendFilePath.setHidden(False)
-        self.clearAppendFileButton.setHidden(False)
-        self.appendFileBackButton.setHidden(False)
-        self.appendFileOptionButton.setHidden(True)
-        self.newFileOptionButton.setHidden(True)
+        self.hideApproachSelectionLayout()
+        self.showAppendToFileLayout()
 
     def backFromAppendOption(self):
-        self.chooseAppendFileButton.setHidden(True)
-        self.appendFileButton.setHidden(True)
-        self.appendFileLabel.setHidden(True)
-        self.appendFilePath.setHidden(True)
-        self.clearAppendFileButton.setHidden(True)
-        self.appendFileBackButton.setHidden(True)
-        self.appendFileOptionButton.setHidden(False)
-        self.newFileOptionButton.setHidden(False)
-
+        self.hideAppendToFileLayout()
+        self.showApproachSelectionLayout()
 
 if __name__ == "__main__":
     import sys
