@@ -186,10 +186,10 @@ def readFileImg(Info, filePath):
     bmode, iqData, Info.rxFrequency, Info.numSamplesDrOut, decimationFactor = readIQ(filePath)
     if Info.numSamplesDrOut == 1400: #Preset 1
         Info.depth = 150 #mm
-        print("Preset 1 found!")
+        # print("Preset 1 found!")
     elif Info.numSamplesDrOut == 1496: #Preset 2
         Info.depth = 200 #mm
-        print("Preset 2 found!")
+        # print("Preset 2 found!")
     else:
         print("ERROR: No preset found!")
         exit()

@@ -686,8 +686,8 @@ def parseRF(filepath, readOffset, readSize) -> Rfdata:
         fn = str('"'+filepath+'"') # for command line input
 
         if system == 'Windows':
-            os.system("Parsers\philips_rf_parser.exe {0} {1} {2} partA".format(fn, numClumps, (totalHeaderSize+readOffset)))
-            os.system("Parsers\philips_rf_parser.exe {0} {1} {2} partB".format(fn, numClumps, (totalHeaderSize+readOffset)))
+            os.system("Parsers\\philips_rf_parser.exe {0} {1} {2} partA".format(fn, numClumps, (totalHeaderSize+readOffset)))
+            os.system("Parsers\\philips_rf_parser.exe {0} {1} {2} partB".format(fn, numClumps, (totalHeaderSize+readOffset)))
         else:
             Path.mkdir(Path("imRois"), exist_ok=True, parents=True)
             os.system("docker run -d -it --rm --name qus-parser-container --mount type=bind,source=\"$(pwd)\"/imROIs,target=/shared qus-parser")
