@@ -653,27 +653,16 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
     def moveToExport(self):
         del self.exportDataGUI
         self.exportDataGUI = ExportDataGUI()
-        dataFrame = pd.DataFrame(
-            columns=[
-                "Patient",
-                "Area Under Curve (AUC)",
-                "Peak Enhancement (PE)",
-                "Time to Peak (TP)",
-                "Mean Transit Time (MTT)",
-                "TMPPV",
-                "VOI Volume (mm^3)",
-            ]
-        )
         curData = {
-                "Patient": self.imagePathInput.text().split("_")[0],
-                "Area Under Curve (AUC)": self.auc,
-                "Peak Enhancement (PE)": self.pe,
-                "Time to Peak (TP)": self.tp,
-                "Mean Transit Time (MTT)": self.mtt,
-                "TMPPV": self.normFact,
-                "VOI Volume (mm^3)": self.voxelScale,
+                "Patient": [self.imagePathInput.text().split("_")[0]],
+                "Area Under Curve (AUC)": [self.auc],
+                "Peak Enhancement (PE)": [self.pe],
+                "Time to Peak (TP)": [self.tp],
+                "Mean Transit Time (MTT)": [self.mtt],
+                "TMPPV": [self.normFact],
+                "VOI Volume (mm^3)": [self.voxelScale],
             }
-        self.exportDataGUI.dataFrame = dataFrame.append(curData, ignore_index=True)
+        self.exportDataGUI.dataFrame = pd.DataFrame.from_dict(curData)
         self.exportDataGUI.lastGui = self
         self.exportDataGUI.setFilenameDisplays(self.imagePathInput.text())
         self.exportDataGUI.show()
