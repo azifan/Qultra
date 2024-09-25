@@ -17,7 +17,7 @@ Notably, QuantUS addresses shortcomings in existing state-of-the-art tools by su
 
 * [Docker](docker.com/products/docker-desktop/) (only required for Philips RF parser, which is not currently supported)
 * [Python](https://www.python.org/downloads/)
-* [Conda] (https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
+* [Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
 
 ## Environment
 
