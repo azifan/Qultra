@@ -16,26 +16,41 @@ Notably, QuantUS addresses shortcomings in existing state-of-the-art tools by su
 ## Requirements
 
 * [Docker](docker.com/products/docker-desktop/) (only required for Philips RF parser, which is not currently supported)
-* [Python3.9](https://www.python.org/downloads/)
+* [Python](https://www.python.org/downloads/)
+* [Conda] (https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
 
-## Building
+## Environment
 
-### Mac
+### Conda (preferred)
+
+Once you have Conda installed on your machine (Miniconda and Anaconda Distribution each suffice), use `env.yml` to create a conda-enabled virtual environment. This can be completed using the following commands:
+
+```shell
+git clone https://github.com/TUL-Dev/QuantUS.git
+cd QuantUS
+conda env create -f env.yml
+```
+
+From here, this environment can be activated using the `conda activate QuantUS-env` command.
+
+### VirtualEnv (deprecated)
+
+Deprecated but continued for historic purposes, this environment uses `pip` and the `virtualenv` Python library to create a Pip-enabled virtual environment. This can be completed using the following commands:
 
 ```shell
 git clone https://github.com/TUL-Dev/QuantUS.git
 cd QuantUS
 pip install --upgrade pip
-python3.9 -m pip install virtualenv
+python -m pip install virtualenv
 virtualenv --python="python3.9" venv
-source venv/bin/activate
+source venv/bin/activate # Unix
+call venv\bin\activate.bat # Windows
 pip install -r requirements.txt
-chmod +x saveQt.sh
-./saveQt.sh
-deactivate
 ```
 
-#### Troubleshooting
+Following this example, this environment can be accessed via the `source venv/bin/activate` command from the repository directory.
+
+#### Troubleshooting for Mac
 
 To run these commands, make sure you have [HomeBrew](https://brew.sh/) installed.
 
@@ -53,22 +68,21 @@ pip install pyqt5==5.15.9 --config-settings --confirm-license= --verbose
 
 If an error persists after running `python main.py`, try `export QT_QPA_PLATFORM_PLUGIN_PATH=/opt/homebrew/Cellar/qt@5/5.15.13_1/plugins`.
 
-### Windows
+## Building
+
+After configuring a Python virtual environment, finish preparing QuantUS to be run using the following commands:
 
 ```shell
-git clone https://github.com/TUL-Dev/QuantUS.git
-cd QuantUS
-pip install --upgrade pip
-python3.9 -m pip install virtualenv
-virtualenv --python="python3.9" venv
-call venv\scripts\activate.bat
-pip install -r requirements.txt
-ren saveQt.sh saveQt.bat
-.\saveQt.bat
-deactivate
+# Using Python virtual env
+chmod +x saveQt.sh # Mac
+./saveQt.sh # Mac
+ren saveQt.sh saveQt.bat # Windows
+.\saveQt.bat # Windows
 ```
 
-From here, compile Parsers\philips_rf_parser.c into Parsers\philips_rf_parser executable using Windows C compiler of choice.
+### Extra step for Windows
+
+To finish preparing QuantUS to be run, to support the Philips RF parser, compile `Parsers\philips_rf_parser.c` into a `Parsers\philips_rf_parser` executable using Windows C compiler of choice.
 
 ## Running
 
