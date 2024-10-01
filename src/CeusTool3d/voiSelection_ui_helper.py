@@ -121,14 +121,14 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.bmode4dImg = None
         self.curSliceIndex = 0
         self.curAlpha = 255
-        self.curPointsPlottedX = []
-        self.curPointsPlottedY = []
-        self.pointsPlotted = []
+        self.curPointsPlottedX = []; self.curPointsPlottedY = []
+        self.pointsPlotted = []; self.negPointsPlotted = []
         self.planesDrawn = []
         self.painted = "none"
         self.lastGui = None
         self.saveVoiGUI = None
         self.timeconst = None
+        self.drawingNeg = False
 
         self.ticAnalysisGui = None
         self.loadingGUI = InterpolationLoadingGUI()
@@ -140,6 +140,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.voiAlphaStatus.setValue(255)
         self.voiAlphaSpinBox.setValue(255)
 
+        self.drawNegVoiButton.clicked.connect(self.startNegDraw)
         self.drawNewVoiButton.clicked.connect(self.drawNewVoi)
         self.backFromDrawButton.clicked.connect(self.backFromDraw)
         self.loadVoiButton.clicked.connect(self.loadVoi)
@@ -213,7 +214,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         maskPoints = np.transpose(maskPoints)
         for point in maskPoints:
             self.maskCoverImg[point[0], point[1], point[2]] = [0, 0, 255, int(self.curAlpha)]
-            self.pointsPlotted.append((point[0], point[1], point[2]))
+        
+        self.pointsPlotted = [np.transpose(np.where(self.maskCoverImg[:,:,:,3] == 255))]
         self.curFrameIndex = maskPoints[0, 0]
 
         self.hideVoiApproachLayout()
@@ -251,16 +253,18 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         else:
             self.curSliceSpinBox.setValue(curTime-1)
 
+    def startNegDraw(self):
+        self.negPointsPlotted = []; self.planesDrawn = []; self.drawingNeg = True
+        self.voiAlphaStatus.setValue(255); self.voiAlphaSpinBox.setValue(255)
+        self.showVoiAlphaLayout(); self.hideVoiDecisionLayout()
+        self.showVoiApproachLayout(); self.updateCrosshairs()
+
     def restartVoi(self):
-        self.pointsPlotted = []
-        self.planesDrawn = []
-        self.maskCoverImg.fill(0)
-        self.voiAlphaStatus.setValue(255)
-        self.voiAlphaSpinBox.setValue(255)
-        self.hideVoiAlphaLayout()
-        self.hideVoiDecisionLayout()
-        self.showVoiApproachLayout()
-        self.updateCrosshairs()
+        self.pointsPlotted = []; self.negPointsPlotted = []; self.drawingNeg = False
+        self.planesDrawn = []; self.maskCoverImg.fill(0)
+        self.voiAlphaStatus.setValue(255); self.voiAlphaSpinBox.setValue(255)
+        self.hideVoiAlphaLayout(); self.hideVoiDecisionLayout()
+        self.showVoiApproachLayout(); self.updateCrosshairs()
         self.backFromDraw()
 
     def computeTic(self):
@@ -353,12 +357,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.voiAlphaSpinBoxChanged = False
         self.voiAlphaStatus.setValue(self.curAlpha)
         for i in range(len(self.pointsPlotted)):
-            self.maskCoverImg[
-                self.pointsPlotted[i][0],
-                self.pointsPlotted[i][1],
-                self.pointsPlotted[i][2],
-                3,
-            ] = self.curAlpha
+            for j in range(len(self.pointsPlotted[i])):
+                self.maskCoverImg[
+                    self.pointsPlotted[i][j][0],
+                    self.pointsPlotted[i][j][1],
+                    self.pointsPlotted[i][j][2],
+                    3,
+                ] = self.curAlpha
         self.updateCrosshairs()
 
     def toggleIms(self):
@@ -441,7 +446,10 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                 self.painted = "ax"
             if self.painted == "ax":
                 self.axCoordChanged(pos)
-                self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
+                if self.drawingNeg:
+                    self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 255, 0, int(self.curAlpha)]
+                else:
+                    self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
                 self.curPointsPlottedX.append(self.newXVal); self.curPointsPlottedY.append(self.newYVal)
                 self.updateCrosshairs()
         elif not self.drawRoiButton.isHidden() and self.painted == "ax":
@@ -467,7 +475,10 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                 self.painted = "sag"
             if self.painted == "sag":
                 self.sagCoordChanged(pos)
-                self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
+                if self.drawingNeg:
+                    self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 255, 0, int(self.curAlpha)]
+                else:
+                    self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
                 self.curPointsPlottedX.append(self.newZVal); self.curPointsPlottedY.append(self.newYVal)
                 self.updateCrosshairs()
         elif not self.drawRoiButton.isHidden() and self.painted == "sag":
@@ -493,7 +504,10 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                 self.painted = "cor"
             if self.painted == "cor":
                 self.corCoordChanged(pos)
-                self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
+                if self.drawingNeg:
+                    self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 255, 0, int(self.curAlpha)]
+                else:
+                    self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
                 self.curPointsPlottedX.append(self.newXVal); self.curPointsPlottedY.append(self.newZVal)
                 self.updateCrosshairs()
         elif not self.drawRoiButton.isHidden() and self.painted == "cor":
@@ -546,6 +560,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.restartVoiButton.hide()
         self.saveVoiButton.hide()
         self.continueButton.hide()
+        self.drawNegVoiButton.hide()
 
     def hideVoiApproachLayout(self):
         self.drawNewVoiButton.hide()
@@ -570,6 +585,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.restartVoiButton.show()
         self.saveVoiButton.show()
         self.continueButton.show()
+        self.drawNegVoiButton.show()
 
     def showVoiApproachLayout(self):
         self.drawNewVoiButton.show()
@@ -694,17 +710,20 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                 elif self.painted == "cor":
                     if not len(newROI) or newROI[-1] != (int(x[i]), self.newYVal, int(y[i])):
                         newROI.append((int(x[i]), self.newYVal, int(y[i])))
-            self.pointsPlotted.append(newROI)
+            if not self.drawingNeg:
+                self.pointsPlotted.append(newROI)
             for i in range(len(self.pointsPlotted)):
                 for j in range(len(self.pointsPlotted[i])):
-                    self.maskCoverImg[
-                        self.pointsPlotted[i][j][0],
-                        self.pointsPlotted[i][j][1],
-                        self.pointsPlotted[i][j][2],
+                    self.maskCoverImg[self.pointsPlotted[i][j][0], self.pointsPlotted[i][j][1], self.pointsPlotted[i][j][2],
                     ] = [0, 0, 255, int(self.curAlpha)]
+            if self.drawingNeg:
+                self.negPointsPlotted.append(newROI)
+                for i in range(len(self.negPointsPlotted)):
+                    for j in range(len(self.negPointsPlotted[i])):
+                        self.maskCoverImg[self.negPointsPlotted[i][j][0], self.negPointsPlotted[i][j][1], self.negPointsPlotted[i][j][2],
+                        ] = [0, 255, 0, int(self.curAlpha)]
             self.updateCrosshairs()
-            self.curPointsPlottedX = []
-            self.curPointsPlottedY = []
+            self.curPointsPlottedX = []; self.curPointsPlottedY = []
             self.planesDrawn.append(self.painted)
             self.painted = "none"
             self.curROIDrawn = True
@@ -720,30 +739,58 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.maskCoverImg.fill(0)
             for i in range(len(self.pointsPlotted)):
                 for j in range(len(self.pointsPlotted[i])):
-                    self.maskCoverImg[
-                        self.pointsPlotted[i][j][0],
-                        self.pointsPlotted[i][j][1],
-                        self.pointsPlotted[i][j][2],
-                    ] = [0, 0, 255, int(self.curAlpha)]
+                    if self.drawingNeg:
+                        self.maskCoverImg[
+                            self.pointsPlotted[i][j][0],
+                            self.pointsPlotted[i][j][1],
+                            self.pointsPlotted[i][j][2],
+                        ] = [0, 255, 0, int(self.curAlpha)]
+                    else:
+                        self.maskCoverImg[
+                            self.pointsPlotted[i][j][0],
+                            self.pointsPlotted[i][j][1],
+                            self.pointsPlotted[i][j][2],
+                        ] = [0, 0, 255, int(self.curAlpha)]
             for i in range(len(self.curPointsPlottedX)):
                 if self.painted == "ax":
-                    self.maskCoverImg[
-                        int(self.curPointsPlottedX[i]),
-                        int(self.curPointsPlottedY[i]),
-                        self.newZVal,
-                    ] = [0, 0, 255, int(self.curAlpha)]
+                    if self.drawingNeg:
+                        self.maskCoverImg[
+                            int(self.curPointsPlottedX[i]),
+                            int(self.curPointsPlottedY[i]),
+                            self.newZVal,
+                        ] = [0, 255, 0, int(self.curAlpha)]
+                    else:
+                        self.maskCoverImg[
+                            int(self.curPointsPlottedX[i]),
+                            int(self.curPointsPlottedY[i]),
+                            self.newZVal,
+                        ] = [0, 0, 255, int(self.curAlpha)]
                 elif self.painted == "sag":
-                    self.maskCoverImg[
-                        self.newXVal,
-                        int(self.curPointsPlottedY[i]),
-                        int(self.curPointsPlottedX[i]),
-                    ] = [0, 0, 255, int(self.curAlpha)]
+                    if self.drawingNeg:
+                        self.maskCoverImg[
+                            self.newXVal,
+                            int(self.curPointsPlottedY[i]),
+                            int(self.curPointsPlottedX[i]),
+                        ] = [0, 255, 0, int(self.curAlpha)]
+                    else:
+                        self.maskCoverImg[
+                            self.newXVal,
+                            int(self.curPointsPlottedY[i]),
+                            int(self.curPointsPlottedX[i]),
+                        ] = [0, 0, 255, int(self.curAlpha)]
                 elif self.painted == "cor":
-                    self.maskCoverImg[
-                        int(self.curPointsPlottedX[i]),
-                        self.newYVal,
-                        int(self.curPointsPlottedY[i]),
-                    ] = [0, 0, 255, int(self.curAlpha)]
+                    if self.drawingNeg:
+                        self.maskCoverImg[
+                            int(self.curPointsPlottedX[i]),
+                            self.newYVal,
+                            int(self.curPointsPlottedY[i]),
+                        ] = [0, 255, 0, int(self.curAlpha)]
+                    else:
+                        self.maskCoverImg[
+                            int(self.curPointsPlottedX[i]),
+                            self.newYVal,
+                            int(self.curPointsPlottedY[i]),
+                        ] = [0, 0, 255, int(self.curAlpha)]
 
             self.updateCrosshairs()
         if not len(self.curPointsPlottedX):
@@ -819,40 +866,40 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     def complete3dInterpolation(self):
         if len(self.planesDrawn):
+            pointsPlotted = self.negPointsPlotted if self.drawingNeg else self.pointsPlotted
             if len(self.planesDrawn) >= 3:
                 points = calculateSpline3D(
-                    list(chain.from_iterable(self.pointsPlotted))
+                    list(chain.from_iterable(pointsPlotted))
                 )
             elif len(self.planesDrawn) == 2:
+                print("shit")
                 return
             else:
                 points = set()
-                for group in np.array(self.pointsPlotted):
+                for group in np.array(pointsPlotted):
                     for point in group:
                         points.add(tuple(point))
 
-            self.pointsPlotted = []
-            self.maskCoverImg.fill(0)
+            pointsPlotted = []
+            if not self.drawingNeg:
+                self.maskCoverImg.fill(0)
 
             for point in points:
                 if max(self.data4dImg[tuple(point)]) != 0:
-                    self.maskCoverImg[tuple(point)] = [0, 0, 255, int(self.curAlpha)]
-                    self.pointsPlotted.append(tuple(point))
+                    if self.drawingNeg:
+                        self.maskCoverImg[tuple(point)] = [0, 0, 0, 0]
+                    else:
+                        self.maskCoverImg[tuple(point)] = [0, 0, 255, int(self.curAlpha)]
+                    pointsPlotted.append(tuple(point))
             if len(self.pointsPlotted) == 0:
                 print("VOI not in US image.\nDraw new VOI over US image")
                 self.maskCoverImg.fill(0)
                 self.updateCrosshairs()
                 return
             
-            mask = np.zeros(
-                (
-                    self.maskCoverImg.shape[0],
-                    self.maskCoverImg.shape[1],
-                    self.maskCoverImg.shape[2],
-                )
-            )
+            mask = np.zeros((self.maskCoverImg.shape[0], self.maskCoverImg.shape[1], self.maskCoverImg.shape[2]))
 
-            for point in self.pointsPlotted:
+            for point in pointsPlotted:
                 mask[point] = 1
             for i in range(mask.shape[2]):
                 border = np.where(mask[:, :, i] == 1)
@@ -883,8 +930,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                 mask[:, :, i] = binary_fill_holes(mask[:, :, i])
                 maskPoints = np.array(np.where(filledMask > 0))
                 for j in range(len(maskPoints[0])):
-                    self.maskCoverImg[maskPoints[0][j], maskPoints[1][j], i] = [0, 0, 255, int(self.curAlpha)]
-                    self.pointsPlotted.append((maskPoints[0][j], maskPoints[1][j], i))
+                    if self.drawingNeg:
+                        self.maskCoverImg[maskPoints[0][j], maskPoints[1][j], i] = [0]*4
+                    else:
+                        self.maskCoverImg[maskPoints[0][j], maskPoints[1][j], i] = [0, 0, 255, int(self.curAlpha)]
+                        # self.pointsPlotted.append((maskPoints[0][j], maskPoints[1][j], i))
+
+            self.pointsPlotted = [np.transpose(np.where(self.maskCoverImg[:,:,:,3] == 255))]
 
             self.hideDrawVoiLayout()
             self.showVoiDecisionLayout()
@@ -892,7 +944,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.updateCrosshairs()
 
     def voi3dInterpolation(self):
-        if len(self.planesDrawn) and len(self.pointsPlotted) == len(self.planesDrawn):
+        if len(self.planesDrawn):
             self.loadingGUI.show()
             QApplication.processEvents() # quick solution --> not most robust but doesn't affect this use case outside of GIF
             self.complete3dInterpolation()
