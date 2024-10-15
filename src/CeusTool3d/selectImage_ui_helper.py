@@ -97,6 +97,8 @@ class SelectImageGUI_CeusTool3d(Ui_selectImage, QWidget):
         self.bmodePath = ""
         self.timeconst = None
         self.backButton.clicked.connect(self.backToWelcomeScreen)
+        self.pixPerMmSpinBox.setValue(1.2)
+        self.nProcSpinBox.setValue(4)
 
         self.philipsOptionButton.clicked.connect(self.selectPhilipsImageOption)
         self.philipsBackButton.clicked.connect(self.backFromPhilips)
