@@ -19,6 +19,21 @@ from advancedRoi_ui import Ui_advancedRoi
 
 system = platform.system()
 
+import scipy.interpolate as interpolate
+def calculateSpline(xpts, ypts):  # 2D spline interpolation
+    cv = []
+    for i in range(len(xpts)):
+        cv.append([xpts[i], ypts[i]])
+    cv = np.array(cv)
+    if len(xpts) == 2:
+        tck, _ = interpolate.splprep(cv.T, s=0.0, k=1)
+    elif len(xpts) == 3:
+        tck, _ = interpolate.splprep(cv.T, s=0.0, k=2)
+    else:
+        tck, _ = interpolate.splprep(cv.T, s=0.0, k=3)
+    x, y = np.array(interpolate.splev(np.linspace(0, 1, 1000), tck))
+    return x, y
+
 
 class TicAnalysisGUI(Ui_advancedRoi, QWidget):
     def __init__(self):
@@ -37,26 +52,22 @@ class TicAnalysisGUI(Ui_advancedRoi, QWidget):
 
 
 
-        self.func = lambda x: 0.1*x**2
         #get a list of points to fit a spline to as well
         self.N = 10
         self.xmin = 0 
         self.xmax = 10 
-        self.x = np.linspace(self.xmin, self.xmax, self.N)
-        #spline fit
-        self.yvals = self.func(self.x)
-        self.spline = inter.InterpolatedUnivariateSpline(self.x, self.yvals)
-        #figure.subplot.right
+        self.x = [5, 0, -5, 0, 5]
+        self.y = [0, 5, 0, -5, 0]
+        self.xvals, self.yvals = calculateSpline(self.x, self.y)
         mpl.rcParams['figure.subplot.right'] = 0.8
         self.pind = None #active point
         self.epsilon = 5 #max pixel distance
-        self.X = np.arange(0,self.xmax+1,0.1)
-        self.ax.plot(self.X, self.func(self.X), 'k--', label='original')
-        self.l, = self.ax.plot (self.x, self.yvals,color='k',linestyle='none',marker='o',markersize=8)
-        self.m, = self.ax.plot (self.X, self.spline(self.X), 'r-', label='spline')
+        self.ax.plot(self.xvals, self.yvals, 'k--', label='original')
+        self.l = self.ax.scatter(self.x, self.y,color='k',marker='o', zorder=10)
+        self.m, = self.ax.plot (self.xvals, self.yvals, 'r-', label='spline')
         self.ax.set_yscale('linear')
-        self.ax.set_xlim(0, self.xmax)
-        self.ax.set_ylim(0, self.xmax)
+        self.ax.set_xlim(-10, 10)
+        self.ax.set_ylim(-10, 10)
         self.ax.set_xlabel('x')
         self.ax.set_ylabel('y')
         self.ax.grid(True)
@@ -68,19 +79,12 @@ class TicAnalysisGUI(Ui_advancedRoi, QWidget):
 
 
     def updatePlot(self):
-        self.l.set_xdata(self.x)
-        self.l.set_ydata(self.yvals)
-        spline = inter.InterpolatedUnivariateSpline (self.x, self.yvals)
-        self.m.set_ydata(spline(self.X))
+        self.l.remove()
+        self.l = self.ax.scatter(self.x, self.y, color='k', marker='o', zorder=10)
+        self.xvals, self.yvals = calculateSpline(self.x, self.y)
+        self.m.set_xdata(self.xvals)
+        self.m.set_ydata(self.yvals)
         # redraw canvas while idle
-        self.fig.canvas.draw_idle()
-
-    def reset(self, event):
-        #reset the values
-        yvals = self.func(self.x)
-        spline = inter.InterpolatedUnivariateSpline (self.x, yvals)
-        self.l.set_ydata(yvals)
-        self.m.set_ydata(spline(self.X))
         self.fig.canvas.draw_idle()
 
     def button_press_callback(self, event):
@@ -107,7 +111,7 @@ class TicAnalysisGUI(Ui_advancedRoi, QWidget):
         xy = t.transform([event.x,event.y])
         #print('data x is: {0}; data y is: {1}'.format(xy[0],xy[1]))
         xr = np.reshape(self.x,(np.shape(self.x)[0],1))
-        yr = np.reshape(self.yvals,(np.shape(self.yvals)[0],1))
+        yr = np.reshape(self.y,(np.shape(self.y)[0],1))
         xy_vals = np.append(xr,yr,1)
         xyt = tinv.transform(xy_vals)
         xt, yt = xyt[:, 0], xyt[:, 1]
@@ -131,7 +135,13 @@ class TicAnalysisGUI(Ui_advancedRoi, QWidget):
         if event.button != 1:
             return
         self.x[self.pind] = event.xdata
-        self.yvals[self.pind] = event.ydata 
+        self.y[self.pind] = event.ydata
+        if not self.pind:
+            self.x[-1] = event.xdata
+            self.y[-1] = event.ydata
+        if self.pind == len(self.x) - 1:
+            self.x[0] = event.xdata
+            self.y[0] = event.ydata
         self.updatePlot()
         self.fig.canvas.draw_idle()
 
