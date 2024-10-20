@@ -2,6 +2,7 @@ import os
 import platform
 from pathlib import Path
 from itertools import chain
+from contextlib import suppress
 
 from PIL.ImageQt import ImageQt
 import nibabel as nib
@@ -123,7 +124,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.curSliceIndex = 0
         self.curAlpha = 255
         self.curPointsPlottedX = []; self.curPointsPlottedY = []
-        self.interpolatedPoints = []; self.negInterpolatedPoints = []; self.prevPointsPlotted = []
+        self.interpolatedPoints = []; self.negInterpolatedPoints = []; self.prevInterpolatedPoints = []
         self.planesDrawn = []; self.pointsPlotted = []
         self.painted = "none"; self.paintedSlice = []
         self.lastGui = None
@@ -157,62 +158,56 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.showHideCrossButton.clicked.connect(self.showHideCross)
         self.interpolateVoiButton.clicked.connect(self.voi3dInterpolation)
         self.toggleButton.clicked.connect(self.toggleIms)
-        self.advancedRoiEditAxButton.clicked.connect(self.axAdvancedRoiDraw)
-        self.advancedRoiEditSagButton.clicked.connect(self.sagAdvancedRoiDraw)
-        self.advancedRoiEditCorButton.clicked.connect(self.corAdvancedRoiDraw)
 
     def axAdvancedRoiDraw(self):
-        if len(self.planesDrawn) and self.painted == "none" and "ax" in np.array(self.planesDrawn, dtype=object)[:,0]:
-            axDrawings = np.array([planeDrawn[1] for planeDrawn in self.planesDrawn if planeDrawn[0] == "ax"])
-            drawingZSlices = axDrawings[:,0]
-            closestZIndex = np.argmin(abs(drawingZSlices - self.newZVal))
-            closestAxDrawing = axDrawings[closestZIndex]
+        axDrawings = np.array([planeDrawn[1] for planeDrawn in self.planesDrawn if planeDrawn[0] == "ax"])
+        drawingZSlices = axDrawings[:,0]
+        closestZIndex = np.argmin(abs(drawingZSlices - self.newZVal))
+        closestAxDrawing = axDrawings[closestZIndex]
 
-            planeIdx = [i for i, planeDrawn in enumerate(self.planesDrawn) if planeDrawn[0] == "ax" and np.all(planeDrawn[1] == closestAxDrawing)][0]
-            pointsPlottedX, pointsPlottedY = self.pointsPlotted[planeIdx]
+        planeIdx = [i for i, planeDrawn in enumerate(self.planesDrawn) if planeDrawn[0] == "ax" and np.all(planeDrawn[1] == closestAxDrawing)][0]
+        pointsPlottedX, pointsPlottedY = self.pointsPlotted[planeIdx]
 
-            data2dAx = self.data4dImg[:, :, closestAxDrawing[0], closestAxDrawing[1]]
-            data2dAx = np.rot90(np.flipud(data2dAx), 3)
-            data2dAx = np.require(data2dAx, np.uint8, "C")
-            self.newZVal = closestAxDrawing[0]; 
-            self.curSliceSlider.setValue(closestAxDrawing[1])
-            self.updateCrosshairs()
-            self.startAdvancedRoiDraw(data2dAx, pointsPlottedX, pointsPlottedY, planeIdx)
+        data2dAx = self.data4dImg[:, :, closestAxDrawing[0], closestAxDrawing[1]]
+        data2dAx = np.rot90(np.flipud(data2dAx), 3)
+        data2dAx = np.require(data2dAx, np.uint8, "C")
+        self.newZVal = closestAxDrawing[0]; 
+        self.curSliceSlider.setValue(closestAxDrawing[1])
+        self.updateCrosshairs()
+        self.startAdvancedRoiDraw(data2dAx, pointsPlottedX, pointsPlottedY, planeIdx)
 
     def sagAdvancedRoiDraw(self):
-        if len(self.planesDrawn) and self.painted == "none" and "sag" in np.array(self.planesDrawn, dtype=object)[:,0]:
-            sagDrawings = np.array([planeDrawn[1] for planeDrawn in self.planesDrawn if planeDrawn[0] == "sag"])
-            drawingXSlices = sagDrawings[:,0]
-            closestXIndex = np.argmin(abs(drawingXSlices - self.newXVal))
-            closestSagDrawing = sagDrawings[closestXIndex]
-            
-            planeIdx = [i for i, planeDrawn in enumerate(self.planesDrawn) if planeDrawn[0] == "sag" and np.all(planeDrawn[1] == closestSagDrawing)][0]
-            pointsPlottedX, pointsPlottedY = self.pointsPlotted[planeIdx]
+        sagDrawings = np.array([planeDrawn[1] for planeDrawn in self.planesDrawn if planeDrawn[0] == "sag"])
+        drawingXSlices = sagDrawings[:,0]
+        closestXIndex = np.argmin(abs(drawingXSlices - self.newXVal))
+        closestSagDrawing = sagDrawings[closestXIndex]
+        
+        planeIdx = [i for i, planeDrawn in enumerate(self.planesDrawn) if planeDrawn[0] == "sag" and np.all(planeDrawn[1] == closestSagDrawing)][0]
+        pointsPlottedX, pointsPlottedY = self.pointsPlotted[planeIdx]
 
-            data2dSag = self.data4dImg[closestSagDrawing[0], :, :, closestSagDrawing[1]]
-            data2dSag = np.require(data2dSag, np.uint8, "C")
-            self.newXVal = closestSagDrawing[0]; 
-            self.curSliceSlider.setValue(closestSagDrawing[1]) 
-            self.updateCrosshairs()
-            self.startAdvancedRoiDraw(data2dSag, pointsPlottedX, pointsPlottedY, planeIdx)
+        data2dSag = self.data4dImg[closestSagDrawing[0], :, :, closestSagDrawing[1]]
+        data2dSag = np.require(data2dSag, np.uint8, "C")
+        self.newXVal = closestSagDrawing[0]; 
+        self.curSliceSlider.setValue(closestSagDrawing[1]) 
+        self.updateCrosshairs()
+        self.startAdvancedRoiDraw(data2dSag, pointsPlottedX, pointsPlottedY, planeIdx)
     
     def corAdvancedRoiDraw(self):
-        if len(self.planesDrawn) and self.painted == "none" and "cor" in np.array(self.planesDrawn, dtype=object)[:,0]:
-            corDrawings = np.array([planeDrawn[1] for planeDrawn in self.planesDrawn if planeDrawn[0] == "cor"])
-            drawingYSlices = corDrawings[:,0]
-            closestYIndex = np.argmin(abs(drawingYSlices - self.newYVal))
-            closestCorDrawing = corDrawings[closestYIndex]
-            
-            planeIdx = [i for i, planeDrawn in enumerate(self.planesDrawn) if planeDrawn[0] == "cor" and np.all(planeDrawn[1] == closestCorDrawing)][0]
-            pointsPlottedX, pointsPlottedY = self.pointsPlotted[planeIdx]
+        corDrawings = np.array([planeDrawn[1] for planeDrawn in self.planesDrawn if planeDrawn[0] == "cor"])
+        drawingYSlices = corDrawings[:,0]
+        closestYIndex = np.argmin(abs(drawingYSlices - self.newYVal))
+        closestCorDrawing = corDrawings[closestYIndex]
+        
+        planeIdx = [i for i, planeDrawn in enumerate(self.planesDrawn) if planeDrawn[0] == "cor" and np.all(planeDrawn[1] == closestCorDrawing)][0]
+        pointsPlottedX, pointsPlottedY = self.pointsPlotted[planeIdx]
 
-            data2dCor = self.data4dImg[:, closestCorDrawing[0], :, closestCorDrawing[1]]
-            data2dCor = np.fliplr(np.rot90(data2dCor, 3))
-            data2dCor = np.require(data2dCor, np.uint8, "C")
-            self.newYVal = closestCorDrawing[0]; 
-            self.curSliceSlider.setValue(closestCorDrawing[1]) 
-            self.updateCrosshairs()
-            self.startAdvancedRoiDraw(data2dCor, pointsPlottedX, pointsPlottedY, planeIdx)
+        data2dCor = self.data4dImg[:, closestCorDrawing[0], :, closestCorDrawing[1]]
+        data2dCor = np.fliplr(np.rot90(data2dCor, 3))
+        data2dCor = np.require(data2dCor, np.uint8, "C")
+        self.newYVal = closestCorDrawing[0]; 
+        self.curSliceSlider.setValue(closestCorDrawing[1]) 
+        self.updateCrosshairs()
+        self.startAdvancedRoiDraw(data2dCor, pointsPlottedX, pointsPlottedY, planeIdx)
 
     def startAdvancedRoiDraw(self, image, pointsPlottedX, pointsPlottedY, drawingIdx):
         self.advancedRoiDrawGui.voiSelectionGUI = self
@@ -303,6 +298,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.pointsPlotted = []
         self.maskCoverImg.fill(0)
         self.painted = "none"; self.paintedSlice = []
+        self.advancedRoiEditAxButton.setChecked(False)
+        self.advancedRoiEditSagButton.setChecked(False); self.advancedRoiEditCorButton.setChecked(False)
         self.scrollPaused = False
         self.drawRoiButton.setChecked(False)
         self.updateCrosshairs()
@@ -332,7 +329,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.showVoiApproachLayout(); self.updateCrosshairs()
 
     def restartVoi(self):
-        self.interpolatedPoints = []; self.negInterpolatedPoints = []; self.prevPointsPlotted = []
+        self.interpolatedPoints = []; self.negInterpolatedPoints = []; self.prevInterpolatedPoints = []
         self.planesDrawn = []; self.pointsPlotted = []; self.maskCoverImg.fill(0)
         self.voiAlphaStatus.setValue(255); self.voiAlphaSpinBox.setValue(255)
         self.hideVoiAlphaLayout(); self.hideVoiDecisionLayout()
@@ -601,6 +598,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.updateCrosshairs()
 
     def updateCrosshairs(self):
+        self.updateAdvancedRoiEditButtons()
         self.changeAxialSlices(); self.changeSagSlices(); self.changeCorSlices()
         xCoordAx = int((self.newXVal/self.x) * self.axialPlane.pixmap().width())
         yCoordAx = int((self.newYVal/self.y) * self.axialPlane.pixmap().height())
@@ -807,6 +805,36 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.multiUseRoiButton.setText("Undo Last ROI")
             self.multiUseRoiButton.clicked.disconnect()
             self.multiUseRoiButton.clicked.connect(self.undoLastRoi)
+            self.updateAdvancedRoiEditButtons()
+
+    def updateAdvancedRoiEditButtons(self):
+        if not self.continueButton.isHidden() or not np.amax(self.maskCoverImg): # if 3D VOI interpolation is complete
+            with suppress(TypeError): self.advancedRoiEditAxButton.clicked.disconnect()
+            with suppress(TypeError): self.advancedRoiEditSagButton.clicked.disconnect()
+            with suppress(TypeError): self.advancedRoiEditCorButton.clicked.disconnect()
+            self.advancedRoiEditAxButton.setStyleSheet("color: white; font-size: 16px; background: rgb(255, 37, 14); border-radius: 15px;")
+            self.advancedRoiEditSagButton.setStyleSheet("color: white; font-size: 16px; background: rgb(255, 37, 14); border-radius: 15px;")
+            self.advancedRoiEditCorButton.setStyleSheet("color: white; font-size: 16px; background: rgb(255, 37, 14); border-radius: 15px;")
+            return
+
+        if len(self.planesDrawn) and self.painted == "none" and "ax" in np.array(self.planesDrawn, dtype=object)[:,0]:
+            self.advancedRoiEditAxButton.clicked.connect(self.axAdvancedRoiDraw)
+            self.advancedRoiEditAxButton.setStyleSheet("color: white; font-size: 16px; background: rgb(0, 255, 71); border-radius: 15px;")
+        else:
+            with suppress(TypeError): self.advancedRoiEditAxButton.clicked.disconnect()
+            self.advancedRoiEditAxButton.setStyleSheet("color: white; font-size: 16px; background: rgb(255, 37, 14); border-radius: 15px;")
+        if len(self.planesDrawn) and self.painted == "none" and "sag" in np.array(self.planesDrawn, dtype=object)[:,0]:
+            self.advancedRoiEditSagButton.clicked.connect(self.sagAdvancedRoiDraw)
+            self.advancedRoiEditSagButton.setStyleSheet("color: white; font-size: 16px; background: rgb(0, 255, 71); border-radius: 15px;")
+        else:
+            with suppress(TypeError): self.advancedRoiEditSagButton.clicked.disconnect()
+            self.advancedRoiEditSagButton.setStyleSheet("color: white; font-size: 16px; background: rgb(255, 37, 14); border-radius: 15px;")
+        if len(self.planesDrawn) and self.painted == "none" and "cor" in np.array(self.planesDrawn, dtype=object)[:,0]:
+            self.advancedRoiEditCorButton.clicked.connect(self.corAdvancedRoiDraw)
+            self.advancedRoiEditCorButton.setStyleSheet("color: white; font-size: 16px; background: rgb(0, 255, 71); border-radius: 15px;")
+        else:
+            with suppress(TypeError): self.advancedRoiEditCorButton.clicked.disconnect()
+            self.advancedRoiEditCorButton.setStyleSheet("color: white; font-size: 16px; background: rgb(255, 37, 14); border-radius: 15px;")
 
     def undoLastPoint(self):
         if len(self.curPointsPlottedX) != 0:
@@ -899,9 +927,9 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.hide()
 
     def backToPrevVoi(self):
-        if len(self.prevPointsPlotted):
-            self.interpolatedPoints = self.prevPointsPlotted
-            self.prevPointsPlotted = []
+        if len(self.prevInterpolatedPoints):
+            self.interpolatedPoints = self.prevInterpolatedPoints
+            self.prevInterpolatedPoints = []
             self.backToPrevVoiButton.hide()
             for i in range(len(self.interpolatedPoints)):
                 for j in range(len(self.interpolatedPoints[i])):
@@ -1024,7 +1052,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                         # self.interpolatedPoints.append((maskPoints[0][j], maskPoints[1][j], i))
 
             if self.drawingNeg:
-                self.prevPointsPlotted = self.interpolatedPoints
+                self.prevInterpolatedPoints = self.interpolatedPoints
                 self.backToPrevVoiButton.show()
                 self.drawingNeg = False
                 
