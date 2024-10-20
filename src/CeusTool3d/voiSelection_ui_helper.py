@@ -877,7 +877,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.ticAnalysisGui.timeLine = None
         self.computeTic()
         self.voiAlphaSpinBox.setValue(100)
-        self.ticAnalysisGui.pointsPlotted = self.interpolatedPoints
+        self.ticAnalysisGui.interpolatedPoints = self.interpolatedPoints
         self.ticAnalysisGui.voxelScale = self.voxelScale
         self.ticAnalysisGui.ceus4dImg = self.ceus4dImg
         self.ticAnalysisGui.bmode4dImg = self.bmode4dImg
