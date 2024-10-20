@@ -95,7 +95,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.toggleButton.setCheckable(True)
         self.t0Slider.setValue(0)
 
-        self.data4dImg = None; self.pointsPlotted = None; self.curSliceIndex = None
+        self.data4dImg = None; self.interpolatedPoints = None; self.curSliceIndex = None
         self.newXVal = None; self.newYVal = None; self.newZVal = None
         self.maskCoverImg = None; self.sliceArray = None; self.voxelScale = None
         self.x = None; self.y = None; self.z = None

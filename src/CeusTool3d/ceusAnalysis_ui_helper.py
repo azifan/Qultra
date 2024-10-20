@@ -26,7 +26,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.setupUi(self)
         self.setLayout(self.fullScreenLayout)
 
-        self.lastGui = None; self.pointsPlotted = None
+        self.lastGui = None; self.interpolatedPoints = None
         self.data4dImg = None; self.curSliceIndex = None
         self.newXVal = None; self.newYVal = None; self.newZVal = None
         self.x = None; self.y = None; self.z = None
@@ -36,6 +36,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.paramapPoints = None; self.curParamap = None; self.cmap = None
         self.newData = None; self.exportDataGUI = None
         self.bmode4dImg = None; self.ceus4dImg = None
+        self.legendDisplay = LegendDisplay()
 
         self.hideParamapDisplayLayout(); self.hideTicDisplayLayout()
         self.showResultsViewLayout(); self.navigatingLabel.hide()
@@ -222,19 +223,26 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             self.legendDisplay.ax.tick_params(axis="y", labelsize=7, pad=0.5)
             self.legendDisplay.ax.set_xticks([])
             self.legendDisplay.ax.set_yticks([0, 250, 500, 750, 1000])
+            if not int(((self.maxAuc-self.minAuc) / 2) / 1000):
+                scale = 0
+                self.legendDisplay.legendLabel.setText("Parametric Map\nLegend:")
+            else:
+                scale = len(str(int((self.maxAuc-self.minAuc)/2)))
+                self.legendDisplay.legendLabel.setText(f"Parametric Map\nLegend: (1E{scale})")
+
             self.legendDisplay.ax.set_yticklabels(
                 [
-                    np.round(self.minAuc, decimals=1),
+                    np.round(self.minAuc/(10**scale), decimals=2),
                     np.round(
-                        self.minAuc + ((self.maxAuc - self.minAuc) / 4), decimals=1
+                        (self.minAuc + ((self.maxAuc - self.minAuc) / 4))/(10**scale), decimals=2
                     ),
                     np.round(
-                        self.minAuc + ((self.maxAuc - self.minAuc) / 4), decimals=1
+                        (self.minAuc + ((self.maxAuc - self.minAuc) / 4))/(10**scale), decimals=2
                     ),
                     np.round(
-                        self.minAuc + (3 * (self.maxAuc - self.minAuc) / 4), decimals=1
+                        (self.minAuc + (3 * (self.maxAuc - self.minAuc) / 4))/(10**scale), decimals=2
                     ),
-                    np.round(self.maxAuc, decimals=1),
+                    np.round(self.maxAuc/(10**scale), decimals=2),
                 ]
             )
             self.legendDisplay.figure.subplots_adjust(
@@ -243,7 +251,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             self.legendDisplay.canvas.draw()
             self.legendDisplay.legendFrame.setHidden(False)
 
-            for point in self.pointsPlotted:
+            for point in self.interpolatedPoints:
                 if self.maxAuc == self.minAuc:
                     color = self.cmap[125]
                 else:
@@ -286,6 +294,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 arr, aspect="auto", cmap=new_cmap1, origin="lower"
             )
             self.legendDisplay.ax.tick_params(axis="y", labelsize=7, pad=0.5)
+            self.legendDisplay.legendLabel.setText("Parametric Map\nLegend:")
             self.legendDisplay.ax.set_xticks([])
             self.legendDisplay.ax.set_yticks([0, 250, 500, 750, 1000])
             self.legendDisplay.ax.set_yticklabels(
@@ -307,7 +316,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
             self.cmap = plt.get_cmap("magma").colors
 
-            for point in self.pointsPlotted:
+            for point in self.interpolatedPoints:
                 if self.maxPe == self.minPe:
                     color = self.cmap[125]
                 else:
@@ -357,6 +366,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             self.legendDisplay.ax.imshow(
                 arr, aspect="auto", cmap=new_cmap1, origin="lower"
             )
+            self.legendDisplay.legendLabel.setText("Parametric Map\nLegend:")
             self.legendDisplay.ax.tick_params(axis="y", labelsize=7, pad=0.5)
             self.legendDisplay.ax.set_xticks([])
             self.legendDisplay.ax.set_yticks([0, 250, 500, 750, 1000])
@@ -377,7 +387,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             self.legendDisplay.canvas.draw()
             self.legendDisplay.legendFrame.setHidden(False)
 
-            for point in self.pointsPlotted:
+            for point in self.interpolatedPoints:
                 if self.maxTp == self.minTp:
                     color = self.cmap[125]
                 else:
@@ -420,6 +430,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             self.legendDisplay.ax.imshow(
                 arr, aspect="auto", cmap=new_cmap1, origin="lower"
             )
+            self.legendDisplay.legendLabel.setText("Parametric Map\nLegend:")
             self.legendDisplay.ax.tick_params(axis="y", labelsize=7, pad=0.5)
             self.legendDisplay.ax.set_xticks([])
             self.legendDisplay.ax.set_yticks([0, 250, 500, 750, 1000])
@@ -444,7 +455,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             self.legendDisplay.canvas.draw()
             self.legendDisplay.legendFrame.setHidden(False)
 
-            for point in self.pointsPlotted:
+            for point in self.interpolatedPoints:
                 if self.maxMtt == self.minMtt:
                     color = self.cmap[125]
                 else:
@@ -495,118 +506,118 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.minTp = 99999999
         self.maxMtt = 0
         self.minMtt = 99999999
-        for i in range(len(self.pointsPlotted)):
+        for i in range(len(self.interpolatedPoints)):
             if (
                 self.masterParamap[
-                    self.pointsPlotted[i][0],
-                    self.pointsPlotted[i][1],
-                    self.pointsPlotted[i][2],
+                    self.interpolatedPoints[i][0],
+                    self.interpolatedPoints[i][1],
+                    self.interpolatedPoints[i][2],
                 ][3]
                 != 0
             ):
                 if (
                     self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][0]
                     > self.maxAuc
                 ):
                     self.maxAuc = self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][0]
                 if (
                     self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][0]
                     < self.minAuc
                 ):
                     self.minAuc = self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][0]
                 if (
                     self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][1]
                     > self.maxPe
                 ):
                     self.maxPe = self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][1]
                 if (
                     self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][1]
                     < self.minPe
                 ):
                     self.minPe = self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][1]
                 if (
                     self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][2]
                     > self.maxTp
                 ):
                     self.maxTp = self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][2]
                 if (
                     self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][2]
                     < self.minTp
                 ):
                     self.minTp = self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][2]
                 if (
                     self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][3]
                     > self.maxMtt
                 ):
                     self.maxMtt = self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][3]
                 if (
                     self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][3]
                     < self.minMtt
                 ):
                     self.minMtt = self.masterParamap[
-                        self.pointsPlotted[i][0],
-                        self.pointsPlotted[i][1],
-                        self.pointsPlotted[i][2],
+                        self.interpolatedPoints[i][0],
+                        self.interpolatedPoints[i][1],
+                        self.interpolatedPoints[i][2],
                     ][3]
 
         self.hideResultsViewLayout(); self.showParamapDisplayLayout()
@@ -687,7 +698,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
     def acceptTIC(self, autoT0=0):
         self.imagePathInput.setText(self.lastGui.imagePathInput.text())
         self.newData = None
-        self.pointsPlotted = self.lastGui.pointsPlotted
+        self.interpolatedPoints = self.lastGui.interpolatedPoints[0]
         self.ceus4dImg = self.lastGui.ceus4dImg
         self.bmode4dImg = self.lastGui.bmode4dImg
         self.curSliceIndex = self.lastGui.curSliceIndex
@@ -785,11 +796,11 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.curAlpha = int(self.voiAlphaSpinBox.value())
         self.voiAlphaSpinBoxChanged = False
         self.voiAlphaStatus.setValue(self.curAlpha)
-        for i in range(len(self.pointsPlotted)):
+        for i in range(len(self.interpolatedPoints)):
             self.maskCoverImg[
-                self.pointsPlotted[i][0],
-                self.pointsPlotted[i][1],
-                self.pointsPlotted[i][2],
+                self.interpolatedPoints[i][0],
+                self.interpolatedPoints[i][1],
+                self.interpolatedPoints[i][2],
                 3,
             ] = self.curAlpha
         self.updateCrosshairs()
@@ -927,7 +938,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
         if self.masterParamap is not None and self.cmap is not None:
             paramapCor = self.paramap[:, self.newYVal, :, :]
-            paramapCor = np.fliplr(np.rot90(tempCor, 3))
+            paramapCor = np.fliplr(np.rot90(paramapCor, 3))
             paramapCor = np.require(paramapCor, np.uint8, "C")
 
             bytesLineCorParamap, _ = paramapCor[:, :, 0].strides
