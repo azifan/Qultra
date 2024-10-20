@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1630</width>
-    <height>981</height>
+    <width>1512</width>
+    <height>831</height>
    </rect>
   </property>
   <property name="mouseTracking">
@@ -637,7 +637,7 @@ QPushButton:checked {
              <string notr="true">QPushButton {
 	color: white;
 	font-size: 16px;
-	background: rgb(90, 37, 255);
+	background: rgb(255, 37, 14);
 	border-radius: 15px;
 }</string>
             </property>
@@ -813,7 +813,7 @@ QPushButton:checked {
              <string notr="true">QPushButton {
 	color: white;
 	font-size: 16px;
-	background: rgb(90, 37, 255);
+	background: rgb(255, 37, 14);
 	border-radius: 15px;
 }</string>
             </property>
@@ -821,6 +821,9 @@ QPushButton:checked {
              <string>Advanced ROI Edit</string>
             </property>
             <property name="checkable">
+             <bool>false</bool>
+            </property>
+            <property name="checked">
              <bool>false</bool>
             </property>
            </widget>
@@ -986,7 +989,7 @@ QPushButton:checked {
              <string notr="true">QPushButton {
 	color: white;
 	font-size: 16px;
-	background: rgb(90, 37, 255);
+	background: rgb(255, 37, 14);
 	border-radius: 15px;
 }</string>
             </property>
