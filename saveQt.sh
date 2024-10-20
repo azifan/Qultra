@@ -16,6 +16,7 @@ pyuic5 src/CeusTool3d/ceusAnalysis.ui -o src/CeusTool3d/ceusAnalysis_ui.py
 pyuic5 src/CeusTool3d/saveVoi.ui -o src/CeusTool3d/saveVoi_ui.py
 pyuic5 src/CeusTool3d/legend.ui -o src/CeusTool3d/legend_ui.py
 pyuic5 src/CeusTool3d/interpolationLoading.ui -o src/CeusTool3d/interpolationLoading_ui.py
+pyuic5 src/CeusTool3d/advancedRoi.ui -o src/CeusTool3d/advancedRoi_ui.py
 
 pyuic5 src/UtcTool2d/selectImage.ui -o src/UtcTool2d/selectImage_ui.py
 pyuic5 src/UtcTool2d/saveRoi.ui -o src/UtcTool2d/saveRoi_ui.py
