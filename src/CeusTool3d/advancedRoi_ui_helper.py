@@ -46,8 +46,11 @@ class AdvancedRoiDrawGUI(Ui_advancedRoi, QWidget):
         self.saveChangesButton.clicked.connect(self.acceptChanges)
 
     def acceptChanges(self):
+        if not self.voiSelectionGUI.drawingNeg:
+            self.voiSelectionGUI.interpolatedPoints.pop(self.drawingIdx)
+        else:
+            self.voiSelectionGUI.negInterpolatedPoints.pop(self.drawingIdx)
         self.voiSelectionGUI.pointsPlotted.pop(self.drawingIdx)
-        self.voiSelectionGUI.interpolatedPoints.pop(self.drawingIdx)
         self.voiSelectionGUI.planesDrawn.pop(self.drawingIdx)
         self.voiSelectionGUI.curPointsPlottedX = [int(x) for x in self.x]
         self.voiSelectionGUI.curPointsPlottedY = [int(y) for y in self.y]

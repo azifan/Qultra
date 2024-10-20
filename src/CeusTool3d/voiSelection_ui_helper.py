@@ -123,7 +123,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.curSliceIndex = 0
         self.curAlpha = 255
         self.curPointsPlottedX = []; self.curPointsPlottedY = []
-        self.interpolatedPoints = []; self.negPointsPlotted = []; self.prevPointsPlotted = []
+        self.interpolatedPoints = []; self.negInterpolatedPoints = []; self.prevPointsPlotted = []
         self.planesDrawn = []; self.pointsPlotted = []
         self.painted = "none"; self.paintedSlice = []
         self.lastGui = None
@@ -198,7 +198,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
     
     def corAdvancedRoiDraw(self):
         if len(self.planesDrawn) and self.painted == "none" and "cor" in np.array(self.planesDrawn, dtype=object)[:,0]:
-            corDrawings = np.array([planeDrawn[1] for planeDrawn in self.planesDrawn if planeDrawn[0] == "sag"])
+            corDrawings = np.array([planeDrawn[1] for planeDrawn in self.planesDrawn if planeDrawn[0] == "cor"])
             drawingYSlices = corDrawings[:,0]
             closestYIndex = np.argmin(abs(drawingYSlices - self.newYVal))
             closestCorDrawing = corDrawings[closestYIndex]
@@ -326,13 +326,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.curSliceSpinBox.setValue(curTime-1)
 
     def startNegDraw(self):
-        self.negPointsPlotted = []; self.planesDrawn = []; self.drawingNeg = True
+        self.negInterpolatedPoints = []; self.planesDrawn = []; self.drawingNeg = True
         self.pointsPlotted = []
         self.showVoiAlphaLayout(); self.hideVoiDecisionLayout()
         self.showVoiApproachLayout(); self.updateCrosshairs()
 
     def restartVoi(self):
-        self.interpolatedPoints = []; self.negPointsPlotted = []; self.prevPointsPlotted = []
+        self.interpolatedPoints = []; self.negInterpolatedPoints = []; self.prevPointsPlotted = []
         self.planesDrawn = []; self.pointsPlotted = []; self.maskCoverImg.fill(0)
         self.voiAlphaStatus.setValue(255); self.voiAlphaSpinBox.setValue(255)
         self.hideVoiAlphaLayout(); self.hideVoiDecisionLayout()
@@ -793,11 +793,11 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                     self.maskCoverImg[self.interpolatedPoints[i][j][0], self.interpolatedPoints[i][j][1], self.interpolatedPoints[i][j][2],
                     ] = [0, 0, 255, int(self.curAlpha)]
             if self.drawingNeg:
-                self.negPointsPlotted.append(newROI)
+                self.negInterpolatedPoints.append(newROI)
                 self.pointsPlotted.append([self.curPointsPlottedX, self.curPointsPlottedY])
-                for i in range(len(self.negPointsPlotted)):
-                    for j in range(len(self.negPointsPlotted[i])):
-                        self.maskCoverImg[self.negPointsPlotted[i][j][0], self.negPointsPlotted[i][j][1], self.negPointsPlotted[i][j][2],
+                for i in range(len(self.negInterpolatedPoints)):
+                    for j in range(len(self.negInterpolatedPoints[i])):
+                        self.maskCoverImg[self.negInterpolatedPoints[i][j][0], self.negInterpolatedPoints[i][j][1], self.negInterpolatedPoints[i][j][2],
                         ] = [0, 255, 0, int(self.curAlpha)]
             self.updateCrosshairs()
             self.curPointsPlottedX = []; self.curPointsPlottedY = []
@@ -944,16 +944,16 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                         self.interpolatedPoints[i][j][2],
                     ] = [0, 0, 255, int(self.curAlpha)]
             if self.drawingNeg:
-                self.negPointsPlotted.pop()
-                for i in range(len(self.negPointsPlotted)):
-                    for j in range(len(self.negPointsPlotted[i])):
-                        self.maskCoverImg[self.negPointsPlotted[i][j][0], self.negPointsPlotted[i][j][1], self.negPointsPlotted[i][j][2],
+                self.negInterpolatedPoints.pop()
+                for i in range(len(self.negInterpolatedPoints)):
+                    for j in range(len(self.negInterpolatedPoints[i])):
+                        self.maskCoverImg[self.negInterpolatedPoints[i][j][0], self.negInterpolatedPoints[i][j][1], self.negInterpolatedPoints[i][j][2],
                         ] = [0, 255, 0, int(self.curAlpha)]
             self.updateCrosshairs()
 
     def complete3dInterpolation(self):
         if len(self.planesDrawn):
-            pointsPlotted = self.negPointsPlotted if self.drawingNeg else self.interpolatedPoints
+            pointsPlotted = self.negInterpolatedPoints if self.drawingNeg else self.interpolatedPoints
             if len(self.planesDrawn) >= 3:
                 points = calculateSpline3D(
                     list(chain.from_iterable(pointsPlotted))
