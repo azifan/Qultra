@@ -10,7 +10,7 @@ from scipy.io import savemat
 
 system = platform.system()
 
-philips_rf_parser = ct.CDLL(Path("./src/Parsers/philips_rf_parser.so"))
+philips_rf_parser = ct.CDLL(Path("./src/Parsers/philips_rf_parser.dylib"))
 
 philips_rf_parser.get_partA.argtypes = [ct.c_longlong, ct.c_char_p, ct.c_int]
 philips_rf_parser.get_partA.restype = ct.POINTER(ct.c_int)

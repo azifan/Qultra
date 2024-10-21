@@ -280,7 +280,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.xBorderMin = 410 + ((721 - self.widthScale)/2)
         self.xBorderMax = 1131 - ((721 - self.widthScale)/2)
 
-        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(int(self.widthScale), int(self.depthScale), Qt.KeepAspectRatio))
+        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.imPreview.width(), self.imPreview.height(), Qt.KeepAspectRatio))
 
         self.totalFramesLabel.setHidden(False)
         self.ofFramesLabel.setHidden(False)
@@ -334,7 +334,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.imData = np.array(self.imArray[self.frame]).reshape(self.imArray.shape[1], self.imArray.shape[2])
         self.imData = np.require(self.imData,np.uint8,'C')
         self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8)
-        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(int(self.widthScale), int(self.depthScale), Qt.KeepAspectRatio))
+        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.imPreview.width(), self.imPreview.height(), Qt.KeepAspectRatio))
         self.update()
 
     def clearImagePath(self):
