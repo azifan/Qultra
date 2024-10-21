@@ -10,12 +10,16 @@ from scipy.io import savemat
 
 system = platform.system()
 
-philips_rf_parser = ct.CDLL(Path("./src/Parsers/philips_rf_parser.dylib"))
+if system == "Darwin" or system == "Linux":
+    if system == "Darwin":
+        philips_rf_parser = ct.CDLL(Path("./src/Parsers/philips_rf_parser.dylib"))
+    else:
+        philips_rf_parser = ct.CDLL(Path("./src/Parsers/philips_rf_parser.so"))
 
-philips_rf_parser.get_partA.argtypes = [ct.c_longlong, ct.c_char_p, ct.c_int]
-philips_rf_parser.get_partA.restype = ct.POINTER(ct.c_int)
-philips_rf_parser.get_partB.argtypes = [ct.c_longlong, ct.c_char_p, ct.c_int]
-philips_rf_parser.get_partB.restype = ct.POINTER(ct.c_int)
+    philips_rf_parser.get_partA.argtypes = [ct.c_longlong, ct.c_char_p, ct.c_int]
+    philips_rf_parser.get_partA.restype = ct.POINTER(ct.c_int)
+    philips_rf_parser.get_partB.argtypes = [ct.c_longlong, ct.c_char_p, ct.c_int]
+    philips_rf_parser.get_partB.restype = ct.POINTER(ct.c_int)
 
 
 class Parsed_result:
@@ -705,30 +709,20 @@ def parseRF(filepath, readOffset, readSize) -> Rfdata:
         numClumps = int(np.floor(readSize/32)) # 256 bit clumps
         fn = str('"'+filepath+'"') # for command line input
 
-
-
         if system == 'Windows':
-            os.system("Parsers\\philips_rf_parser.exe {0} {1} {2} partA".format(fn, numClumps, (totalHeaderSize+readOffset)))
-            os.system("Parsers\\philips_rf_parser.exe {0} {1} {2} partB".format(fn, numClumps, (totalHeaderSize+readOffset)))
+            os.system("src\\Parsers\\philips_rf_parser.exe {0} {1} {2} partA".format(fn, numClumps, (totalHeaderSize+readOffset)))
+            os.system("src\\Parsers\\philips_rf_parser.exe {0} {1} {2} partB".format(fn, numClumps, (totalHeaderSize+readOffset)))
+            imROIsFolder = Path.cwd() / Path("imROIs")
+            partA = np.fromfile(imROIsFolder / Path(".partA_data"), dtype=np.int32)
+            partA = np.reshape(partA, (12, numClumps), order='F')
+
+            partB = np.fromfile(imROIsFolder / Path(".partB_data"), dtype=np.int32)
+            partB = np.reshape(partB, (1, numClumps))
         else:
             offset = totalHeaderSize+readOffset
             partA = callGetPartA(numClumps, filepath, offset)
             partB = callGetPartB(numClumps, filepath, offset)            
-        #     Path.mkdir(Path("imRois"), exist_ok=True, parents=True)
-
-        #     os.system("docker run -d -it --rm --name qus-parser-container --mount type=bind,source=\"$(pwd)\"/imROIs,target=/shared qus-parser")
-        #     os.system("docker cp {0} qus-parser-container:/usr/src/philipsRfParser/data.rf".format(fn))
-        #     os.system("docker exec qus-parser-container ./philips_rf_parser data.rf {0} {1} partA".format(numClumps, (totalHeaderSize+readOffset)))
-        #     os.system("docker exec qus-parser-container ./philips_rf_parser data.rf {0} {1} partB".format(numClumps, (totalHeaderSize+readOffset)))
-        #     os.system("docker stop qus-parser-container")
-
-        # imROIsFolder = Path.cwd() / Path("imROIs")
-        # partA = np.fromfile(imROIsFolder / Path(".partA_data"), dtype=np.int32)
-        # partA = np.reshape(partA, (12, numClumps), order='F')
-
-        # partB = np.fromfile(imROIsFolder / Path(".partB_data"), dtype=np.int32)
-        # partB = np.reshape(partB, (1, numClumps))
-
+            
         rawrfdata = np.concatenate((partA, partB))
 
     # Reshape Raw RF Dawta

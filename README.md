@@ -31,7 +31,6 @@ From here, a lognormal curve is fitted, returning the area under the curve (AUC)
 ## Requirements
 
 * [Python](https://www.python.org/downloads/)
-* [Docker](docker.com/products/docker-desktop/) (only required for Philips RF parser)
 * [Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) (preferred)
 
 ## Environment
@@ -99,7 +98,7 @@ ren saveQt.sh saveQt.bat
 
 ### Extra step for Windows
 
-To finish preparing QuantUS to be run, to support the Philips RF parser, compile `Parsers\philips_rf_parser.c` into a `Parsers\philips_rf_parser` executable using Windows C compiler of choice.
+To finish preparing QuantUS to be run, to support the Philips RF parser, compile `src\Parsers\philips_rf_parser.c` into a `src\Parsers\philips_rf_parser` executable using Windows C compiler of choice.
 
 ## Running
 
