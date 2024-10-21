@@ -41,7 +41,7 @@ int get_array_shape(long long num_clumps, char* fn, int offset_bytes){
     return i;
 }
 
-void get_partA(long long num_clumps, char* fn, int offset_bytes, int* partA) {
+int* get_partA(long long num_clumps, char* fn, int offset_bytes) {
     // equivalent to "partA = fread(fid, [12, numClumps], '12*ubit21',4);" in MATLAB
 
     int fd = open(fn, O_RDONLY);
@@ -51,6 +51,7 @@ void get_partA(long long num_clumps, char* fn, int offset_bytes, int* partA) {
     }
 
     // get partA
+    int* partA = calloc(12*num_clumps, sizeof(int));
     char* bytes_read = calloc(256, 1);
     if (lseek(fd, offset_bytes, SEEK_SET) == -1) {
         perror("lseek");
@@ -113,30 +114,32 @@ void get_partA(long long num_clumps, char* fn, int offset_bytes, int* partA) {
             i += 2;
         }
     }
-    // int* output = calloc(j*12, sizeof(int));
-    // memcpy(output, partA, (j*12)); // shorten output
+    // // int* output = calloc(j*12, sizeof(int));
+    // // memcpy(output, partA, (j*12)); // shorten output
 
-    // WARNING: cannot handle files greater than 2GiB for now. May not be the case for Mac, but need O_LARGEFILE for Windows and Linux
+    // // WARNING: cannot handle files greater than 2GiB for now. May not be the case for Mac, but need O_LARGEFILE for Windows and Linux
 
-    int dest_fd = open("/shared/.partA_data", O_CREAT | O_RDWR | O_TRUNC, 0777);
-    if (dest_fd == -1) {
-        perror("open");
-        exit(errno);
-    }
+    // int dest_fd = open("/shared/.partA_data", O_CREAT | O_RDWR | O_TRUNC, 0777);
+    // if (dest_fd == -1) {
+    //     perror("open");
+    //     exit(errno);
+    // }
     
-    if (write(dest_fd, partA, 12*j*4) != (12*j*4)) {
-        perror("write");
-        exit(errno);
-    }
+    // if (write(dest_fd, partA, 12*j*4) != (12*j*4)) {
+    //     perror("write");
+    //     exit(errno);
+    // }
 
 
     free(bytes_read);
     free(full_num);
-    close(dest_fd);
+    // close(dest_fd);
     close(fd);
+
+    return partA;
 }
 
-void get_partB(long long num_clumps, char* fn, int offset_bytes, int* partB) {
+int* get_partB(long long num_clumps, char* fn, int offset_bytes) {
     // equivalent to "partB = fread(fid, [1, numClumps], '1*ubit4', 252);" in MATLAB
 
     int fd = open(fn, O_RDONLY);
@@ -145,7 +148,8 @@ void get_partB(long long num_clumps, char* fn, int offset_bytes, int* partB) {
         exit(errno);
     }
 
-    // get partA
+    // get partB
+    int* partB = calloc(num_clumps, sizeof(int));
     char* bytes_read = calloc(256, 1);
     if (lseek(fd, offset_bytes, SEEK_SET) == -1) {
         perror("lseek");
@@ -176,42 +180,44 @@ void get_partB(long long num_clumps, char* fn, int offset_bytes, int* partB) {
         ++x;
     }
 
-    int dest_fd = open("/shared/.partB_data", O_CREAT | O_RDWR | O_TRUNC, 0777);
-    if (dest_fd == -1) {
-        perror("open");
-        exit(errno);
-    }
-    if (write(dest_fd, partB, 4*j) != 4*j) {
-        perror("write");
-        exit(errno);
-    }
+    // int dest_fd = open("/shared/.partB_data", O_CREAT | O_RDWR | O_TRUNC, 0777);
+    // if (dest_fd == -1) {
+    //     perror("open");
+    //     exit(errno);
+    // }
+    // if (write(dest_fd, partB, 4*j) != 4*j) {
+    //     perror("write");
+    //     exit(errno);
+    // }
 
     free(bytes_read);
     free(full_num);
-    close(dest_fd);
+    // close(dest_fd);
     close(fd);
+
+    return partB;
 }
 
-int main(int argc, char *argv[]) {
-    if (argc != 5) {
-        return 0;
-    }
-    char* fn  = argv[1];
-    long long num_clumps = atoll(argv[2]);
-    int offset_bytes = atoi(argv[3]);
-    if (!strcmp(argv[4], "partA")) {
-        int* partA = calloc(12*num_clumps, sizeof(int));
-        get_partA(num_clumps, fn, offset_bytes, partA);
-        free(partA);
-        return 0;
-    }
-    else if (!strcmp(argv[4], "partB")) {
-        int* partB = calloc(num_clumps, sizeof(int));
-        get_partB(num_clumps, fn, offset_bytes, partB);
-        free(partB);
-        return 0;
-    }
-    return 0;
-}
+// int main(int argc, char *argv[]) {
+//     if (argc != 5) {
+//         return 0;
+//     }
+//     char* fn  = argv[1];
+//     long long num_clumps = atoll(argv[2]);
+//     int offset_bytes = atoi(argv[3]);
+//     if (!strcmp(argv[4], "partA")) {
+//         int* partA = calloc(12*num_clumps, sizeof(int));
+//         get_partA(num_clumps, fn, offset_bytes, partA);
+//         free(partA);
+//         return 0;
+//     }
+//     else if (!strcmp(argv[4], "partB")) {
+//         int* partB = calloc(num_clumps, sizeof(int));
+//         get_partB(num_clumps, fn, offset_bytes, partB);
+//         free(partB);
+//         return 0;
+//     }
+//     return 0;
+// }
 
 // ./philips_rf_parser /Users/davidspector/Downloads/C3P11SED00_20180821_102323.rf 161611776 920 partA

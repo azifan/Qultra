@@ -5,8 +5,9 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
 
 from src.UtcTool2d.selectImage_ui import Ui_selectImage
 from src.UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
@@ -279,7 +280,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.xBorderMin = 410 + ((721 - self.widthScale)/2)
         self.xBorderMax = 1131 - ((721 - self.widthScale)/2)
 
-        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
+        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(int(self.widthScale), int(self.depthScale), Qt.KeepAspectRatio))
 
         self.totalFramesLabel.setHidden(False)
         self.ofFramesLabel.setHidden(False)
@@ -324,7 +325,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.imgDataStruct.bMode = self.imData
         self.imgDataStruct.rf = self.initialImgRf[self.frame]
         self.refDataStruct.rf = self.initialRefRf[0]
-        self.roiSelectionGUI.processImage(self.imData, self.imgDataStruct, self.refDataStruct, self.imgInfoStruct, self.refInfoStruct)
+        self.roiSelectionGUI.processImage(self.imgDataStruct, self.refDataStruct, self.imgInfoStruct, self.refInfoStruct)
         self.roiSelectionGUI.lastGui = self
         self.roiSelectionGUI.show()
         self.hide()
@@ -333,7 +334,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.imData = np.array(self.imArray[self.frame]).reshape(self.imArray.shape[1], self.imArray.shape[2])
         self.imData = np.require(self.imData,np.uint8,'C')
         self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8)
-        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale))
+        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(int(self.widthScale), int(self.depthScale), Qt.KeepAspectRatio))
         self.update()
 
     def clearImagePath(self):
