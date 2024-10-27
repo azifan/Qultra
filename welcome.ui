@@ -68,7 +68,7 @@
 }</string>
       </property>
       <property name="text">
-       <string>Quantitative Ultrasound (QUS) Tools:</string>
+       <string>Quantitative Ultrasound Tools:</string>
       </property>
       <property name="textFormat">
        <enum>Qt::AutoText</enum>
@@ -85,7 +85,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="utc2dButton">
+     <widget class="QPushButton" name="qus2dButton">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -104,12 +104,12 @@
 }</string>
       </property>
       <property name="text">
-       <string>Ultrasound Tissue Characterization (UTC)</string>
+       <string>Quantitative Ultrasound Spectroscopy (QUS)</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="ceus2dButton">
+     <widget class="QPushButton" name="dceus2dButton">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -128,12 +128,12 @@
 }</string>
       </property>
       <property name="text">
-       <string>2D Contrast-Enhanced Ultrasound (CEUS) with Motion Correction</string>
+       <string>2D Dynamic Contrast-Enhanced Ultrasound (DCE-US) with Motion Correction</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="ceus3dButton">
+     <widget class="QPushButton" name="dceus3dButton">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -152,7 +152,7 @@
 }</string>
       </property>
       <property name="text">
-       <string>3D Contrast-Enhanced Ultrasound (CEUS)</string>
+       <string>3D Dynamic Contrast-Enhanced Ultrasound (DCE-US)</string>
       </property>
      </widget>
     </item>
