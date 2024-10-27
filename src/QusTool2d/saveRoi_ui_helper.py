@@ -5,7 +5,7 @@ from typing import List
 
 from PyQt5.QtWidgets import QWidget, QFileDialog
 
-from src.UtcTool2d.saveRoi_ui import Ui_saveRoi
+from src.QusTool2d.saveRoi_ui import Ui_saveRoi
 
 
 class SaveRoiGUI(Ui_saveRoi, QWidget):

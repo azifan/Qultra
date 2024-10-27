@@ -9,8 +9,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
 
-from src.UtcTool2d.selectImage_ui import Ui_selectImage
-from src.UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
+from src.QusTool2d.selectImage_ui import Ui_selectImage
+from src.QusTool2d.roiSelection_ui_helper import RoiSelectionGUI
 from src.Parsers.canonBinParser import findPreset
 import src.Parsers.siemensRfdParser as rfdParser
 import src.Parsers.philips3dRf as phil3d
@@ -29,7 +29,7 @@ def selectImageHelper(pathInput, fileExts):
             return
 
 
-class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
+class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -457,7 +457,7 @@ if __name__ == "__main__":
     import sys
 
     app = QApplication(sys.argv)
-    ui = SelectImageGUI_UtcTool2dIQ()
+    ui = SelectImageGUI_QusTool2dIQ()
     ui.show()
     sys.exit(app.exec_())
 

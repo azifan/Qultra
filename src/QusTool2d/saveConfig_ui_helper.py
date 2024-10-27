@@ -4,7 +4,7 @@ import pickle
 
 from PyQt5.QtWidgets import QWidget, QFileDialog
 
-from src.UtcTool2d.saveConfig_ui import Ui_saveConfig
+from src.QusTool2d.saveConfig_ui import Ui_saveConfig
 from pyQus.analysisObjects import Config
 
 

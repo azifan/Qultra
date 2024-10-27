@@ -3,7 +3,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QWidget, QHBoxLayout
 import pyqtgraph as pg
 
-from src.UtcTool2d.psGraphDisplay_ui import Ui_psGraphWidget
+from src.QusTool2d.psGraphDisplay_ui import Ui_psGraphWidget
 
 class PsGraphDisplay(Ui_psGraphWidget, QWidget):
     def __init__(self):
