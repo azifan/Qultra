@@ -6,7 +6,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-        <title>&lt;no title&gt; &mdash; QuantUS 1.0 documentation</title>
+        <title>2D QUS CLI Example &mdash; QuantUS 1.0 documentation</title>
     
     <link rel="stylesheet" type="text/css" href="../_static/dist/fontawesome.css" />
       <link rel="stylesheet" type="text/css" href="../_static/dist/theme.css?v=ea6a6c20" />
@@ -14,6 +14,9 @@
             <link rel="index" title="Index" href="../genindex.html" />
             <link rel="search" title="Search" href="../search.html" />
             <link rel="top" title="QuantUS 1.0 documentation" href="#" />
+            <link rel="up" title="Examples" href="index.html" />
+            <link rel="next" title="&lt;no title&gt;" href="guiQus.html" />
+            <link rel="prev" title="Examples" href="index.html" />
     </head>
 <body>
     <script type="text/javascript" src="../_static/dist/blocking.js"></script>
@@ -70,7 +73,7 @@
     </form>
 </div><div class="site-toc">
     <nav class="toc mt-3" aria-label="Main menu">
-        <ul>
+        <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../installation/requirements.html">Requirements</a></li>
@@ -78,6 +81,10 @@
 <li class="toctree-l2"><a class="reference internal" href="../installation/building.html">Building</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../installation/running.html">Running</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../installation/phantom.html">Phantom Collection Google Folder</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">2D QUS CLI Example</a></li>
 </ul>
 </li>
 </ul>
@@ -100,7 +107,8 @@
                         <nav aria-label="breadcrumb">
     <ol class="breadcrumb m-0 p-0 bg-transparent">
         <li class="breadcrumb-item"><a href="../index.html">Docs</a></li>
-        <li class="breadcrumb-item active" aria-current="page">&lt;no title&gt;</li>
+            <li class="breadcrumb-item"><a href="index.html">Examples</a></li>
+        <li class="breadcrumb-item active" aria-current="page">2D QUS CLI Example</li>
     </ol>
 </nav>
                     </div>
@@ -112,7 +120,7 @@
                             <span class="dark-only"><i class="fas fa-sun"></i> Light mode</span>
                             <span class="light-only"><i class="fas fa-moon"></i> Dark mode</span>
                         </button>
-    <a class="btn btn-sm btn-light text-decoration-none" href="https://github.com/TUL-Dev/QuantUS/tree/main/docs/source/usage/cliQus.rst" rel="nofollow">
+    <a class="btn btn-sm btn-light text-decoration-none" href="https://github.com/TUL-Dev/QuantUS/blob/main/docs/source/usage/cliQus.rst" rel="nofollow">
         <span class="btn-icon"><span class="fab fa-github"></span></span>
         <span class="btn-text">Edit on GitHub</span>
     </a>
@@ -131,10 +139,53 @@
                 <div class="row">
                     <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
                         <main role="main" id="main">
-    
+    <section id="d-qus-cli-example">
+<h1>2D QUS CLI Example<a class="headerlink" href="#d-qus-cli-example" title="Link to this heading">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>This tutorial is a sample walkthrough of QUS parameterization of scan converted IQ data from a Canon system.</p>
+<p>Note some aspects of this example xrequire some interaction with the QUS GUI, so we recommend some familiarity before completing this tutorial.</p>
+</section>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
+<p>First, assuming we start from the root of the <a class="reference external" href="https://github.com/TUL-DEV/QuantUS">QuantUS repository</a> using an activate <a class="reference internal" href="../installation/environment.html"><span class="doc">Python environment</span></a> for QuantUS,
+we can start by importing relevant packages.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span> <span class="nn">pyQus.spectral</span> <span class="kn">import</span> <span class="n">SpectralAnalysis</span>
+<span class="kn">from</span> <span class="nn">pyQus.analysisObjects</span> <span class="kn">import</span> <span class="n">UltrasoundImage</span>
+<span class="kn">from</span> <span class="nn">src.Parsers.canonBinParser</span> <span class="kn">import</span> <span class="n">findPreset</span><span class="p">,</span> <span class="n">getImage</span>
+</pre></div>
+</div>
+</section>
+</section>
+
 </main>
-                        
+                        <nav aria-label="Page navigation" class="py-4 my-5 clearfix font-weight-bold border-top">
+    <a class="float-left" href="index.html" title="Previous">
+        <span aria-hidden="true">←&nbsp;</span>Examples
+    </a>
+    <a class="float-right" href="guiQus.html" title="Next">
+        &lt;no title&gt; <span aria-hidden="true">&nbsp;→</span>
+    </a>
+</nav>
                     </div>
+                    
+                    <nav class="col-12 col-lg-3 pb-4">
+                        <div class="sticky-top toc page-toc" aria-labelledby="page-toc-heading">
+                            <p class="font-weight-bold" id="page-toc-heading">Page contents</p>
+                            <ul>
+<li><a class="reference internal" href="#">2D QUS CLI Example</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+</ul>
+</li>
+</ul>
+
+                        </div>
+                    </nav>
                     
                 </div>
             </div>

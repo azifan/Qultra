@@ -27,4 +27,5 @@ Getting Started
    
    overview
    installation/index
+   usage/index
 
