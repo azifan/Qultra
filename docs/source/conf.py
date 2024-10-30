@@ -39,11 +39,11 @@ html_theme_options = dict( # Wagtail
     logo_height = 59,
     logo_url = "/",
     logo_width = 45,
-    header_links = "Top 1|http://example.com/one, Top 2|http://example.com/two",
+    # header_links = "Top 1|http://example.com/one, Top 2|http://example.com/two",
     footer_links = ",".join([
-        "About Us|http://example.com/",
-        "Contact|http://example.com/contact",
-        "Legal|http://example.com/dev/null",
+        # "About Us|http://example.com/",
+        # "Contact|http://example.com/contact",
+        # "Legal|http://example.com/dev/null",
     ]),
 )
 
