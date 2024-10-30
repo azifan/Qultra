@@ -8,6 +8,7 @@ node_modules/
 dist/
 _*/
 doctrees/
+build/
 main.spec
 
 # File-specific generated folders
