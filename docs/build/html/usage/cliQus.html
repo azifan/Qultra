@@ -143,8 +143,9 @@
 <h1>2D QUS CLI Example<a class="headerlink" href="#d-qus-cli-example" title="Link to this heading">¶</a></h1>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
-<p>This tutorial is a sample walkthrough of QUS parameterization of scan converted IQ data from a Canon system.</p>
-<p>Note some aspects of this example xrequire some interaction with the QUS GUI, so we recommend some familiarity before completing this tutorial.</p>
+<p>This tutorial is a sample walkthrough of QUS parameterization of scan converted IQ data from a Canon system.
+For reference, the sample data used in this example can be found here.</p>
+<p>Note some aspects of this example require some interaction with the QUS GUI, so we recommend some familiarity before completing this tutorial.</p>
 </section>
 <section id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
@@ -159,6 +160,186 @@ we can start by importing relevant packages.</p>
 <span class="kn">from</span> <span class="nn">src.Parsers.canonBinParser</span> <span class="kn">import</span> <span class="n">findPreset</span><span class="p">,</span> <span class="n">getImage</span>
 </pre></div>
 </div>
+</section>
+<section id="parse-image-phantom">
+<h2>Parse Image &amp; Phantom<a class="headerlink" href="#parse-image-phantom" title="Link to this heading">¶</a></h2>
+<p>Next, we can select and parse both the image and phantom IQ data
+to run our analysis on. Note the image and phantom must be taken
+with the same transducer with identical settings to ensure correctness and
+the ability to compare results to those taken from other systems.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">imagePath</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;/PATH/TO/ATI-Data-CanonFatStudy/001/Preset_2/20220427104128_IQ.bin&quot;</span><span class="p">)</span>
+<span class="n">phantomPath</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;/PATH/TO/ATI-Data-CanonFatStudy/Phantom data/Preset_2/20220831121752_IQ.bin&quot;</span><span class="p">)</span>
+
+<span class="c1"># Ensure the image and phantom share a transducer preset</span>
+<span class="n">imPreset</span> <span class="o">=</span> <span class="n">findPreset</span><span class="p">(</span><span class="n">imagePath</span><span class="p">)</span>
+<span class="n">phantomPreset</span> <span class="o">=</span> <span class="n">findPreset</span><span class="p">(</span><span class="n">phantomPath</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">imPreset</span> <span class="o">==</span> <span class="n">phantomPreset</span><span class="s1">&#39;</span>
+
+<span class="c1"># Parse image and phantom</span>
+<span class="n">imgDataStruct</span><span class="p">,</span> <span class="n">imgInfoStruct</span><span class="p">,</span> <span class="n">refDataStruct</span><span class="p">,</span> <span class="n">refInfoStuct</span> <span class="o">=</span> <span class="n">getImage</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">imagePath</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">imagePath</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">phantomPath</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">phantomPath</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="region-of-interest-selection">
+<h2>Region of Interest Selection<a class="headerlink" href="#region-of-interest-selection" title="Link to this heading">¶</a></h2>
+<p>Here, we choose a predetermined region of interest (ROI) to run our QUS
+parameterization on. This ROI can most easily be generated using our GUI.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load ROI file</span>
+<span class="n">pkl_name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;/PATH/TO/ATI-Data-CanonFatStudy/Phantom data/Preset_2/roi.pkl&quot;</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pkl_name</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">roi_info</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="c1"># Ensure ROI is for correct image and phantom combination</span>
+<span class="k">assert</span> <span class="n">roi_info</span><span class="p">[</span><span class="s2">&quot;Image Name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">imagePath</span><span class="o">.</span><span class="n">name</span>
+<span class="k">assert</span> <span class="n">roi_info</span><span class="p">[</span><span class="s2">&quot;Phantom Name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">phantomPath</span><span class="o">.</span><span class="n">name</span>
+
+<span class="c1"># Retrive ROI boundary info</span>
+<span class="n">sc_spline_x</span> <span class="o">=</span> <span class="n">roi_info</span><span class="p">[</span><span class="s2">&quot;Spline X&quot;</span><span class="p">]</span>
+<span class="n">sc_spline_y</span> <span class="o">=</span> <span class="n">roi_info</span><span class="p">[</span><span class="s2">&quot;Spline Y&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="analysis-parameters-for-qus-parameterization">
+<h2>Analysis Parameters for QUS Parameterization<a class="headerlink" href="#analysis-parameters-for-qus-parameterization" title="Link to this heading">¶</a></h2>
+<p>Again, we can choose a predetermined set of analysis parameters used for
+our QUS parameterization including spectral analysis. This can be loaded here
+in a similar fashion to how the ROI was loaded.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load Analysis Config file</span>
+<span class="n">pkl_name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;/PATH/TO/ATI-Data-CanonFatStudy/Phantom data/Preset_2/analysis_config.pkl&quot;</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pkl_name</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">config_info</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="c1"># OPTIONAL: Ensure Analysis Config is for correct image and phantom combination</span>
+<span class="k">assert</span> <span class="n">config_info</span><span class="p">[</span><span class="s2">&quot;Image Name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">imagePath</span><span class="o">.</span><span class="n">name</span>
+<span class="k">assert</span> <span class="n">config_info</span><span class="p">[</span><span class="s2">&quot;Phantom Name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">phantomPath</span><span class="o">.</span><span class="n">name</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">config_info</span><span class="p">[</span><span class="s2">&quot;Config&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Alternatively, we can specifify a custom analysis configuration from the CLI
+directly as follows. Note the hardcoded values are for illustrative purposes
+only. The appropriate values of these will vary greatly by experiment goals and system
+configuration.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyQus.analysisObjects</span> <span class="kn">import</span> <span class="n">Config</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+<span class="n">config</span><span class="o">.</span><span class="n">transducerFreqBand</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8000000</span><span class="p">]</span> <span class="c1"># [min, max] (Hz)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">analysisFreqLand</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3000000</span><span class="p">,</span> <span class="mi">5000000</span><span class="p">]</span> <span class="c1"># [lower, upper] (Hz)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">samplingFrequency</span> <span class="o">=</span> <span class="mi">53330000</span> <span class="c1"># Hz</span>
+<span class="n">config</span><span class="o">.</span><span class="n">axWinSize</span> <span class="o">=</span> <span class="mi">50</span> <span class="c1"># axial length per window (mm)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">latWinSize</span> <span class="o">=</span> <span class="mi">90</span> <span class="c1"># lateral length per window (mm)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">windowThresh</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="c1"># % of window area required to be considered in ROI</span>
+<span class="n">config</span><span class="o">.</span><span class="n">axialOverlap</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># % of window overlap in axial direction</span>
+<span class="n">config</span><span class="o">.</span><span class="n">lateralOverlap</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># % of window overlap in lateral direction</span>
+<span class="n">config</span><span class="o">.</span><span class="n">centerFrequency</span> <span class="o">=</span> <span class="mi">4000000</span> <span class="c1"># Hz</span>
+</pre></div>
+</div>
+</section>
+<section id="qus-parameterization">
+<h2>QUS Parameterization<a class="headerlink" href="#qus-parameterization" title="Link to this heading">¶</a></h2>
+<p>Next, we prepare for and complete QUS parametrization primarly using spectral analysis.
+Our preparation includes more metadata assignments as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ultrasoundImage</span> <span class="o">=</span> <span class="n">UltrasoundImage</span><span class="p">()</span>
+<span class="n">ultrasoundImage</span><span class="o">.</span><span class="n">axialResRf</span> <span class="o">=</span> <span class="n">imgInfoStruct</span><span class="o">.</span><span class="n">depth</span> <span class="o">/</span> <span class="n">imgDataStruct</span><span class="o">.</span><span class="n">rf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">ultrasoundImage</span><span class="o">.</span><span class="n">lateralResRf</span> <span class="o">=</span> <span class="n">ultrasoundImage</span><span class="o">.</span><span class="n">axialResRf</span> <span class="o">*</span> <span class="p">(</span>
+    <span class="n">imgDataStruct</span><span class="o">.</span><span class="n">rf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">imgDataStruct</span><span class="o">.</span><span class="n">rf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="p">)</span> <span class="c1"># placeholder</span>
+<span class="n">ultrasoundImage</span><span class="o">.</span><span class="n">bmode</span> <span class="o">=</span> <span class="n">imgDataStruct</span><span class="o">.</span><span class="n">scBmodeStruct</span><span class="o">.</span><span class="n">preScArr</span>
+<span class="n">ultrasoundImage</span><span class="o">.</span><span class="n">phantomRf</span> <span class="o">=</span> <span class="n">refDataStruct</span><span class="o">.</span><span class="n">rf</span>
+<span class="n">ultrasoundImage</span><span class="o">.</span><span class="n">rf</span> <span class="o">=</span> <span class="n">imgDataStruct</span><span class="o">.</span><span class="n">rf</span>
+<span class="n">ultrasoundImage</span><span class="o">.</span><span class="n">scBmode</span> <span class="o">=</span> <span class="n">imgDataStruct</span><span class="o">.</span><span class="n">scBmode</span>
+<span class="n">ultrasoundImage</span><span class="o">.</span><span class="n">xmap</span> <span class="o">=</span> <span class="n">imgDataStruct</span><span class="o">.</span><span class="n">scBmodeStruct</span><span class="o">.</span><span class="n">xmap</span> <span class="c1"># scan-converted attribute only</span>
+<span class="n">ultrasoundImage</span><span class="o">.</span><span class="n">ymap</span> <span class="o">=</span> <span class="n">imgDataStruct</span><span class="o">.</span><span class="n">scBmodeStruct</span><span class="o">.</span><span class="n">ymap</span> <span class="c1"># scan-converted attribute only</span>
+</pre></div>
+</div>
+<p>Finally, we can begin using the analysis pipeline of this CLI. Note all analysis is
+completed on non-scan converted RF data. Scan conversion will be reconciled in the following
+Post-Processing section.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">spectralAnalysis</span> <span class="o">=</span> <span class="n">SpectralAnalysis</span><span class="p">()</span>
+<span class="n">spectralAnalysis</span><span class="o">.</span><span class="n">ultrasoundImage</span> <span class="o">=</span> <span class="n">ultrasoundImage</span>
+<span class="n">spectralAnalysis</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+<span class="n">spectralAnalysis</span><span class="o">.</span><span class="n">initAnalysisConfig</span><span class="p">()</span>
+<span class="n">spectralAnalysis</span><span class="o">.</span><span class="n">scSplineX</span> <span class="o">=</span> <span class="n">scSplineX</span>
+<span class="n">spectralAnalysis</span><span class="o">.</span><span class="n">scSplineY</span> <span class="o">=</span> <span class="n">scSplineY</span>
+
+<span class="n">spectralAnalysis</span><span class="o">.</span><span class="n">splineToPreSc</span><span class="p">()</span>
+<span class="n">spectralAnalysis</span><span class="o">.</span><span class="n">generateRoiWindows</span><span class="p">()</span>
+<span class="n">spectralAnalysis</span><span class="o">.</span><span class="n">computeSpecWindows</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="post-processing">
+<h2>Post-Processing<a class="headerlink" href="#post-processing" title="Link to this heading">¶</a></h2>
+<p>Since the data in this example is scan converted, we have an extra step to
+re-scan convert our analyzed data in order to have each window occupy the correct
+location of our image.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">src.DataLayer.dataObjects</span> <span class="kn">import</span> <span class="n">ScConfig</span>
+
+<span class="c1"># This will support scan conversion transformations</span>
+<span class="n">scConfig</span> <span class="o">=</span> <span class="n">ScConfig</span><span class="p">()</span>
+<span class="n">scConfig</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">imgInfoStruct</span><span class="o">.</span><span class="n">width1</span>
+<span class="n">scConfig</span><span class="o">.</span><span class="n">tilt</span> <span class="o">=</span> <span class="n">imgInfoStruct</span><span class="o">.</span><span class="n">tilt1</span>
+<span class="n">scConfig</span><span class="o">.</span><span class="n">startDepth</span> <span class="o">=</span> <span class="n">imgInfoStruct</span><span class="o">.</span><span class="n">startDepth1</span>
+<span class="n">scConfig</span><span class="o">.</span><span class="n">endDepth</span> <span class="o">=</span> <span class="n">imgInfoStruct</span><span class="o">.</span><span class="n">endDepth1</span>
+</pre></div>
+</div>
+<p>From here, we can display our results in the form of a parametric map on our initial image.
+As specified in the <span class="xref std std-ref">Analysis Parameters for QUS Parameterization</span>, this analysis only
+creates a large single window instead of a detailed parametric map.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">src.DataLayer.spectral</span> <span class="kn">import</span> <span class="n">SpectralData</span>
+
+<span class="n">spectralData</span> <span class="o">=</span> <span class="n">SpectralData</span><span class="p">()</span>
+<span class="n">spectralData</span><span class="o">.</span><span class="n">spectralAnalysis</span> <span class="o">=</span> <span class="n">spectralAnalysis</span>
+<span class="n">spectralData</span><span class="o">.</span><span class="n">scConfig</span> <span class="o">=</span> <span class="n">scConfig</span>
+
+<span class="c1"># Prepare scan converted parametric maps</span>
+<span class="n">spectralData</span><span class="o">.</span><span class="n">convertImagesToRGB</span><span class="p">()</span>
+<span class="n">spectralData</span><span class="o">.</span><span class="n">drawCmaps</span><span class="p">()</span>
+<span class="n">spectralData</span><span class="o">.</span><span class="n">scanConvertCmaps</span><span class="p">()</span>
+
+<span class="c1"># Plot power spectrum used to compute spectral parameters</span>
+<span class="n">spectralData</span><span class="o">.</span><span class="n">plotPsData</span><span class="p">()</span>
+
+<span class="c1"># Show scan converted parametric map and ROI</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plotPsData</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">spectralData</span><span class="o">.</span><span class="n">scSiIm</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">spectralData</span><span class="o">.</span><span class="n">splineX</span><span class="p">,</span> <span class="n">spectralData</span><span class="o">.</span><span class="n">splineY</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Examples of sample outputted visualizations from this pipeline are below.</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><figure class="align-default" id="id1">
+<a class="reference internal image-reference" href="../_images/scSingleWindow.png"><img alt="Scan converted single window" src="../_images/scSingleWindow.png" style="width: 240px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Scan converted parametric map with
+single window from the above example.</span><a class="headerlink" href="#id1" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+</td>
+<td><figure class="align-default" id="id2">
+<a class="reference internal image-reference" href="../_images/scMultiWindow.png"><img alt="Scan converted multi-window map" src="../_images/scMultiWindow.png" style="width: 500px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Scan converted parametric map with
+multiple windows.</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+</td>
+<td><figure class="align-default" id="id3">
+<img alt="Power spectrum graph" src="../_images/psGraph.png" />
+<figcaption>
+<p><span class="caption-text">This annotated power spectrum graph
+was used to perform spectral analysis above.</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+</td>
+</tr>
+</tbody>
+</table>
 </section>
 </section>
 
@@ -180,6 +361,11 @@ we can start by importing relevant packages.</p>
 <li><a class="reference internal" href="#">2D QUS CLI Example</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a></li>
 <li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#parse-image-phantom">Parse Image &amp; Phantom</a></li>
+<li><a class="reference internal" href="#region-of-interest-selection">Region of Interest Selection</a></li>
+<li><a class="reference internal" href="#analysis-parameters-for-qus-parameterization">Analysis Parameters for QUS Parameterization</a></li>
+<li><a class="reference internal" href="#qus-parameterization">QUS Parameterization</a></li>
+<li><a class="reference internal" href="#post-processing">Post-Processing</a></li>
 </ul>
 </li>
 </ul>
@@ -215,7 +401,7 @@ we can start by importing relevant packages.</p>
                 </nav>
             
             <div class="text-center">
-                <p>Last updated: Oct 28, 2024</p>
+                <p>Last updated: Oct 29, 2024</p>
                 <p style="display: none">
                     <a class="text-light" href="https://github.com/wagtail/sphinx_wagtail_theme" rel="nofollow" target="_blank">
                         Wagtail Sphinx Theme 6.3.0
