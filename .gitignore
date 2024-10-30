@@ -6,7 +6,8 @@
 # Node artifact files
 node_modules/
 dist/
-build/
+_*/
+doctrees/
 main.spec
 
 # File-specific generated folders
