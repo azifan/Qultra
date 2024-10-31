@@ -4,14 +4,7 @@ from pathlib import Path
 import numpy as np
 from scipy.signal import hilbert
 
-from src.Utils.parserTools import scanConvert, iqToRf
-
-class OutImStruct():
-    def __init__(self):
-        self.data = None
-        self.orig = None
-        self.xmap = None
-        self.ymap = None
+from src.DataLayer.transforms import DataOutputStruct, InfoStruct, scanConvert, iqToRf
 
 def findPreset(filename):
     headersize = 16
@@ -90,58 +83,6 @@ class FileStruct():
         self.name = filename
         self.directory = filedirectory
 
-class DataOutputStruct():
-    def __init__(self):
-        self.scBmodeStruct = None
-        self.scBmode = None
-        self.rf = None
-        self.bMode = None
-
-class InfoStruct():
-    def __init__(self):
-        # US System Configuration
-        # US system: Canon Aplio i800 (V4.6SP0008)
-        # Transducer: PVI-475BX (i8CX1)
-        # self.minFrequency = 1800000 #Hz
-        # self.maxFrequency = 6200000 #Hz
-        self.minFrequency = 0
-        self.maxFrequency = 8000000
-        self.lowBandFreq = 3000000 #Hz
-        self.upBandFreq = 5000000 #Hz
-        self.centerFrequency = 4000000 #Hz
-
-        self.studyMode = None
-        self.filename = None
-        self.filepath = None
-        self.probe = None
-        self.system = None
-        self.studyID = None
-        self.studyEXT = None
-        self.width = None
-        self.rxFrequency = None
-        self.samplingFrequency = None
-        self.lateralRes = None
-        self.axialRes = None
-        self.maxval = None
-        self.numSamplesDrOut = None
-
-        # Scan Conversion Params
-        self.tilt1 = None
-        self.width1 = None
-        self.startDepth1 = None
-        self.endDepth1 = None
-
-        # One if preSC, the other is postSC resolutions
-        self.yResRF = None 
-        self.xResRF = None
-        self.yRes = None
-        self.xRes = None
-
-        # Quad 2 or accounting for change in line density
-        self.quad2x = None
-
-
-
 def getImage(filename, filedirectory, refname, refdirectory):
     Files = FileStruct(filedirectory, filename)
     RefFiles = FileStruct(refdirectory, refname)
@@ -149,8 +90,6 @@ def getImage(filename, filedirectory, refname, refdirectory):
     [ImgInfo, RefInfo, ImgData, RefData] = getData(Files, RefFiles)
     
     return ImgData, ImgInfo, RefData, RefInfo
-
-
 
 def getData(Files, RefFiles):
     ImgInfo = readFileInfo(Files.name, Files.directory)
@@ -166,6 +105,11 @@ def readFileInfo(filename, filepath):
     studyEXT = filename[-4:]
 
     Info = InfoStruct()
+    Info.minFrequency = 0
+    Info.maxFrequency = 8000000
+    Info.lowBandFreq = 3000000 #Hz
+    Info.upBandFreq = 5000000 #Hz
+    Info.centerFrequency = 4000000 #Hz
     Info.studyMode = "RF"
     Info.filename = filename
     Info.filepath = filepath
@@ -173,8 +117,6 @@ def readFileInfo(filename, filepath):
     Info.system = "EPIQ7"
     Info.studyID = studyID
     Info.studyEXT = studyEXT
-    Info.rxFrequency = None #20000000
-    Info.samplingFrequency = None #20000000
 
     # Scan Convert Settings
     Info.tilt1 = 0

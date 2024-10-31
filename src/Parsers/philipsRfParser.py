@@ -993,30 +993,6 @@ def philipsRfParser(filepath, txBeamperFrame=125, NumSonoCTAngles=5, ML_out=2, M
 
     rf = parseRF(filepath, 0, 2000)
 
-    # i = 0
-    # while rf.headerInfo.Line_Index[i] != 0:
-    #     i += 1
-    # end = len(rf.headerInfo.Line_Index)
-    # stopImage = rf.headerInfo.Line_Index[0]
-    # oldImIndex = -1
-    # curIm = []
-    # images = []
-    # while i < end:
-    #     newImIndex = rf.headerInfo.Line_Index[i]
-    #     if newImIndex == oldImIndex:
-    #         curIm[:,newImIndex] = rf.lineData[:,i]
-    #     elif newImIndex == 0:
-    #         if len(curIm):
-    #             images.append(curIm)
-    #         curIm = np.zeros((rf.lineData.shape[0], stopImage+1))
-        
-    #     oldImIndex = newImIndex
-    #     i += 1
-
-    
-    # rf_data_all_fund = images
-    # rf_data_all_harm = []
-
     if (rf.headerInfo.Line_Index[249] == rf.headerInfo.Line_Index[250]):
         rf.lineData = rf.lineData[:,np.arange(2, rf.lineData.shape[1], 2)]
     else:
@@ -1071,6 +1047,8 @@ def philipsRfParser(filepath, txBeamperFrame=125, NumSonoCTAngles=5, ML_out=2, M
     if os.path.exists(destination):
         os.remove(destination)
     savemat(destination, contents)
+    
+    return np.array(rf_data_all_fund).shape
 
 if __name__ == "__main__":
     philipsRfParser("/Users/davidspector/Downloads/parserRF_pywrap-2-2/rfCapture_20220511_144204.rf")

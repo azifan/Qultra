@@ -4,10 +4,10 @@ from scipy.interpolate import RectBivariateSpline
 
 class OutImStruct():
     def __init__(self):
-        self.scArr = None
-        self.preScArr = None
-        self.xmap = None # sc --> preSC
-        self.ymap = None # sc --> preSC
+        self.scArr: np.ndarray
+        self.preScArr: np.ndarray
+        self.xmap: np.ndarray # sc --> preSC
+        self.ymap: np.ndarray # sc --> preSC
 
 def scanConvert(inIm, width, tilt, startDepth, stopDepth, desiredHeight=500):
     # ScanConvert sector image
