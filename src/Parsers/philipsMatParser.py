@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Tuple
 
 from scipy.io import loadmat
 from scipy.signal import hilbert
@@ -18,12 +19,11 @@ class AnalysisParamsStruct():
         self.dyn_range = 55
         self.depth = 0.16
         self.width = 0.265
-
-        if self.frame is None:
-            self.frame = 0
+        self.frame = frame
 
 
-def getImage(filepath: Path, refpath: Path, frame: int):
+def getImage(filepath: Path, refpath: Path, frame: int) \
+        -> Tuple[DataOutputStruct, InfoStruct, DataOutputStruct, InfoStruct]:
     AnalysisParams = AnalysisParamsStruct(frame)
 
     [ImgInfo, RefInfo, ImgData, RefData] = getData(filepath, refpath, AnalysisParams)
@@ -110,11 +110,11 @@ def readFileImg(Info: InfoStruct, frame: int, input):
 
     # Do Hilbert Transform on each column
     for i in range(echoData.shape[1]):
-        bmode[:,i] = 20*np.log10(abs(hilbert(echoData[:,i])))
+        bmode[:,i] = 20*np.log10(abs(hilbert(echoData[:,i]))) # type: ignore
 
     ModeIM = echoData
 
-    scBmodeStruct, hCm1, wCm1 = scanConvert(bmode, Info.width1, Info.tilt1, Info.startDepth1, Info.endDepth1, Info.endHeight)
+    scBmodeStruct, hCm1, wCm1 = scanConvert(bmode, Info.width1, Info.tilt1, Info.startDepth1, Info.endDepth1, Info.endHeight.__int__())
     Info.depth = hCm1
     Info.width = wCm1
     Info.lateralRes = wCm1*10/scBmodeStruct.scArr.shape[1]
@@ -129,5 +129,5 @@ def readFileImg(Info: InfoStruct, frame: int, input):
 
     return Data, Info
 
-if __name__ == "__main__":
-    getImage('FatQuantData1.mat', '/Users/davidspector/Documents/MATLAB/Data/', 'FatQuantPhantom1.mat', '/Users/davidspector/Documents/MATLAB/Data/', 0)
+# if __name__ == "__main__":
+    # getImage('FatQuantData1.mat', '/Users/davidspector/Documents/MATLAB/Data/', 'FatQuantPhantom1.mat', '/Users/davidspector/Documents/MATLAB/Data/', 0)

@@ -18,21 +18,21 @@ class SpectralData:
         self.roiDepthScale: int
         self.rectCoords: List[int]
         
-        self.mbfIm: np.ndarray | None = None
-        self.ssIm: np.ndarray | None = None
-        self.siIm: np.ndarray | None = None
-        self.scMbfIm: np.ndarray | None = None
-        self.scSsIm: np.ndarray | None = None
-        self.scSiIm: np.ndarray | None = None
+        self.mbfIm: np.ndarray
+        self.ssIm: np.ndarray
+        self.siIm: np.ndarray
+        self.scMbfIm: np.ndarray
+        self.scSsIm: np.ndarray
+        self.scSiIm: np.ndarray
 
         self.minMbf: float; self.maxMbf: float; self.mbfArr: List[float]
         self.minSs: float; self.maxSs: float; self.ssArr: List[float]
         self.minSi: float; self.maxSi: float; self.siArr: List[float]
 
-        self.scConfig: ScConfig | None = None
-        self.mbfCmap: list = plt.get_cmap("viridis").colors
-        self.ssCmap: list = plt.get_cmap("magma").colors
-        self.siCmap: list = plt.get_cmap("plasma").colors
+        self.scConfig: ScConfig
+        self.mbfCmap: list = plt.get_cmap("viridis").colors #type: ignore
+        self.ssCmap: list = plt.get_cmap("magma").colors #type: ignore
+        self.siCmap: list = plt.get_cmap("plasma").colors #type: ignore
 
     def convertImagesToRGB(self):
         self.spectralAnalysis.ultrasoundImage.bmode = cv2.cvtColor(
@@ -142,7 +142,7 @@ class SpectralData:
         return self.spectralAnalysis.splineX
     
     @splineX.setter
-    def splineX(self, value: List[float]):
+    def splineX(self, value: np.ndarray):
         if self.scConfig is not None:
             self.spectralAnalysis.scSplineX = value
         else:
@@ -155,7 +155,7 @@ class SpectralData:
         return self.spectralAnalysis.splineY
     
     @splineY.setter
-    def splineY(self, value: List[float]):
+    def splineY(self, value: np.ndarray):
         if self.scConfig is not None:
             self.spectralAnalysis.scSplineY = value
         else:

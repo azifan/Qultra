@@ -9,12 +9,14 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
 
+from src.Parsers import philipsMatParser
 from src.QusTool2d.selectImage_ui import Ui_selectImage
 from src.QusTool2d.roiSelection_ui_helper import RoiSelectionGUI
 from src.Parsers.canonBinParser import findPreset
+from src.Parsers.philipsRfParser import philipsRfParser
 import src.Parsers.siemensRfdParser as rfdParser
 import src.Parsers.philips3dRf as phil3d
-from src.DataLayer.spectral import SpectralData
+from src.DataLayer.spectral import SpectralData, ScConfig
 
 system = platform.system()
 
@@ -143,10 +145,12 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.selectFrameLabel.setHidden(True)
         self.philips3dCheckBox.setHidden(True)
 
-        self.welcomeGui = None
+        self.welcomeGui: QWidget
         self.roiSelectionGUI = None
         self.machine = None
         self.fileExts = None
+        self.frame = 0
+        self.imArray: np.ndarray
 
         self.spectralData = SpectralData()
 
@@ -201,14 +205,8 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
                     self.imagePathInput.text(), self.phantomPathInput.text()
                 )
             elif self.machine == "Philips":
-                if not self.philips3dCheckBox.isChecked():
-                    self.roiSelectionGUI.openPhilipsImage(
-                        self.imagePathInput.text(), self.phantomPathInput.text()
-                    )
-                else:
-                    self.openPhilipsImage()
-                    self.roiSelectionGUI.spectralData = self.spectralData
-                    return
+                self.openPhilipsImage()
+                return
             elif self.machine == "Siemens":
                 self.openSiemensImage()
                 self.roiSelectionGUI.spectralData = self.spectralData
@@ -236,29 +234,66 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.imArray, self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = rfdParser.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation)
         self.initialImgRf = self.imgDataStruct.rf
         self.initialRefRf = self.refDataStruct.rf
-        self.frame = 0
 
         self.displaySlidingFrames()
 
     def openPhilipsImage(self):
-        imageFilePath = self.imagePathInput.text()
-        phantomFilePath = self.phantomPathInput.text()
+        imageFilePath = Path(self.imagePathInput.text())
+        phantomFilePath = Path(self.phantomPathInput.text())
+        
+        if self.philips3dCheckBox.isChecked():
+            self.imgDataStruct, self.imgInfoStruct = phil3d.getVolume(imageFilePath)
+            self.refDataStruct, self.refInfoStruct = phil3d.getVolume(phantomFilePath)
+            self.imArray = self.imgDataStruct.bMode
+            self.initialImgRf = self.imgDataStruct.rf
+            self.initialRefRf = self.refDataStruct.rf
+            self.displaySlidingFrames()
+            return
+        
+        imageFile = open(imageFilePath, 'rb')
+        imageSig = list(imageFile.read(8))
+        phantomFile = open(phantomFilePath, 'rb')
+        phantomSig = list(phantomFile.read(8))
+        
+        txBeamPerFrame = 90
+        if imageFilePath.suffix == '.rf':
+            assert imageSig == [0,0,0,0,255,255,0,0]
+            destImgFilePath = Path(imageFilePath.__str__().replace('.rf', '.mat'))
+            philipsRfParser(imageFilePath.__str__(), txBeamperFrame=txBeamPerFrame)
+            
+        if phantomFilePath.suffix == '.rf':
+            assert phantomSig == [0,0,0,0,255,255,0,0]
+            destPhantomFilePath = Path(phantomFilePath.__str__().replace('.rf', '.mat'))
+            philipsRfParser(phantomFilePath.__str__(), txBeamperFrame=txBeamPerFrame)
+        
+        if imageFilePath.suffix == '.mat':
+            destImgFilePath = imageFilePath
+        if phantomFilePath.suffix == '.mat':
+            destPhantomFilePath = phantomFilePath
 
-        tmpLocation = imageFilePath.split("/")
-        dataFileName = tmpLocation[-1]
-        dataFileLocation = imageFilePath[:len(imageFilePath)-len(dataFileName)]
-        tmpPhantLocation = phantomFilePath.split("/")
-        phantFileName = tmpPhantLocation[-1]
-        phantFileLocation = phantomFilePath[:len(phantomFilePath)-len(phantFileName)]
+        self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = philipsMatParser.getImage(destImgFilePath, destPhantomFilePath, self.frame)
+        self.imData = self.imgDataStruct.bMode
+        self.initialImgRf = [self.imgDataStruct.rf]
+        self.initialRefRf = [self.refDataStruct.rf]
+        self.roiSelectionGUI.ultrasoundImage.bmode = self.imgDataStruct.scBmodeStruct.preScArr
+        self.roiSelectionGUI.ultrasoundImage.scBmode = self.imgDataStruct.scBmode
+        self.roiSelectionGUI.ultrasoundImage.xmap = self.imgDataStruct.scBmodeStruct.xmap
+        self.roiSelectionGUI.ultrasoundImage.ymap = self.imgDataStruct.scBmodeStruct.ymap
+        self.roiSelectionGUI.ultrasoundImage.axialResRf = self.imgInfoStruct.depth / self.imgDataStruct.rf.shape[0]
+        self.roiSelectionGUI.ultrasoundImage.lateralResRf = self.roiSelectionGUI.ultrasoundImage.axialResRf * (
+            self.imgDataStruct.rf.shape[0]/self.imgDataStruct.rf.shape[1]
+        ) # placeholder
+        
+        scConfig = ScConfig()
+        scConfig.width = self.imgInfoStruct.width1
+        scConfig.tilt = self.imgInfoStruct.tilt1
+        scConfig.startDepth = self.imgInfoStruct.startDepth1
+        scConfig.endDepth = self.imgInfoStruct.endDepth1
 
-        self.imgDataStruct, self.imgInfoStruct = phil3d.getVolume(Path(dataFileLocation) / Path(dataFileName))
-        self.refDataStruct, self.refInfoStruct = phil3d.getVolume(Path(phantFileLocation) / Path(phantFileName))
-        self.imArray = self.imgDataStruct.bMode
-        self.frame = 0
-        self.initialImgRf = self.imgDataStruct.rf
-        self.initialRefRf = self.refDataStruct.rf
-
-        self.displaySlidingFrames()
+        spectralData = SpectralData()
+        spectralData.scConfig = scConfig
+        self.roiSelectionGUI.spectralData = self.spectralData
+        self.acceptFrame()
 
     def displaySlidingFrames(self):
         self.imData = np.array(self.imArray[self.frame]).reshape(self.imArray.shape[1], self.imArray.shape[2])

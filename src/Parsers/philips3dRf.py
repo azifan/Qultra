@@ -5,35 +5,12 @@ import numpy as np
 from scipy.signal import firwin, lfilter, hilbert
 from scipy.ndimage import correlate
 
+from src.DataLayer.transforms import DataOutputStruct, InfoStruct
 from src.Parsers.philipsRfParser import Rfdata, parseRF
 from src.Parsers.philipsSipVolumeParser import ScParams, readSIPscVDBParams, scanConvert3dVolumeSeries, formatVolumePix
 
-class InfoStruct():
-    def __init__(self):
-        # Placeholder for now
-        self.minFrequency = 1000000
-        self.maxFrequency = 6000000
-        self.lowBandFreq = 5000000
-        self.upBandFreq = 13000000
-        self.centerFrequency = 00000 #Hz
-        self.samplingFrequency = 50000000 # TODO: currently a guess
-
-        self.width = None
-        self.depth = None
-        self.lateralRes = None
-        self.axialRes = None
-
-class DataStruct():
-    def __init__(self):
-        self.rf = None
-        self.bMode = None
-        self.scRf = None
-        self.scBmode = None
-        self.widthPixels = None
-        self.depthPixels = None
-
 def QbpFilter(rfData: np.ndarray, Fc1: float, Fc2: float, FiltOrd: int) -> Tuple[np.ndarray, np.ndarray]:
-    FiltCoef = firwin(FiltOrd+1, [Fc1*2, Fc2*2], window="hamming", pass_zero="bandpass")
+    FiltCoef = firwin(FiltOrd+1, [Fc1*2, Fc2*2], window="hamming", pass_zero="bandpass") # type: ignore
     FiltRfDat = np.transpose(lfilter(np.transpose(FiltCoef),1,np.transpose(rfData)))
 
     # Do Hilbert Transform on each column
@@ -117,13 +94,19 @@ def getVolume(rfPath: Path, sipNumOutBits: int = 8, DRlowerdB: int = 20, DRupper
     bmodeDims = [bmodeDims[2], bmodeDims[0], bmodeDims[1]]
     rfDims = [rfDims[2], rfDims[0], rfDims[1]]
 
-    Data = DataStruct()
+    Data = DataOutputStruct()
     Data.rf = SC_rfVol
     Data.bMode = SC_Vol
     Data.widthPixels = SC_Vol.shape[2]
     Data.depthPixels = SC_Vol.shape[1]
 
     Info = InfoStruct()
+    Info.minFrequency = 1000000
+    Info.maxFrequency = 6000000
+    Info.lowBandFreq = 5000000
+    Info.upBandFreq = 13000000
+    Info.centerFrequency = 00000 #Hz
+    Info.samplingFrequency = 50000000 # TODO: currently a guess
     Info.width = bmodeDims[2]
     Info.depth = bmodeDims[1]
     Info.lateralRes = Info.width/SC_Vol.shape[2] # mm/pix

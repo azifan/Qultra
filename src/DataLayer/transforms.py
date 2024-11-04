@@ -17,6 +17,8 @@ class DataOutputStruct():
         self.scBmode: np.ndarray
         self.rf: np.ndarray
         self.bMode: np.ndarray
+        self.widthPixels: int
+        self.depthPixels: int
         
 class InfoStruct():
     def __init__(self):
@@ -253,39 +255,14 @@ def ellipsoidFitLS(pos):
 
 
 def calculateSpline3D(points):
-    # Calculate ellipsoid of best fit
-    # points = np.array(points)
-    # a,b,c = ellipsoidFitLS(points)
-    # output = set()
-
-    # u = np.linspace(0., np.pi*2., 1000)
-    # v = np.linspace(0., np.pi, 1000)
-    # u, v = np.meshgrid(u,v)
-
-    # x = a*np.cos(u)*np.sin(v)
-    # y = b*np.sin(u)*np.sin(v)
-    # z = c*np.cos(v)
-
-    # # turn this data into 1d arrays
-    # x = x.flatten()
-    # y = y.flatten()
-    # z = z.flatten()
-    # x += np.mean(points, axis=0)[0]
-    # y += np.mean(points, axis=0)[1]
-    # z += np.mean(points, axis=0)[2]
-
-    # for i in range(len(x)):
-    #     output.add((int(x[i]), int(y[i]), int(z[i])))
-    # return output
-
     cloud = pv.PolyData(points, force_float=False)
-    volume = cloud.delaunay_3d(alpha=100.0)
-    shell = volume.extract_geometry()
-    final = shell.triangulate()
-    final.smooth(n_iter=1000)
-    faces = final.faces.reshape((-1, 4))
+    volume = cloud.delaunay_3d(alpha=100)
+    shell = volume.extract_geometry() # type: ignore
+    final = shell.triangulate() # type: ignore
+    final.smooth(n_iter=1000) # type: ignore
+    faces = final.faces.reshape((-1, 4)) # type: ignore
     faces = faces[:, 1:]
-    arr = final.points[faces]
+    arr = final.points[faces] # type: ignore
 
     arr = np.array(arr)
 

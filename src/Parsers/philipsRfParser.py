@@ -12,9 +12,9 @@ system = platform.system()
 
 if system == "Darwin" or system == "Linux":
     if system == "Darwin":
-        philips_rf_parser = ct.CDLL(Path("./src/Parsers/philips_rf_parser.dylib"))
+        philips_rf_parser = ct.CDLL(f"{Path('./src/Parsers/philips_rf_parser.dylib')}")
     else:
-        philips_rf_parser = ct.CDLL(Path("./src/Parsers/philips_rf_parser.so"))
+        philips_rf_parser = ct.CDLL(f"Path('./src/Parsers/philips_rf_parser.so')")
 
     philips_rf_parser.get_partA.argtypes = [ct.c_longlong, ct.c_char_p, ct.c_int]
     philips_rf_parser.get_partA.restype = ct.POINTER(ct.c_int)
@@ -33,61 +33,61 @@ class Parsed_result:
 
 class HeaderInfoStruct:
     def __init__(self):
-        self.RF_CaptureVersion = []
-        self.Tap_Point = []
-        self.Data_Gate = []
-        self.Multilines_Capture = []
-        self.Steer = []
-        self.elevationPlaneOffset = []
-        self.PM_Index = []
-        self.Pulse_Index = []
-        self.Data_Format = []
-        self.Data_Type = []
-        self.Header_Tag = []
-        self.Threed_Pos = []
-        self.Mode_Info = []
-        self.Frame_ID = []
-        self.CSID = []
-        self.Line_Index = []
-        self.Line_Type = []
-        self.Time_Stamp = []
-        self.RF_Sample_Rate = []
+        self.RF_CaptureVersion: list
+        self.Tap_Point: list
+        self.Data_Gate: list
+        self.Multilines_Capture: list
+        self.Steer: list
+        self.elevationPlaneOffset: list
+        self.PM_Index: list
+        self.Pulse_Index: list
+        self.Data_Format: list
+        self.Data_Type: list
+        self.Header_Tag: list
+        self.Threed_Pos: list
+        self.Mode_Info: list
+        self.Frame_ID: list
+        self.CSID: list
+        self.Line_Index: list
+        self.Line_Type: list
+        self.Time_Stamp: int
+        self.RF_Sample_Rate: list
 
 class dbParams:
     def __init__(self):
-        self.acqNumActiveScChannels2d = []
-        self.azimuthMultilineFactorXbrOut = []
-        self.azimuthMultilineFactorXbrIn = []
-        self.numOfSonoCTAngles2dActual = []
-        self.elevationMultilineFactor = []
-        self.numPiPulses = []
-        self.num2DCols = []
-        self.fastPiEnabled = []
-        self.numZones2d = []
-        self.numSubVols = []
-        self.numPlanes = []
-        self.zigZagEnabled = []
-        self.azimuthMultilineFactorXbrOutCf = []
-        self.azimuthMultilineFactorXbrInCf = []
-        self.multiLineFactorCf = []
-        self.linesPerEnsCf = []
-        self.ensPerSeqCf = []
-        self.numCfCols = []
-        self.numCfEntries = []
-        self.numCfDummies = []
-        self.elevationMultilineFactorCf = []
-        self.Planes = []
-        self.tapPoint = []
+        self.acqNumActiveScChannels2d: list
+        self.azimuthMultilineFactorXbrOut: list
+        self.azimuthMultilineFactorXbrIn: list
+        self.numOfSonoCTAngles2dActual: list
+        self.elevationMultilineFactor: list
+        self.numPiPulses: list
+        self.num2DCols: list
+        self.fastPiEnabled: list
+        self.numZones2d: list
+        self.numSubVols: list
+        self.numPlanes: list
+        self.zigZagEnabled: list
+        self.azimuthMultilineFactorXbrOutCf: list
+        self.azimuthMultilineFactorXbrInCf: list
+        self.multiLineFactorCf: list
+        self.linesPerEnsCf: list
+        self.ensPerSeqCf: list
+        self.numCfCols: list
+        self.numCfEntries: list
+        self.numCfDummies: list
+        self.elevationMultilineFactorCf: list
+        self.Planes: list
+        self.tapPoint: list
 
 class Rfdata:
     def __init__(self):
-        self.lineData = None # Array containing interleaved line data (Data x XmitEvents)
-        self.lineHeader = None # Array containing qualifier bits of the interleaved line data (Qualifiers x XmitEvents)
+        self.lineData: np.ndarray # Array containing interleaved line data (Data x XmitEvents)
+        self.lineHeader: np.ndarray # Array containing qualifier bits of the interleaved line data (Qualifiers x XmitEvents)
         self.headerInfo = HeaderInfoStruct() # Structure containing information from the headers
-        self.echoData = None # Array containing echo line data
+        self.echoData: np.ndarray # Array containing echo line data
         self.dbParams = dbParams() # Structure containing dbParameters. Should match feclib::RFCaptureDBInfo
-        self.echoMModeData = []
-        self.miscData = []
+        self.echoMModeData: list
+        self.miscData: list
 
 def findSignature(filepath: Path):
     file = open(filepath, 'rb')
@@ -157,9 +157,9 @@ def SortRF(RFinput, Stride, ML, CRE=1, isVoyager=True):
     # Make into Column Vecor
     MLs = MLs[:]
 
-    out1 = []
-    out2 = []
-    out3 = []
+    out1 = np.array([])
+    out2 = np.array([])
+    out3 = np.array([])
     
     # Preallocate output array, but only for those that will be used
     if CRE == 4:
@@ -281,7 +281,7 @@ def parseDataF(rawrfdata, headerInfo):
         lineData_u32 = rawrfdata[:12,iStartData:iStopData+1]
         lineData_s32 = np.int32(lineData_u32&524287)
         iNeg = np.where(lineData_s32 >= minNeg)
-        lineData_s32[iNeg] -= (2*minNeg)
+        lineData_s32[iNeg] -= (2*minNeg) # type: ignore
         # for point in iNeg:
         #     lineData_s32[point[0], point[1]] = lineData_s32[point[0], point[1]]-2*minNeg
         lineHeader_u8 = (lineData_u32 & 1572864) >> 19
@@ -301,7 +301,7 @@ def parseHeaderV(rawrfdata):
     numHeaders = len(iHeader)-1 # Ignore last header as it is part of a partial line
 
     # Get infor for each header
-    for m in range(len(numHeaders)):
+    for m in range(numHeaders):
         packedHeader = ''
         for k in np.arange(11,0,-1):
             temp = ''
@@ -362,15 +362,13 @@ def getFillerZeros(num):
         num -= 1
     return zeros
 
-                
-
 def parseHeaderF(rawrfdata):
 
     # Find header clumps
     # iHeader pts to the index of the header clump
     # Note that each header is exactly 1 "Clump" long
     iHeader = np.array(np.where(rawrfdata[0,:]&1572864 == 524288))[0]
-    numHeaders = iHeader.size - 1 # Ignore last header as it is a part of a partial line
+    numHeaders: int = iHeader.size - 1 # Ignore last header as it is a part of a partial line
 
     HeaderInfo = HeaderInfoStruct()
 
@@ -628,7 +626,7 @@ def parseFileHeader(file_obj, endianness):
     return temp_dbParams, numFileHeaderBytes
 
 
-def parseRF(filepath, readOffset, readSize) -> Rfdata:
+def parseRF(filepath: str, readOffset: int, readSize: int) -> Rfdata:
     # Remember to make sure .c files have been compiled before running
 
     rfdata = Rfdata()
@@ -671,7 +669,7 @@ def parseRF(filepath, readOffset, readSize) -> Rfdata:
         totalHeaderSize = fileHeaderSize+8+numFileHeaderBytes # 8 bytes from fileVersion and numFileHeaderBytes
         # fseek(fid, totalHeaderSize, 'bof')
     else:
-        rfdata.dbParams = []
+        # rfdata.dbParams = []
         totalHeaderSize = 0
     
     readOffset *= (2**20)
@@ -683,11 +681,11 @@ def parseRF(filepath, readOffset, readSize) -> Rfdata:
         alignment = np.arange(0,remainingSize+1,36)
         offsetDiff = alignment - readOffset
         readDiff = alignment - readSize
-        readOffset = alignment[np.where(offsetDiff >= 0)[0][0]]
-        readSize = alignment[np.where(readDiff >= 0)[0][0]]
+        readOffset = alignment[np.where(offsetDiff >= 0)[0][0]].__int__()
+        readSize = alignment[np.where(readDiff >= 0)[0][0]].__int__()
         
         # Start reading
-        rawrfdata = open(filepath,'rb').read(readSize)
+        rawrfdata = open(filepath,'rb').read(readSize.__int__())
     
     else: # isFusion
         # Align read and offset size
@@ -697,13 +695,13 @@ def parseRF(filepath, readOffset, readSize) -> Rfdata:
 
         matchingIndices = np.where(offsetDiff >= 0)[0]
         if len(matchingIndices) > 0:
-            readOffset = alignment[matchingIndices[0]]
+            readOffset = alignment[matchingIndices[0]].__int__()
         else:
-            readOffset = []
+            readOffset = 0
 
         matchingIndices = np.where(readDiff >= 0)[0]
         if len(matchingIndices) > 0:
-            readSize = alignment[matchingIndices[0]]
+            readSize = alignment[matchingIndices[0]].__int__()
         else:
             readSize = remainingSize
         numClumps = int(np.floor(readSize/32)) # 256 bit clumps
