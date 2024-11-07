@@ -6,7 +6,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-        <title>QuantUS Documentation &mdash; QuantUS 1.0 documentation</title>
+        <title>Overview &mdash; QuantUS 1.0 documentation</title>
     
     <link rel="stylesheet" type="text/css" href="_static/dist/fontawesome.css" />
       <link rel="stylesheet" type="text/css" href="_static/dist/theme.css?v=ea6a6c20" />
@@ -14,7 +14,8 @@
             <link rel="index" title="Index" href="genindex.html" />
             <link rel="search" title="Search" href="search.html" />
             <link rel="top" title="QuantUS 1.0 documentation" href="#" />
-            <link rel="next" title="Overview" href="overview.html" />
+            <link rel="next" title="Installation" href="installation/index.html" />
+            <link rel="prev" title="QuantUS Documentation" href="index.html" />
     </head>
 <body>
     <script type="text/javascript" src="_static/dist/blocking.js"></script>
@@ -57,8 +58,8 @@
     </form>
 </div><div class="site-toc">
     <nav class="toc mt-3" aria-label="Main menu">
-        <ul>
-<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+        <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation/index.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installation/requirements.html">Requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation/environment.html">Environment</a></li>
@@ -90,8 +91,8 @@
                     <div class="col">
                         <nav aria-label="breadcrumb">
     <ol class="breadcrumb m-0 p-0 bg-transparent">
-        <li class="breadcrumb-item"><a href="#">Docs</a></li>
-        <li class="breadcrumb-item active" aria-current="page">QuantUS Documentation</li>
+        <li class="breadcrumb-item"><a href="index.html">Docs</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Overview</li>
     </ol>
 </nav>
                     </div>
@@ -103,11 +104,11 @@
                             <span class="dark-only"><i class="fas fa-sun"></i> Light mode</span>
                             <span class="light-only"><i class="fas fa-moon"></i> Dark mode</span>
                         </button>
-    <a class="btn btn-sm btn-light text-decoration-none" href="https://github.com/TUL-Dev/QuantUS/blob/main/docs/source/index.rst" rel="nofollow">
+    <a class="btn btn-sm btn-light text-decoration-none" href="https://github.com/TUL-Dev/QuantUS/blob/main/docs/source/overview.rst" rel="nofollow">
         <span class="btn-icon"><span class="fab fa-github"></span></span>
         <span class="btn-text">Edit on GitHub</span>
     </a>
-    <a class="btn btn-sm btn-light text-decoration-none" href="_sources/index.rst.txt" rel="nofollow">
+    <a class="btn btn-sm btn-light text-decoration-none" href="_sources/overview.rst.txt" rel="nofollow">
         <span class="btn-icon"><span class="fas fa-code"></span></span>
         <span class="btn-text">View source</span>
     </a>
@@ -122,52 +123,37 @@
                 <div class="row">
                     <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
                         <main role="main" id="main">
-    <section id="quantus-documentation">
-<h1>QuantUS Documentation<a class="headerlink" href="#quantus-documentation" title="Link to this heading">¶</a></h1>
-<p><strong>QuantUS</strong> is a desktop application and command line interface (CLI) aiming to combine and analyze
-ultrasonic data regardless of system and format. The tool supports quantitative ultrasound
-spectroscopy (QUS) on radiofrequency (RF) and in-phase and quadrature (IQ) data. It also
-features 2D/3D dynamic contrast-enhanced ultrasound (DCE-US) time intensity curve (TIC) analysis
-for monitoring bolus injections of contrast over time.</p>
-<p>Notably, QuantUS addresses gaps in existing
-tools by uniquely featuring 3D DCE-US perfusion parametric map generation, motion compensation for
-2D DCE-US cine loops with TIC analysis, an ultrasound system-independent approach, and an
-intuitive user interface. Parametric maps can be computed for all forms of analysis, adding a
-qualitative aspect to research projects.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This project is under active development.</p>
-</div>
-<section id="getting-started">
-<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="overview.html#qus-overview">QUS Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="overview.html#dce-us-overview">DCE-US Overview</a></li>
+    <section id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h1>
+<p>QuantUS is a free, standalone, native graphical user interface (GUI) facilitating ultrasound research compatible on Mac OS X, Windows, and Linux. The tool provides an end-to-end workflow for analysis using radiomics approaches including:</p>
+<ul class="simple">
+<li><p>2D Quantitative Ultrasound Spectroscopy (QUS) via spectral analysis of radiofrequency (RF) and in-phase and quadrature (IQ) data</p></li>
+<li><p>2D Dynamic Contrast-Enhanced Ultrasound (DCE-US) Perfusion Imaging Analysis with optional Motion Compensation</p></li>
+<li><p>3D DCE-US Perfusion Imaging Analysis</p></li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="installation/index.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="installation/requirements.html">Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation/environment.html">Environment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation/building.html">Building</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation/running.html">Running</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation/phantom.html">Phantom Collection Google Folder</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="usage/index.html">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="usage/cliQus.html">2D QUS CLI Example</a></li>
-</ul>
-</li>
-</ul>
-</div>
+<section id="qus-overview">
+<h2>QUS Overview<a class="headerlink" href="#qus-overview" title="Link to this heading">¶</a></h2>
+<p>Given user-inputted RF or IQ ultrasound data, this feature runs spectral analysis to compute quantitative ultrasound parameters and parametric maps on a custom region of interest (ROI). In QuantUS, the midband fit (MBF), spectral slope (SS), and spectral intercept (SI) spectral parameters as described by <a class="reference external" href="https://pubmed.ncbi.nlm.nih.gov/26233222/">El Kaffas et al.</a> have been validated and used in numerous ultrasound studies. Additionally, the backscatter coefficient, attenuation coefficient, Nakagami parameter, effective scatterer size, and effecive scatterer concentration have all been implemented into the UI and are in the validation process.</p>
+<p>The QUS feature of QuantUS also supports a CLI for Terason and Canon transducers. More information and an example can be found in the Jupyter notebooks <a class="reference external" href="https://github.com/TUL-DEV/QuantUS/blob/main/CLI-Demos/scCanonQus.ipynb">scCanonQus.ipynb</a> and <a class="reference external" href="https://github.com/TUL-DEV/QUantUS/blob/main/CLI-Demos/terasonQus.ipynb">terasonQus.ipynb</a> within our codebase.</p>
+<a class="reference internal image-reference" href="_images/mbfSc.png"><img alt="MBF Parametric Map Example" class="align-center" src="_images/mbfSc.png" style="width: 600px;" />
+</a>
+</section>
+<section id="dce-us-overview">
+<h2>DCE-US Overview<a class="headerlink" href="#dce-us-overview" title="Link to this heading">¶</a></h2>
+<p>For both 2D and 3D cine loops, QuantUS performs quantitative analysis on bolus contrast injections by computing a time intensity curve (TIC) for a given ROI or volume of interest (VOI). 2D cine loops can optionally run a 2D motion compensation algorithm developed by <a class="reference external" href="https://pubmed.ncbi.nlm.nih.gov/35970658/">Tiyarattanachai et al.</a> before the TIC is computed to reduce motion-induced noise.</p>
+<p>From here, a lognormal curve is fitted, returning the area under the curve (AUC), peak enhancement (PE), mean transit time (MTT), time to peak (TP), normalization (TMPPV), and region area/volume values. For processors with high computational power, a parametric map of each parameter can be generated in both 2D and 3D as well.</p>
+<a class="reference internal image-reference" href="_images/3dDceusParamap.png"><img alt="3D DCE-US Parametric Map Example" class="align-center" src="_images/3dDceusParamap.png" style="width: 600px;" />
+</a>
 </section>
 </section>
 
 </main>
                         <nav aria-label="Page navigation" class="py-4 my-5 clearfix font-weight-bold border-top">
-    <a class="float-right" href="overview.html" title="Next">
-        Overview <span aria-hidden="true">&nbsp;→</span>
+    <a class="float-left" href="index.html" title="Previous">
+        <span aria-hidden="true">←&nbsp;</span>QuantUS Documentation
+    </a>
+    <a class="float-right" href="installation/index.html" title="Next">
+        Installation <span aria-hidden="true">&nbsp;→</span>
     </a>
 </nav>
                     </div>
@@ -176,8 +162,9 @@ qualitative aspect to research projects.</p>
                         <div class="sticky-top toc page-toc" aria-labelledby="page-toc-heading">
                             <p class="font-weight-bold" id="page-toc-heading">Page contents</p>
                             <ul>
-<li><a class="reference internal" href="#">QuantUS Documentation</a><ul>
-<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#">Overview</a><ul>
+<li><a class="reference internal" href="#qus-overview">QUS Overview</a></li>
+<li><a class="reference internal" href="#dce-us-overview">DCE-US Overview</a></li>
 </ul>
 </li>
 </ul>
