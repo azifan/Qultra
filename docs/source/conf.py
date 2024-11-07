@@ -24,6 +24,7 @@ html_sidebars = {"**": [
     "globaltoc.html"
 ]}
 exclude_patterns = []
+html_baseurl = 'https://tul-dev.github.io/QuantUS/'
 
 
 
@@ -33,11 +34,11 @@ exclude_patterns = []
 html_theme = 'sphinx_wagtail_theme'
 html_theme_options = dict( # Wagtail
     project_name = "QuantUS",
-    logo = "../../../source/transducer.png",
+    logo = "../_images/transducer.png",
     github_url = "https://github.com/TUL-Dev/QuantUS/blob/main/docs/source/",
     logo_alt = "QuantUS",
     logo_height = 59,
-    logo_url = "/",
+    logo_url = "/QuantUS/",
     logo_width = 45,
     # header_links = "Top 1|http://example.com/one, Top 2|http://example.com/two",
     footer_links = ",".join([
