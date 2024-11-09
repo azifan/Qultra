@@ -30,7 +30,7 @@ class SpectralAnalysis:
         self.waveLength = (
             speedOfSoundInTissue / self.config.centerFrequency
         ) * 1000  # mm
-        if self.config.axWinSize is None: # not pre-loaded config
+        if not hasattr(self.config, 'axWinSize'): # not pre-loaded config
             self.config.axWinSize = 10 * self.waveLength
             self.config.latWinSize = 10 * self.waveLength
             self.config.axialOverlap = 0.5; self.config.lateralOverlap = 0.5

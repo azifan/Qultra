@@ -124,39 +124,39 @@ class SpectralData:
     
     @property
     def finalBmode(self):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             return self.scBmode
         return self.bmode
     
     @finalBmode.setter
     def finalBmode(self, value: np.ndarray):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             self.spectralAnalysis.ultrasoundImage.scBmode = value
         else:
             self.spectralAnalysis.ultrasoundImage.bmode = value
     
     @property
     def splineX(self):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             return self.spectralAnalysis.scSplineX
         return self.spectralAnalysis.splineX
     
     @splineX.setter
     def splineX(self, value: np.ndarray):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             self.spectralAnalysis.scSplineX = value
         else:
             self.spectralAnalysis.splineX = value
 
     @property
     def splineY(self):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             return self.spectralAnalysis.scSplineY
         return self.spectralAnalysis.splineY
     
     @splineY.setter
     def splineY(self, value: np.ndarray):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             self.spectralAnalysis.scSplineY = value
         else:
             self.spectralAnalysis.splineY = value
@@ -251,18 +251,18 @@ class SpectralData:
     
     @property
     def finalMbfIm(self):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             return self.scMbfIm
         return self.mbfIm
 
     @property
     def finalSsIm(self):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             return self.scSsIm
         return self.ssIm
     
     @property
     def finalSiIm(self):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             return self.scSiIm
         return self.siIm

@@ -342,7 +342,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         except (AttributeError, UnboundLocalError):
             pass
 
-        if len(self.spectralData.splineX):
+        if hasattr(self.spectralData, 'splineX') and len(self.spectralData.splineX):
             self.spline = self.ax.plot(self.spectralData.splineX, self.spectralData.splineY, 
                                        color="cyan", zorder=1, linewidth=0.75)
         elif len(self.pointsPlottedX) > 0:
@@ -528,6 +528,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         )
         self.pixelWidthVal.setText(str(self.spectralData.finalBmode.shape[1]))
         self.pixelDepthVal.setText(str(self.spectralData.finalBmode.shape[0]))
+        self.plotOnCanvas()
 
     def recordDrawRoiClicked(self):
         if self.drawRoiButton.isChecked():  # Set up b-mode to be drawn on

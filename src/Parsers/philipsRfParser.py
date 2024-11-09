@@ -14,7 +14,7 @@ if system == "Darwin" or system == "Linux":
     if system == "Darwin":
         philips_rf_parser = ct.CDLL(f"{Path('./src/Parsers/philips_rf_parser.dylib')}")
     else:
-        philips_rf_parser = ct.CDLL(f"Path('./src/Parsers/philips_rf_parser.so')")
+        philips_rf_parser = ct.CDLL(f"{Path('./src/Parsers/philips_rf_parser.so')}")
 
     philips_rf_parser.get_partA.argtypes = [ct.c_longlong, ct.c_char_p, ct.c_int]
     philips_rf_parser.get_partA.restype = ct.POINTER(ct.c_int)

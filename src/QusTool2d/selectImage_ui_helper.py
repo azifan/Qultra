@@ -292,7 +292,7 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
 
         spectralData = SpectralData()
         spectralData.scConfig = scConfig
-        self.roiSelectionGUI.spectralData = self.spectralData
+        self.roiSelectionGUI.spectralData = spectralData
         self.acceptFrame()
 
     def displaySlidingFrames(self):

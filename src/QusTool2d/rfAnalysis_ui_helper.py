@@ -214,7 +214,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.saveConfigGUI.show()
 
     def completeSpectralAnalysis(self):
-        if self.spectralData.scConfig is not None:
+        if hasattr(self.spectralData, 'scConfig'):
             self.spectralData.spectralAnalysis.splineToPreSc()
         self.spectralData.spectralAnalysis.generateRoiWindows()
         self.spectralData.spectralAnalysis.computeSpecWindows()
