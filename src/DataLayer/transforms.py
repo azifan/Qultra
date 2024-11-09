@@ -3,12 +3,88 @@ import pyvista as pv
 import scipy.interpolate as interpolate
 from numpy.matlib import repmat
 
+#TODO: put these into analysisObjects in pyQus
 class OutImStruct():
     def __init__(self):
-        self.scArr = None
-        self.preScArr = None
-        self.xmap = None # sc (y,x) --> preSC x
-        self.ymap = None # sc (y,x) --> preSC y
+        self.scArr: np.ndarray
+        self.preScArr: np.ndarray
+        self.xmap: np.ndarray # sc (y,x) --> preSC x
+        self.ymap: np.ndarray # sc (y,x) --> preSC y
+        
+class DataOutputStruct():
+    def __init__(self):
+        self.scBmodeStruct: OutImStruct
+        self.scBmode: np.ndarray
+        self.rf: np.ndarray
+        self.bMode: np.ndarray
+        self.widthPixels: int
+        self.depthPixels: int
+        
+class InfoStruct():
+    def __init__(self):
+        self.minFrequency: int # transducer freq (Hz)
+        self.maxFrequency: int # transducer freq (Hz)
+        self.lowBandFreq: int # analysis freq (Hz)
+        self.upBandFreq: int # analysis freq (Hz)
+        self.centerFrequency = 9000000 #Hz
+
+        # For B-Mode image rendering
+        self.clipFact = 0.95 
+        self.dynRange = 55
+       
+        self.studyMode: str
+        self.filename: str
+        self.filepath: str
+        self.probe: str
+        self.system: str
+        self.studyID: str
+        self.studyEXT: str
+        self.samples: int
+        self.lines: int
+        self.depthOffset: float
+        self.depth: float
+        self.width: float
+        self.rxFrequency: int
+        self.samplingFrequency: int
+        self.txFrequency: int
+        self.targetFOV: int
+        self.numFocalZones: int
+        self.numFrames: int
+        self.frameSize: float
+        self.depthAxis: float
+        self.widthAxis: float
+        self.lineDensity: int
+        self.pitch: float
+        self.yOffset: float
+        self.xOffset: float
+        self.gain: int
+        self.rxGain: int
+        self.userGain: int
+        self.txPower: int
+        self.power: int
+        self.PRF: int
+        self.lateralRes: float
+        self.axialRes: float
+        self.maxval: float
+
+        # Philips Specific - may repeat and need clean up
+        self.tilt1: float
+        self.width1: float
+        self.startDepth1: float
+        self.endDepth1: float
+        self.endHeight: float
+        self.clip_fact: float
+        self.dyn_range: int
+        self.numSonoCTAngles: int
+
+        # One if preSC, the other is postSC resolutions
+        self.yResRF: float
+        self.xResRF: float
+        self.yRes: float
+        self.xRes: float
+
+        # Quad 2 or accounting for change in line density
+        self.quad2x: float
 
 def rgbtoint32(rgb):
     color = 0
@@ -179,39 +255,14 @@ def ellipsoidFitLS(pos):
 
 
 def calculateSpline3D(points):
-    # Calculate ellipsoid of best fit
-    # points = np.array(points)
-    # a,b,c = ellipsoidFitLS(points)
-    # output = set()
-
-    # u = np.linspace(0., np.pi*2., 1000)
-    # v = np.linspace(0., np.pi, 1000)
-    # u, v = np.meshgrid(u,v)
-
-    # x = a*np.cos(u)*np.sin(v)
-    # y = b*np.sin(u)*np.sin(v)
-    # z = c*np.cos(v)
-
-    # # turn this data into 1d arrays
-    # x = x.flatten()
-    # y = y.flatten()
-    # z = z.flatten()
-    # x += np.mean(points, axis=0)[0]
-    # y += np.mean(points, axis=0)[1]
-    # z += np.mean(points, axis=0)[2]
-
-    # for i in range(len(x)):
-    #     output.add((int(x[i]), int(y[i]), int(z[i])))
-    # return output
-
     cloud = pv.PolyData(points, force_float=False)
-    volume = cloud.delaunay_3d(alpha=100.0)
-    shell = volume.extract_geometry()
-    final = shell.triangulate()
-    final.smooth(n_iter=1000)
-    faces = final.faces.reshape((-1, 4))
+    volume = cloud.delaunay_3d(alpha=100)
+    shell = volume.extract_geometry() # type: ignore
+    final = shell.triangulate() # type: ignore
+    final.smooth(n_iter=1000) # type: ignore
+    faces = final.faces.reshape((-1, 4)) # type: ignore
     faces = faces[:, 1:]
-    arr = final.points[faces]
+    arr = final.points[faces] # type: ignore
 
     arr = np.array(arr)
 
@@ -231,3 +282,12 @@ def calculateSpline3D(points):
                 output.add((int(cur_pos[0]), int(cur_pos[1]), int(cur_pos[2])))
 
     return output
+
+def iqToRf(iqData, rxFrequency, decimationFactor, carrierFrequency):
+    import scipy.signal as ssg    
+    iqData = ssg.resample_poly(iqData, decimationFactor, 1) # up-sample by decimation factor
+    rfData = np.zeros(iqData.shape)
+    t = [i*(1/rxFrequency) for i in range(iqData.shape[0])]
+    for i in range(iqData.shape[1]):
+        rfData[:,i] = np.real(np.multiply(iqData[:,i], np.exp(1j*(2*np.pi*carrierFrequency*np.transpose(t)))))
+    return rfData

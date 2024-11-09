@@ -2,54 +2,7 @@ import numpy as np
 from scipy.io import loadmat
 from scipy.signal import hilbert
 
-class InfoStruct():
-    def __init__(self):
-        # Designed fro RF analysis using Terason US System
-        # self.minFrequency = 7000000
-        # self.maxFrequency = 17000000
-        self.minFrequency = 3000000
-        self.maxFrequency = 15000000
-        self.lowBandFreq = 5000000
-        self.upBandFreq = 13000000
-        self.depth = None
-        self.centerFrequency = 9000000 #Hz
-
-        # For B-Mode image rendering
-        self.clipFact = 0.95 
-        self.dynRange = 55
-
-        self.studyMode = None
-        self.filename = None
-        self.filepath = None
-        self.probe = None
-        self.system = None
-        self.studyID = None
-        self.studyEXT = None
-        self.samples = None
-        self.lines = None
-        self.width = None
-        self.rxFrequency = None
-        self.samplingFrequency = None
-        self.txFrequency = None
-        self.targetFOV = None
-        self.numFocalZones = None
-        self.numFrames = None
-        self.frameSize = None
-        self.widthAxis = None
-        self.lineDensity = None
-        self.lateralRes = None
-        self.axialRes = None
-        self.maxval = None
-        self.tx = None
-
-class DataStruct():
-    def __init__(self):
-        self.rf = None
-        self.bMode = None
-        self.scRf = None
-        self.scBmode = None
-        self.widthPixels = None
-        self.depthPixels = None
+from src.DataLayer.transforms import DataOutputStruct, InfoStruct
 
 def readFileInfo(path):
     input = loadmat(path)
@@ -57,6 +10,14 @@ def readFileInfo(path):
     b_data_Zone2 = np.array(input["b_data_Zone2"])
 
     Info = InfoStruct()
+    Info.minFrequency = 3000000
+    Info.maxFrequency = 15000000
+    Info.lowBandFreq = 5000000
+    Info.upBandFreq = 13000000
+    Info.centerFrequency = 9000000 #Hz
+    Info.clipFact = 0.95 
+    Info.dynRange = 55
+    
     Info.studyMode = 'RF'
     Info.lines = input["NumberOfLines"][0][0]
     Info.depth = input["SectorDepthCM"][0][0] * 10 #mm
@@ -89,14 +50,14 @@ def readFileImg(b_data_Zone1, b_data_Zone2, focalDepthZone0, OmniOn, Info):
 
     bmode = np.zeros(rfData.shape)
     for i in range(rfData.shape[1]):
-        bmode[:,i] = 20*np.log10(abs(hilbert(rfData[:,i])))
+        bmode[:,i] = 20*np.log10(abs(hilbert(rfData[:,i]))) # type: ignore
 
     # dynrange of 40
     bmode = np.clip(bmode, np.amax(bmode)-40, np.amax(bmode))
     bmode -= np.amin(bmode)
     bmode *= (255/np.amax(bmode))
 
-    Data = DataStruct()
+    Data = DataOutputStruct()
     Data.rf = rfData
     Data.bMode = bmode
     Data.widthPixels = bmode.shape[1]

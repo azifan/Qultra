@@ -144,6 +144,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
         self.loadRoiGUI = LoadRoiGUI()
         self.saveRoiGUI = SaveRoiGUI()
+        self.ultrasoundImage = UltrasoundImage()
         self.pointsPlottedX = []
         self.pointsPlottedY = []
 
@@ -166,7 +167,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
         self.scatteredPoints = []
         self.spectralData: SpectralData
-        self.ultrasoundImage: UltrasoundImage
         self.lastGui: SelectImageSection.SelectImageGUI_QusTool2dIQ
 
         self.crosshairCursor = Cursor(
@@ -179,7 +179,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             props=dict(linestyle="-", color="cyan", fill=False),
         )
         self.selector.set_active(False)
-        self.cid = None
+        self.cid: int
 
         self.redrawRoiButton.setHidden(True)
 
@@ -234,7 +234,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.undoLastRoi()
         self.drawRoiButton.setChecked(False)
         self.crosshairCursor.set_active(False)
-        if self.cid is not None:
+        if not hasattr(self, 'cid'):
             self.cid = self.figure.canvas.mpl_disconnect(self.cid)
 
     def backFromRect(self):
@@ -321,7 +321,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.ax.clear()
         quotient = self.spectralData.depth / self.spectralData.width
         self.ax.imshow(self.spectralData.finalBmode, aspect=quotient*(self.spectralData.finalBmode.shape[1]/self.spectralData.finalBmode.shape[0]))
-        self.figure.set_facecolor((0, 0, 0, 0))
+        self.figure.set_facecolor((0, 0, 0, 0)) #type: ignore
         self.ax.axis("off")
 
         try:
@@ -350,7 +350,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 self.ax.scatter(
                     self.pointsPlottedX[-1],
                     self.pointsPlottedY[-1],
-                    marker="o",
+                    marker="o", #type: ignore
                     s=0.5,
                     c="red",
                     zorder=500,
@@ -420,7 +420,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         scConfig.numSamplesDrOut = imgInfoStruct.numSamplesDrOut
         self.spectralData.scConfig = scConfig
 
-        self.ultrasoundImage = UltrasoundImage()
         self.ultrasoundImage.bmode = imgDataStruct.scBmodeStruct.preScArr
         self.ultrasoundImage.scBmode = imgDataStruct.scBmodeStruct.scArr
         self.ultrasoundImage.xmap = imgDataStruct.scBmodeStruct.xmap
@@ -438,55 +437,11 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.editImageDisplayGUI.brightnessVal.setValue(1.4)
         self.editImageDisplayGUI.sharpnessVal.setValue(3)
 
-    def openPhilipsImage(self, imageFilePath, phantomFilePath):
-        raise NotImplementedError("Not updated with refactor")
-        tmpLocation = imageFilePath.split("/")
-        dataFileName = tmpLocation[-1]
-        dataFileLocation = imageFilePath[:len(imageFilePath)-len(dataFileName)]
-        tmpPhantLocation = phantomFilePath.split("/")
-        phantFileName = tmpPhantLocation[-1]
-        phantFileLocation = phantomFilePath[:len(phantomFilePath)-len(phantFileName)]
-        if dataFileName[-3:] == ".rf":
-            dataFile = open(imageFilePath, 'rb')
-            datasig = list(dataFile.read(8))
-            if datasig != [0,0,0,0,255,255,0,0]: # Philips signature parameters
-                # self.invalidPath.setText("Data and Phantom files are both invalid.\nPlease use Philips .rf files.")
-                return
-            elif datasig != [0,0,0,0,255,255,0,0]:
-                # self.invalidPath.setText("Invalid phantom file.\nPlease use Philips .rf files.")
-                return
-            else: # Display Philips image and assign relevant default analysis
-                philipsRfParser(imageFilePath) # parse image filee
-                dataFileName = str(dataFileLocation[:-3]+'.mat')
-
-        if phantFileName[-3:] == ".rf": # Check binary signatures at start of .rf files
-            phantFile = open(phantomFilePath, 'rb')
-            phantsig = list(phantFile.read(8))
-            if phantsig != [0,0,0,0,255,255,0,0]: # Philips signature parameters
-                # self.invalidPath.setText("Data and Phantom files are both invalid.\nPlease use Philips .rf files.")
-                return
-            elif phantsig != [0,0,0,0,255,255,0,0]:
-                # self.invalidPath.setText("Invalid phantom file.\nPlease use Philips .rf files.")
-                return
-            else: # Display Philips image and assign relevant default analysis
-                philipsRfParser(imageFilePath) # parse image filee
-
-                phantFileName = str(phantFileName[:-3]+'.mat')
-
-        # Display Philips image and assign relevant default analysis params
-        self.frame = None
-        imArray, imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = philipsMatParser(dataFileName, dataFileLocation, phantFileName, phantFileLocation, self.frame)
-
-        self.processImage(
-            imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
-        )    
-
     def openImageTerason(self, imageFilePath, phantomFilePath):
         imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = tera.getImage(
             imageFilePath, phantomFilePath
         )
 
-        self.ultrasoundImage = UltrasoundImage()
         self.ultrasoundImage.bmode = imgDataStruct.bMode
         self.ultrasoundImage.axialResRf = imgInfoStruct.axialRes
         self.ultrasoundImage.lateralResRf = imgInfoStruct.lateralRes
@@ -502,7 +457,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def processImage(
         self, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
     ):
-        
         self.ultrasoundImage.rf = imgDataStruct.rf
         self.ultrasoundImage.phantomRf = refDataStruct.rf
 
@@ -549,7 +503,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             os.path.join("Junk", "bModeImRaw.png")
         )  # Save as .png file
 
-        if self.spectralData.scConfig is not None:
+        if hasattr(self.spectralData, 'scConfig'):
             flippedIm = np.flipud(self.spectralData.bmode).astype(np.uint8)
 
             qIm = QImage(
@@ -660,8 +614,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def undoLastRoi(
         self,
     ):  # Remove previously drawn roi and prepare user to draw a new one
-        self.spectralData.splineX = []
-        self.spectralData.splineY = []
+        self.spectralData.splineX = np.array([])
+        self.spectralData.splineY = np.array([])
         self.pointsPlottedX = []
         self.pointsPlottedY = []
         self.drawRoiButton.setChecked(False)
@@ -677,7 +631,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
         self.spectralData.finalBmode = self.updateImageDisplay(cvIm)
 
-        if self.spectralData.scConfig is not None:
+        if hasattr(self.spectralData, 'scConfig'):
             cvIm = Image.open(os.path.join("Junk", "bModeImRawPreSc.png"))
             self.spectralData.bmode = self.updateImageDisplay(cvIm)
         
@@ -720,9 +674,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             #     print("Preset not found!")
             #     return
 
-            if pointSlopeBottom > bottomSlope:
+            if pointSlopeBottom > bottomSlope: # type: ignore
                 return
-            if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
+            if pointSlopeRight >= 0 or pointSlopeRight < rightSlope: # type: ignore
                 return
         except (AttributeError, UnboundLocalError):
             pass
@@ -753,7 +707,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.ax.scatter(
                 self.pointsPlottedX[-1],
                 self.pointsPlottedY[-1],
-                marker="o",
+                marker="o", # type: ignore
                 s=0.5,
                 c="red",
                 zorder=500,
