@@ -348,9 +348,9 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
 
     def acceptSiemensFrame(self):
         self.roiSelectionGUI.ultrasoundImage.bmode = self.imgDataStruct.bMode[self.frame]
-        self.roiSelectionGUI.ultrasoundImage.axialResRf = self.imgInfoStruct.depth / self.imgDataStruct.rf.shape[0]
+        self.roiSelectionGUI.ultrasoundImage.axialResRf = self.imgInfoStruct.depth / self.initialImgRf.shape[1]
         self.roiSelectionGUI.ultrasoundImage.lateralResRf = self.roiSelectionGUI.ultrasoundImage.axialResRf * (
-            self.imgDataStruct.rf.shape[0]/self.imgDataStruct.rf.shape[1]
+            self.initialImgRf.shape[1]/self.initialImgRf.shape[2]
         ) # placeholder
         self.acceptFrame()
 
