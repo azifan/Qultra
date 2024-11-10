@@ -255,16 +255,15 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         phantomFile = open(phantomFilePath, 'rb')
         phantomSig = list(phantomFile.read(8))
         
-        txBeamPerFrame = 90
         if imageFilePath.suffix == '.rf':
             assert imageSig == [0,0,0,0,255,255,0,0]
             destImgFilePath = Path(imageFilePath.__str__().replace('.rf', '.mat'))
-            philipsRfParser(imageFilePath.__str__(), txBeamperFrame=txBeamPerFrame)
+            philipsRfParser(imageFilePath.__str__())
             
         if phantomFilePath.suffix == '.rf':
             assert phantomSig == [0,0,0,0,255,255,0,0]
             destPhantomFilePath = Path(phantomFilePath.__str__().replace('.rf', '.mat'))
-            philipsRfParser(phantomFilePath.__str__(), txBeamperFrame=txBeamPerFrame)
+            philipsRfParser(phantomFilePath.__str__())
         
         if imageFilePath.suffix == '.mat':
             destImgFilePath = imageFilePath

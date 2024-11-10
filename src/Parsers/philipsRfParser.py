@@ -987,7 +987,7 @@ def parseRF(filepath: str, readOffset: int, readSize: int) -> Rfdata:
     return rfdata
 
 
-def philipsRfParser(filepath, txBeamperFrame=125, NumSonoCTAngles=5, ML_out=2, ML_in=32, used_os=2256):
+def philipsRfParser(filepath, ML_out=2, ML_in=32, used_os=2256):
 
     rf = parseRF(filepath, 0, 2000)
 
@@ -995,6 +995,9 @@ def philipsRfParser(filepath, txBeamperFrame=125, NumSonoCTAngles=5, ML_out=2, M
         rf.lineData = rf.lineData[:,np.arange(2, rf.lineData.shape[1], 2)]
     else:
         rf.lineData = rf.lineData[:,np.arange(1, rf.lineData.shape[1], 2)]
+
+    txBeamperFrame = np.array(rf.dbParams.num2DCols).flat[0]
+    NumSonoCTAngles = rf.dbParams.numOfSonoCTAngles2dActual[0]
     
     # # Calculated parameters 
     numFrame = int(np.floor(rf.lineData.shape[1]/txBeamperFrame/NumSonoCTAngles))
@@ -1037,9 +1040,9 @@ def philipsRfParser(filepath, txBeamperFrame=125, NumSonoCTAngles=5, ML_out=2, M
         contents['echoData2'] = rf.echoData[2]
     if len(rf.echoData[3]):
         contents['echoData3'] = rf.echoData[3]
-    if len(rf.echoMModeData):
+    if hasattr(rf, 'echoMModeData'):
         contents['echoMModeData'] = rf.echoMModeData
-    if len(rf.miscData):
+    if hasattr(rf, 'miscData'):
         contents['miscData'] = rf.miscData
     
     if os.path.exists(destination):
