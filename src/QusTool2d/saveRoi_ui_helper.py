@@ -20,6 +20,7 @@ class SaveRoiGUI(Ui_saveRoi, QWidget):
         self.phantomName: str
         self.splineX: np.ndarray
         self.splineY: np.ndarray
+        self.frame: int
 
         self.chooseFolderButton.clicked.connect(self.chooseFolder)
         self.clearFolderButton.clicked.connect(self.clearFolder)
@@ -44,7 +45,8 @@ class SaveRoiGUI(Ui_saveRoi, QWidget):
                 return
             
             output = {"Image Name": self.imName, "Phantom Name": self.phantomName,
-                      "Spline X": self.splineX, "Spline Y": self.splineY}
+                      "Spline X": self.splineX, "Spline Y": self.splineY,
+                      "Frame": self.frame}
             
             with open(os.path.join(
                     self.newFolderPathInput.text(), self.newFileNameInput.text()

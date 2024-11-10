@@ -147,6 +147,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.ultrasoundImage = UltrasoundImage()
         self.pointsPlottedX = []
         self.pointsPlottedY = []
+        self.frame = 0
 
         # Prepare B-Mode display plot
         self.horizontalLayout = QHBoxLayout(self.imDisplayFrame)
@@ -204,6 +205,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.acceptRect(moveOn=False)
         self.saveRoiGUI.splineX = self.spectralData.splineX
         self.saveRoiGUI.splineY = self.spectralData.splineY
+        self.saveRoiGUI.frame = self.frame
         self.saveRoiGUI.imName = self.imagePathInput.text()
         self.saveRoiGUI.phantomName = self.phantomPathInput.text()
         self.saveRoiGUI.show()
@@ -283,7 +285,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.physicalRectWidthVal.setHidden(False)
 
     def backToWelcomeScreen(self):
-        self.lastGui.spectralData = self.spectralData
         self.lastGui.show()
         self.hide()
 

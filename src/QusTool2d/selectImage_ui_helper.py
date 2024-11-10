@@ -209,7 +209,6 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
                 return
             elif self.machine == "Siemens":
                 self.openSiemensImage()
-                self.roiSelectionGUI.spectralData = self.spectralData
                 return
             else:
                 print("ERROR: Machine match not found")
@@ -235,6 +234,7 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.initialImgRf = self.imgDataStruct.rf
         self.initialRefRf = self.refDataStruct.rf
 
+        self.acceptFrameButton.clicked.connect(self.acceptSiemensFrame)
         self.displaySlidingFrames()
 
     def openPhilipsImage(self):
@@ -274,14 +274,6 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.imData = self.imgDataStruct.bMode
         self.initialImgRf = [self.imgDataStruct.rf]
         self.initialRefRf = [self.refDataStruct.rf]
-        self.roiSelectionGUI.ultrasoundImage.bmode = self.imgDataStruct.scBmodeStruct.preScArr
-        self.roiSelectionGUI.ultrasoundImage.scBmode = self.imgDataStruct.scBmode
-        self.roiSelectionGUI.ultrasoundImage.xmap = self.imgDataStruct.scBmodeStruct.xmap
-        self.roiSelectionGUI.ultrasoundImage.ymap = self.imgDataStruct.scBmodeStruct.ymap
-        self.roiSelectionGUI.ultrasoundImage.axialResRf = self.imgInfoStruct.depth / self.imgDataStruct.rf.shape[0]
-        self.roiSelectionGUI.ultrasoundImage.lateralResRf = self.roiSelectionGUI.ultrasoundImage.axialResRf * (
-            self.imgDataStruct.rf.shape[0]/self.imgDataStruct.rf.shape[1]
-        ) # placeholder
         
         scConfig = ScConfig()
         scConfig.width = self.imgInfoStruct.width1
@@ -314,7 +306,7 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.xBorderMin = 410 + ((721 - self.widthScale)/2)
         self.xBorderMax = 1131 - ((721 - self.widthScale)/2)
 
-        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.imPreview.width(), self.imPreview.height(), Qt.KeepAspectRatio))
+        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.imPreview.width(), self.imPreview.height(), Qt.IgnoreAspectRatio))
 
         self.totalFramesLabel.setHidden(False)
         self.ofFramesLabel.setHidden(False)
@@ -346,7 +338,6 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.curFrameLabel.setText("0")
         self.totalFramesLabel.setText(str(self.imArray.shape[0]-1))
         self.curFrameSlider.valueChanged.connect(self.frameChanged)
-        self.acceptFrameButton.clicked.connect(self.acceptFrame)
 
         self.update()   
     
@@ -355,10 +346,18 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.curFrameLabel.setText(str(self.frame))
         self.plotPreviewFrame()
 
+    def acceptSiemensFrame(self):
+        self.roiSelectionGUI.ultrasoundImage.bmode = self.imgDataStruct.bMode[self.frame]
+        self.roiSelectionGUI.ultrasoundImage.axialResRf = self.imgInfoStruct.depth / self.imgDataStruct.rf.shape[0]
+        self.roiSelectionGUI.ultrasoundImage.lateralResRf = self.roiSelectionGUI.ultrasoundImage.axialResRf * (
+            self.imgDataStruct.rf.shape[0]/self.imgDataStruct.rf.shape[1]
+        ) # placeholder
+        self.acceptFrame()
+
     def acceptFrame(self):
-        self.imgDataStruct.bMode = self.imData
         self.imgDataStruct.rf = self.initialImgRf[self.frame]
         self.refDataStruct.rf = self.initialRefRf[0]
+        self.roiSelectionGUI.frame = self.frame
         self.roiSelectionGUI.processImage(self.imgDataStruct, self.refDataStruct, self.imgInfoStruct, self.refInfoStruct)
         self.roiSelectionGUI.lastGui = self
         self.roiSelectionGUI.show()
@@ -368,7 +367,7 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.imData = np.array(self.imArray[self.frame]).reshape(self.imArray.shape[1], self.imArray.shape[2])
         self.imData = np.require(self.imData,np.uint8,'C')
         self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8)
-        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.imPreview.width(), self.imPreview.height(), Qt.KeepAspectRatio))
+        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.imPreview.width(), self.imPreview.height(), Qt.IgnoreAspectRatio))
         self.update()
 
     def clearImagePath(self):

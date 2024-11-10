@@ -39,7 +39,7 @@ class SpectralData:
             np.array(self.spectralAnalysis.ultrasoundImage.bmode).astype('uint8'),
             cv2.COLOR_GRAY2RGB
         )
-        if self.spectralAnalysis.ultrasoundImage.scBmode is not None:
+        if hasattr(self.spectralAnalysis.ultrasoundImage, 'scBmode'):
             self.spectralAnalysis.ultrasoundImage.scBmode = cv2.cvtColor(
                 np.array(self.spectralAnalysis.ultrasoundImage.scBmode).astype('uint8'),
                 cv2.COLOR_GRAY2RGB
