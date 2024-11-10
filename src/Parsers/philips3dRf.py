@@ -82,7 +82,7 @@ def getVolume(rfPath: Path, sipNumOutBits: int = 8, DRlowerdB: int = 20, DRupper
 
     #Scan Conversion of 3D volume time series (Only doing 1 volume here)
     SC_Vol, bmodeDims = scanConvert3dVolumeSeries(dBEnvData_vol, scParams)
-    SC_rfVol, rfDims = scanConvert3dVolumeSeries(rfVol, scParams, normalize=False)
+    # SC_rfVol, rfDims = scanConvert3dVolumeSeries(rfVol, scParams, normalize=False)
 
     #Parameters for basic visualization of volume
     slope = (2**sipNumOutBits)/(20*np.log10(2**sipNumOutBits))
@@ -90,12 +90,12 @@ def getVolume(rfPath: Path, sipNumOutBits: int = 8, DRlowerdB: int = 20, DRupper
     lowerLim = slope * DRlowerdB
 
     SC_Vol = formatVolumePix(SC_Vol, lowerLim=lowerLim, upperLim=upperLim)
-    SC_rfVol = np.transpose(SC_rfVol.squeeze().swapaxes(0,1))
+    # SC_rfVol = np.transpose(SC_rfVol.squeeze().swapaxes(0,1))
     bmodeDims = [bmodeDims[2], bmodeDims[0], bmodeDims[1]]
-    rfDims = [rfDims[2], rfDims[0], rfDims[1]]
+    # rfDims = [rfDims[2], rfDims[0], rfDims[1]]
 
     Data = DataOutputStruct()
-    Data.rf = SC_rfVol
+    Data.rf = rfVol
     Data.bMode = SC_Vol
     Data.widthPixels = SC_Vol.shape[2]
     Data.depthPixels = SC_Vol.shape[1]
@@ -105,7 +105,7 @@ def getVolume(rfPath: Path, sipNumOutBits: int = 8, DRlowerdB: int = 20, DRupper
     Info.maxFrequency = 6000000
     Info.lowBandFreq = 5000000
     Info.upBandFreq = 13000000
-    Info.centerFrequency = 00000 #Hz
+    Info.centerFrequency = 9000000 #Hz
     Info.samplingFrequency = 50000000 # TODO: currently a guess
     Info.width = bmodeDims[2]
     Info.depth = bmodeDims[1]
