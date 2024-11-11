@@ -16,6 +16,7 @@ from src.Parsers.canonBinParser import findPreset
 from src.Parsers.philipsRfParser import philipsRfParser
 import src.Parsers.siemensRfdParser as rfdParser
 import src.Parsers.philips3dRf as phil3d
+from src.Parsers.clariusRfParser import getClariusData
 from src.DataLayer.spectral import SpectralData, ScConfig
 
 system = platform.system()
@@ -132,6 +133,8 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.phantomFilenameDisplay.setHidden(True)
         self.imagePathLabelCanon.setHidden(True)
         self.phantomPathLabelCanon.setHidden(True)
+        self.imagePathLabelClarius.setHidden(True)
+        self.phantomPathLabelClarius.setHidden(True)
         self.imagePathLabelVerasonics.setHidden(True)
         self.phantomPathLabelVerasonics.setHidden(True)
         self.imagePathLabel.setHidden(True)
@@ -152,11 +155,10 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.frame = 0
         self.imArray: np.ndarray
 
-        self.spectralData = SpectralData()
-
         self.terasonButton.clicked.connect(self.terasonClicked)
         self.philipsButton.clicked.connect(self.philipsClicked)
         self.canonButton.clicked.connect(self.canonClicked)
+        self.clariusButton.clicked.connect(self.clariusClicked)
         self.siemensButton.clicked.connect(self.siemensClicked)
         self.verasonicsButton.clicked.connect(self.verasonicsClicked)
         self.chooseImageFileButton.clicked.connect(self.selectImageFile)
@@ -180,7 +182,7 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
                 plt.close(self.roiSelectionGUI.figure)
             del self.roiSelectionGUI
             self.roiSelectionGUI = RoiSelectionGUI()
-            self.roiSelectionGUI.spectralData = self.spectralData
+            self.roiSelectionGUI.spectralData = SpectralData()
             self.roiSelectionGUI.setFilenameDisplays(
                 self.imagePathInput.text().split("/")[-1],
                 self.phantomPathInput.text().split("/")[-1],
@@ -200,6 +202,9 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
                     self.selectImageErrorMsg.setText("ERROR: Presets don't match")
                     self.selectImageErrorMsg.setHidden(False)
                     return
+            elif self.machine == "Clarius":
+                self.openClariusImage()
+                return
             elif self.machine == "Terason":
                 self.roiSelectionGUI.openImageTerason(
                     self.imagePathInput.text(), self.phantomPathInput.text()
@@ -235,6 +240,38 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.initialRefRf = self.refDataStruct.rf
 
         self.acceptFrameButton.clicked.connect(self.acceptSiemensFrame)
+        self.displaySlidingFrames()
+        
+    def openClariusImage(self):
+        imageRfPath = self.imagePathInput.text()
+        imageInfoPath = imageRfPath.replace(".raw", ".yml")
+        imageTgcPath = imageRfPath.replace("_rf.raw", "_env.tgc.yml")
+        phantomRfPath = self.phantomPathInput.text()
+        phantomInfoPath = phantomRfPath.replace(".raw", ".yml")
+        phantomTgcPath = phantomRfPath.replace("_rf.raw", "_env.tgc.yml")
+
+        self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = getClariusData(
+            imageRfPath, imageTgcPath, imageInfoPath,
+            phantomRfPath, phantomTgcPath, phantomInfoPath
+        )
+        self.imArray = self.imgDataStruct.scBmode
+        self.initialImgRf = self.imgDataStruct.rf
+        self.initialRefRf = self.refDataStruct.rf
+
+        scConfig = ScConfig()
+        scConfig.width = self.imgInfoStruct.width1
+        scConfig.tilt = self.imgInfoStruct.tilt1
+        scConfig.startDepth = self.imgInfoStruct.startDepth1
+        scConfig.endDepth = self.imgInfoStruct.endDepth1
+
+        spectralData = SpectralData()
+        spectralData.scConfig = scConfig
+        spectralData.scConfig = scConfig
+        self.roiSelectionGUI.spectralData = spectralData
+        self.roiSelectionGUI.ultrasoundImage.xmap = self.imgDataStruct.scBmodeStruct.xmap
+        self.roiSelectionGUI.ultrasoundImage.ymap = self.imgDataStruct.scBmodeStruct.ymap
+
+        self.acceptFrameButton.clicked.connect(self.acceptClariusFrame)
         self.displaySlidingFrames()
 
     def openPhilipsImage(self):
@@ -321,6 +358,9 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.generateImageButton.setHidden(True)
         self.selectImageMethodLabel.setHidden(True)
         self.canonButton.setHidden(True)
+        self.clariusButton.setHidden(True)
+        self.imagePathLabelClarius.setHidden(True)
+        self.phantomPathLabelClarius.setHidden(True)
         self.verasonicsButton.setHidden(True)
         self.terasonButton.setHidden(True)
         self.philipsButton.setHidden(True)
@@ -352,11 +392,22 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.roiSelectionGUI.ultrasoundImage.lateralResRf = self.roiSelectionGUI.ultrasoundImage.axialResRf * (
             self.initialImgRf.shape[1]/self.initialImgRf.shape[2]
         ) # placeholder
+        self.imgDataStruct.rf = self.initialImgRf[self.frame]
+        self.refDataStruct.rf = self.initialRefRf[0]
+        self.acceptFrame()
+
+    def acceptClariusFrame(self):
+        self.roiSelectionGUI.ultrasoundImage.scBmode = self.imgDataStruct.scBmode[self.frame]
+        self.roiSelectionGUI.ultrasoundImage.bmode = self.imgDataStruct.bMode[self.frame]
+        self.roiSelectionGUI.ultrasoundImage.axialResRf = self.imgInfoStruct.depth / self.initialImgRf.shape[1]
+        self.roiSelectionGUI.ultrasoundImage.lateralResRf = self.roiSelectionGUI.ultrasoundImage.axialResRf * (
+            self.initialImgRf.shape[1]/self.initialImgRf.shape[2]
+        )
+        self.imgDataStruct.rf = self.initialImgRf[self.frame]
+        self.refDataStruct.rf = self.initialRefRf[self.frame]
         self.acceptFrame()
 
     def acceptFrame(self):
-        self.imgDataStruct.rf = self.initialImgRf[self.frame]
-        self.refDataStruct.rf = self.initialRefRf[0]
         self.roiSelectionGUI.frame = self.frame
         self.roiSelectionGUI.processImage(self.imgDataStruct, self.refDataStruct, self.imgInfoStruct, self.refInfoStruct)
         self.roiSelectionGUI.lastGui = self
@@ -384,6 +435,7 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.generateImageButton.setHidden(False)
         self.selectImageMethodLabel.setHidden(True)
         self.canonButton.setHidden(True)
+        self.clariusButton.setHidden(True)
         self.verasonicsButton.setHidden(True)
         self.terasonButton.setHidden(True)
         self.philipsButton.setHidden(True)
@@ -444,6 +496,17 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
 
         self.machine = "Canon"
         self.fileExts = "*.bin"
+
+    def clariusClicked(self):
+        self.chooseImagePrep()
+        self.selectDataLabel.setHidden(False)
+        self.imagePathLabelClarius.setHidden(False)
+        self.phantomPathLabelClarius.setHidden(False)
+        self.chooseImageFileButton.setHidden(False)
+        self.choosePhantomFileButton.setHidden(False)
+
+        self.machine = "Clarius"
+        self.fileExts = "*.raw"
 
     def verasonicsClicked(
         self,

@@ -6,50 +6,15 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.signal import hilbert
 
-from src.Utils.parserTools import scanConvert
+from src.DataLayer.transforms import DataOutputStruct, InfoStruct, scanConvert
 
-class DataOutputStruct():
+
+class ClariusInfo(InfoStruct):
     def __init__(self):
-        self.scBmodeStruct = None
-        self.scBmode = None
-        self.rf = None
-        self.bMode = None
-
-class InfoStruct():
-    def __init__(self):
-        self.minFrequency: int
-        self.maxFrequency: int
-        self.lowBandFreq: int # Hz
-        self.upBandFreq: int # Hz
-        self.centerFrequency: int # Hz
-
-        self.studyMode: str
-        self.filename: str
-        self.filepath: str
-        self.probe: str
-        self.system: str
-        self.studyID: str
-        self.studyEXT: str
-        self.width: float
-        self.rxFrequency: float
-        self.samplingFrequency: float
-        self.depth: float
-        self.width: float
+        super().__init__()
         self.numLines: int
         self.samplesPerLine: int
         self.sampleSize: int # bytes
-
-        # Scan Conversion Params
-        self.tilt1: float
-        self.width1: float
-        self.startDepth1: float
-        self.endDepth1: float
-
-        # One if preSC, the other is postSC resolutions
-        self.yResRF: float
-        self.xResRF: float
-        self.yRes: float
-        self.xRes: float
 
 
 def read_tgc_file(file_timestamp, rf_timestamps):
@@ -96,10 +61,7 @@ def extract_tgc_data_from_line(line):
     tgc_pattern = r'\{([^}]+)\}'
     return re.findall(tgc_pattern, line)
 
-def read_tgc_file_v2(file_timestamp, tgc_path, rf_timestamps):
-    tgc_file_name_dottgc = file_timestamp + "_env.tgc"
-    tgc_file_name_dotyml = file_timestamp + "_env.tgc.yml"
-    
+def read_tgc_file_v2(tgc_path, rf_timestamps):
     with open(tgc_path, 'r') as file:
         data_str = file.read()
     
@@ -147,7 +109,7 @@ def read_tgc_file_v2(file_timestamp, tgc_path, rf_timestamps):
 
     return filtered_frames_data
 
-def generate_default_tgc_matrix(num_frames, info: InfoStruct):
+def generate_default_tgc_matrix(num_frames, info: ClariusInfo):
     # image_depth_mm = 150
     # num_samples = 2928
     image_depth_mm = info.endDepth1
@@ -190,7 +152,7 @@ def generate_tgc_matrix(file_timestamp, tgc_path, rf_timestamps, num_frames, inf
     if isPhantom:
         tgc_data = read_tgc_file(file_timestamp, rf_timestamps)
     else:
-        tgc_data = read_tgc_file_v2(file_timestamp, tgc_path, rf_timestamps)
+        tgc_data = read_tgc_file_v2(tgc_path, rf_timestamps)
 
     if tgc_data == None:
         return generate_default_tgc_matrix(num_frames, info)
@@ -301,7 +263,7 @@ def readImg(filename: str, tgc_path: str, info_path: str, version="6.0.3", isPha
         return []
     
 
-    info = InfoStruct()
+    info = ClariusInfo()
     with open(info_path, 'r') as file:
         infoYml = yaml.safe_load(file)
     info.width1 = infoYml["probe"]["radius"] * 2
@@ -313,6 +275,11 @@ def readImg(filename: str, tgc_path: str, info_path: str, version="6.0.3", isPha
     info.numLines = infoYml["size"]["number of lines"]
     info.sampleSize = infoYml["size"]["sample size"]
     info.centerFrequency = float(infoYml["transmit frequency"][:-3]) * 1e6
+
+    info.minFrequency = 0
+    info.maxFrequency = info.centerFrequency*2
+    info.lowBandFreq = int(info.centerFrequency/2)
+    info.upBandFreq = int(info.centerFrequency*1.5)
 
     data = data.astype(np.float64)
     file_timestamp = filename.split("_rf.raw")[0]
@@ -348,18 +315,20 @@ def readImg(filename: str, tgc_path: str, info_path: str, version="6.0.3", isPha
             bmode[:,i, f] = 20*np.log10(abs(hilbert(rf_atgc[:,i, f])))      
     
     scBmodeStruct, hCm1, wCm1 = scanConvert(bmode[:,:,0], info.width1, info.tilt1, info.startDepth1, info.endDepth1, desiredHeight=2000)
-    scBmodes = np.array([scanConvert(bmode[:,:,i], info.width1, info.tilt1, info.startDepth1, info.endDepth1, desiredHeight=2000)[0] for i in range(rf_atgc.shape[2])])
+    scBmodes = np.array([scanConvert(bmode[:,:,i], info.width1, info.tilt1, info.startDepth1, info.endDepth1, desiredHeight=2000)[0].scArr for i in range(rf_atgc.shape[2])])
 
     info.yResRF =  info.endDepth1*1000 / scBmodeStruct.scArr.shape[0]
     info.xResRF = info.yResRF * (scBmodeStruct.scArr.shape[0]/scBmodeStruct.scArr.shape[1]) # placeholder
     info.yRes = hCm1*10 / scBmodeStruct.scArr.shape[0]
     info.xRes = wCm1*10 / scBmodeStruct.scArr.shape[1]
+    info.depth = hCm1*10 #mm
+    info.width = wCm1*10 #mm
 
     data = DataOutputStruct()
     data.scBmodeStruct = scBmodeStruct
     data.scBmode = scBmodes
-    data.bMode = bmode
-    data.rf = rf_atgc
+    data.bMode = np.transpose(bmode, (2, 0, 1))
+    data.rf = np.transpose(rf_atgc, (2, 0, 1))
 
     return data, info
 

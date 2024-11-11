@@ -74,7 +74,7 @@ class SpectralData:
         condensedIm = condenseArr(image)
 
         scStruct, _, _ = scanConvert(condensedIm, self.scConfig.width, self.scConfig.tilt,
-                                        self.scConfig.startDepth, self.scConfig.endDepth)
+                                        self.scConfig.startDepth, self.scConfig.endDepth, desiredHeight=self.scBmode.shape[0])
 
         return expandArr(scStruct.scArr)
     
