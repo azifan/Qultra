@@ -214,7 +214,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.saveConfigGUI.show()
 
     def completeSpectralAnalysis(self):
-        if self.spectralData.scConfig is not None:
+        if hasattr(self.spectralData, 'scConfig'):
             self.spectralData.spectralAnalysis.splineToPreSc()
         self.spectralData.spectralAnalysis.generateRoiWindows()
         self.spectralData.spectralAnalysis.computeSpecWindows()
@@ -222,7 +222,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.attCorrVal.setText(f"{np.round(self.spectralData.spectralAnalysis.attenuationCorr, decimals=2)}")
         self.bscVal.setText(f"{np.round(self.spectralData.spectralAnalysis.backScatterCoef, decimals=2)}")
         self.spectralData.drawCmaps()
-        if self.spectralData.scConfig is not None:
+        if hasattr(self.spectralData, 'scConfig'):
             self.spectralData.scanConvertCmaps()
 
         mbfMean = np.mean(self.spectralData.mbfArr)

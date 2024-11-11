@@ -3,6 +3,7 @@ import re
 import pickle
 from typing import List
 
+import numpy as np
 from PyQt5.QtWidgets import QWidget, QFileDialog
 
 from src.QusTool2d.saveRoi_ui import Ui_saveRoi
@@ -17,8 +18,9 @@ class SaveRoiGUI(Ui_saveRoi, QWidget):
         
         self.imName: str
         self.phantomName: str
-        self.splineX: List[float]
-        self.splineY: List[float]
+        self.splineX: np.ndarray
+        self.splineY: np.ndarray
+        self.frame: int
 
         self.chooseFolderButton.clicked.connect(self.chooseFolder)
         self.clearFolderButton.clicked.connect(self.clearFolder)
@@ -43,7 +45,8 @@ class SaveRoiGUI(Ui_saveRoi, QWidget):
                 return
             
             output = {"Image Name": self.imName, "Phantom Name": self.phantomName,
-                      "Spline X": self.splineX, "Spline Y": self.splineY}
+                      "Spline X": self.splineX, "Spline Y": self.splineY,
+                      "Frame": self.frame}
             
             with open(os.path.join(
                     self.newFolderPathInput.text(), self.newFileNameInput.text()

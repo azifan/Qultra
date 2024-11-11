@@ -18,28 +18,28 @@ class SpectralData:
         self.roiDepthScale: int
         self.rectCoords: List[int]
         
-        self.mbfIm: np.ndarray | None = None
-        self.ssIm: np.ndarray | None = None
-        self.siIm: np.ndarray | None = None
-        self.scMbfIm: np.ndarray | None = None
-        self.scSsIm: np.ndarray | None = None
-        self.scSiIm: np.ndarray | None = None
+        self.mbfIm: np.ndarray
+        self.ssIm: np.ndarray
+        self.siIm: np.ndarray
+        self.scMbfIm: np.ndarray
+        self.scSsIm: np.ndarray
+        self.scSiIm: np.ndarray
 
         self.minMbf: float; self.maxMbf: float; self.mbfArr: List[float]
         self.minSs: float; self.maxSs: float; self.ssArr: List[float]
         self.minSi: float; self.maxSi: float; self.siArr: List[float]
 
-        self.scConfig: ScConfig | None = None
-        self.mbfCmap: list = plt.get_cmap("viridis").colors
-        self.ssCmap: list = plt.get_cmap("magma").colors
-        self.siCmap: list = plt.get_cmap("plasma").colors
+        self.scConfig: ScConfig
+        self.mbfCmap: list = plt.get_cmap("viridis").colors #type: ignore
+        self.ssCmap: list = plt.get_cmap("magma").colors #type: ignore
+        self.siCmap: list = plt.get_cmap("plasma").colors #type: ignore
 
     def convertImagesToRGB(self):
         self.spectralAnalysis.ultrasoundImage.bmode = cv2.cvtColor(
             np.array(self.spectralAnalysis.ultrasoundImage.bmode).astype('uint8'),
             cv2.COLOR_GRAY2RGB
         )
-        if self.spectralAnalysis.ultrasoundImage.scBmode is not None:
+        if hasattr(self.spectralAnalysis.ultrasoundImage, 'scBmode'):
             self.spectralAnalysis.ultrasoundImage.scBmode = cv2.cvtColor(
                 np.array(self.spectralAnalysis.ultrasoundImage.scBmode).astype('uint8'),
                 cv2.COLOR_GRAY2RGB
@@ -74,7 +74,7 @@ class SpectralData:
         condensedIm = condenseArr(image)
 
         scStruct, _, _ = scanConvert(condensedIm, self.scConfig.width, self.scConfig.tilt,
-                                        self.scConfig.startDepth, self.scConfig.endDepth)
+                                        self.scConfig.startDepth, self.scConfig.endDepth, desiredHeight=self.scBmode.shape[0])
 
         return expandArr(scStruct.scArr)
     
@@ -124,39 +124,39 @@ class SpectralData:
     
     @property
     def finalBmode(self):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             return self.scBmode
         return self.bmode
     
     @finalBmode.setter
     def finalBmode(self, value: np.ndarray):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             self.spectralAnalysis.ultrasoundImage.scBmode = value
         else:
             self.spectralAnalysis.ultrasoundImage.bmode = value
     
     @property
     def splineX(self):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             return self.spectralAnalysis.scSplineX
         return self.spectralAnalysis.splineX
     
     @splineX.setter
-    def splineX(self, value: List[float]):
-        if self.scConfig is not None:
+    def splineX(self, value: np.ndarray):
+        if hasattr(self, "scConfig"):
             self.spectralAnalysis.scSplineX = value
         else:
             self.spectralAnalysis.splineX = value
 
     @property
     def splineY(self):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             return self.spectralAnalysis.scSplineY
         return self.spectralAnalysis.splineY
     
     @splineY.setter
-    def splineY(self, value: List[float]):
-        if self.scConfig is not None:
+    def splineY(self, value: np.ndarray):
+        if hasattr(self, "scConfig"):
             self.spectralAnalysis.scSplineY = value
         else:
             self.spectralAnalysis.splineY = value
@@ -251,18 +251,18 @@ class SpectralData:
     
     @property
     def finalMbfIm(self):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             return self.scMbfIm
         return self.mbfIm
 
     @property
     def finalSsIm(self):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             return self.scSsIm
         return self.ssIm
     
     @property
     def finalSiIm(self):
-        if self.scConfig is not None:
+        if hasattr(self, "scConfig"):
             return self.scSiIm
         return self.siIm

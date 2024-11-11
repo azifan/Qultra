@@ -1,4 +1,4 @@
-from typing import List
+from typing import Tuple, List
 
 import numpy as np
 from PIL import Image, ImageDraw
@@ -13,32 +13,32 @@ class SpectralAnalysis:
         self.config: Config
         self.roiWindows: List[Window] = []
         self.waveLength: float
-        self.nakagamiParams: List[float]
+        self.nakagamiParams: Tuple
         self.attenuationCoef: float
         self.attenuationCorr: float
         self.backScatterCoef: float
         self.effectiveScattererDiameter: float
         self.effectiveScattererConcentration: float
 
-        self.scSplineX: List[float] = [] # pix
-        self.splineX: List[float] = [] # pix
-        self.scSplineY: List[float] = [] # pix
-        self.splineY: List[float] = [] # pix
+        self.scSplineX: np.ndarray # pix
+        self.splineX: np.ndarray # pix
+        self.scSplineY: np.ndarray # pix
+        self.splineY: np.ndarray # pix
 
     def initAnalysisConfig(self):
         speedOfSoundInTissue = 1540  # m/s
         self.waveLength = (
             speedOfSoundInTissue / self.config.centerFrequency
         ) * 1000  # mm
-        if self.config.axWinSize is None: # not pre-loaded config
+        if not hasattr(self.config, 'axWinSize'): # not pre-loaded config
             self.config.axWinSize = 10 * self.waveLength
             self.config.latWinSize = 10 * self.waveLength
             self.config.axialOverlap = 0.5; self.config.lateralOverlap = 0.5
             self.config.windowThresh = 0.95
 
     def splineToPreSc(self):
-        self.splineX = [self.ultrasoundImage.xmap[int(y), int(x)] for x, y in zip(self.scSplineX, self.scSplineY)]
-        self.splineY = [self.ultrasoundImage.ymap[int(y), int(x)] for x, y in zip(self.scSplineX, self.scSplineY)]
+        self.splineX = np.array([self.ultrasoundImage.xmap[int(y), int(x)] for x, y in zip(self.scSplineX, self.scSplineY)])
+        self.splineY = np.array([self.ultrasoundImage.ymap[int(y), int(x)] for x, y in zip(self.scSplineX, self.scSplineY)])
 
     def generateRoiWindows(self):
         # Some axial/lateral dims
@@ -187,8 +187,8 @@ class SpectralAnalysis:
         return abs(bsc)
 
     def computeNakagamiParams(self, rfData, refRfData):
-        r = np.abs(hilbert(rfData, axis=1))
-        p = np.abs(hilbert(refRfData, axis=1))
+        r = np.abs(hilbert(rfData, axis=1)) # type: ignore
+        p = np.abs(hilbert(refRfData, axis=1)) # type: ignore
         w = np.nanmean((r / p) ** 2, axis=1)
         u = (w**2) / np.var((r / p) ** 2, axis=1)
 

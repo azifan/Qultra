@@ -342,7 +342,7 @@ of image data</string>
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>480</y>
+     <y>560</y>
      <width>301</width>
      <height>51</height>
     </rect>
@@ -738,7 +738,7 @@ of image data</string>
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>580</y>
+     <y>660</y>
      <width>301</width>
      <height>51</height>
     </rect>
@@ -814,7 +814,7 @@ of image data</string>
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>180</y>
+     <y>160</y>
      <width>301</width>
      <height>51</height>
     </rect>
@@ -838,7 +838,7 @@ of image data</string>
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>280</y>
+     <y>260</y>
      <width>301</width>
      <height>51</height>
     </rect>
@@ -862,7 +862,7 @@ of image data</string>
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>380</y>
+     <y>360</y>
      <width>301</width>
      <height>51</height>
     </rect>
@@ -1139,6 +1139,82 @@ of image data</string>
     <string>3D Data</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="clariusButton">
+   <property name="geometry">
+    <rect>
+     <x>610</x>
+     <y>460</y>
+     <width>301</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Clarius RF</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="imagePathLabelClarius">
+   <property name="geometry">
+    <rect>
+     <x>440</x>
+     <y>290</y>
+     <width>271</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	background-color: rgba(255, 255, 255, 0);
+	color: white;
+	font-size: 17px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Input Path to Image file (.raw)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="textInteractionFlags">
+    <set>Qt::NoTextInteraction</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="phantomPathLabelClarius">
+   <property name="geometry">
+    <rect>
+     <x>790</x>
+     <y>290</y>
+     <width>271</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	background-color: rgba(255, 255, 255, 0);
+	color: white;
+	font-size: 17px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Input Path to Phantom file (.raw)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="textInteractionFlags">
+    <set>Qt::NoTextInteraction</set>
+   </property>
+  </widget>
   <zorder>imPreview</zorder>
   <zorder>selectDataLabel</zorder>
   <zorder>phantomPathLabelVerasonics</zorder>
@@ -1172,6 +1248,9 @@ of image data</string>
   <zorder>curFrameLabel</zorder>
   <zorder>acceptFrameButton</zorder>
   <zorder>philips3dCheckBox</zorder>
+  <zorder>clariusButton</zorder>
+  <zorder>imagePathLabelClarius</zorder>
+  <zorder>phantomPathLabelClarius</zorder>
  </widget>
  <resources/>
  <connections/>

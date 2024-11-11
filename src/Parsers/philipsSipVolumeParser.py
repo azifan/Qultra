@@ -11,19 +11,19 @@ from tqdm import tqdm
 
 class ScParams():
     def __init__(self):
-        self.NUM_PLANES = None
-        self.pixPerMm = None
-        self.VDB_2D_ECHO_APEX_TO_SKINLINE = None
-        self.VDB_2D_ECHO_START_WIDTH_GC = None
-        self.VDB_2D_ECHO_STOP_WIDTH_GC = None
-        self.VDB_THREED_START_ELEVATION_ACTUAL = None
-        self.VDB_THREED_STOP_ELEVATION_ACTUAL = None
-        self.VDB_2D_ECHO_STOP_DEPTH_SIP = None
-        self.VDB_2D_ECHO_START_DEPTH_SIP = None
-        self.VDB_2D_ECHO_SLACK_TIME_MM = None
+        self.NUM_PLANES: int
+        self.pixPerMm: float
+        self.VDB_2D_ECHO_APEX_TO_SKINLINE: float
+        self.VDB_2D_ECHO_START_WIDTH_GC: float
+        self.VDB_2D_ECHO_STOP_WIDTH_GC: float
+        self.VDB_THREED_START_ELEVATION_ACTUAL: float
+        self.VDB_THREED_STOP_ELEVATION_ACTUAL: float
+        self.VDB_2D_ECHO_STOP_DEPTH_SIP: float
+        self.VDB_2D_ECHO_START_DEPTH_SIP: float
+        self.VDB_2D_ECHO_SLACK_TIME_MM: float
 
-        self.NumXmtCols = None
-        self.NumRcvCols = None
+        self.NumXmtCols: int
+        self.NumRcvCols: int
 
 class SipVolParams():
     def __init__(self):
@@ -37,17 +37,10 @@ class SipVolParams():
 
 class SipVolDataStruct():
     def __init__(self):
-        self.linImage = []
-        self.nLinImage = []
-        self.linVol = []
-        self.nLinVol = []
-
-class OutImStruct():
-    def __init__(self):
-        self.data = None
-        self.orig = None
-        self.xmap = None
-        self.ymap = None
+        self.linImage: np.ndarray
+        self.nLinImage: np.ndarray
+        self.linVol: np.ndarray
+        self.nLinVol: np.ndarray
 
 def scanConvert3Va(rxLines, lineAngles, planeAngles, beamDist, imgSize, fovSize, z0, normalize=True):
     pixSizeX = 1/(imgSize[0]-1)
@@ -128,8 +121,8 @@ def formatVolumePix(unformattedVolume: Iterable, lowerLim: int = 145, upperLim: 
     # unformattedVolume = np.flip(unformattedVolume, axis=1)
     unformattedVolume = np.clip(unformattedVolume, a_min=lowerLim, a_max=upperLim)
     unformattedVolume -= np.amin(unformattedVolume)
-    unformattedVolume *= 255/np.amax(unformattedVolume)
-    return unformattedVolume.astype('uint8')
+    unformattedVolume *= 255/np.amax(unformattedVolume) # type: ignore
+    return unformattedVolume.astype('uint8') # type: ignore
 
 def readSIPscVDBParams(filename):
     print("Reading SIP scan conversion VDB Params...")
@@ -143,7 +136,7 @@ def readSIPscVDBParams(filename):
             paramValue, _ = paramValue.split(" ,")
         paramAr = paramValue.split(" ")
         for i in range(len(paramAr)):
-            paramAr[i] = float(paramAr[i])
+            paramAr[i] = float(paramAr[i]) # type: ignore
 
         if len(paramAr) == 1:
             paramValue = paramAr[0]
@@ -151,25 +144,25 @@ def readSIPscVDBParams(filename):
             paramValue = paramAr
 
         if (paramName == 'VDB_2D_ECHO_MATRIX_ELEVATION_NUM_TRANSMIT_PLANES'):
-            scParams.NUM_PLANES = int(paramValue)
+            scParams.NUM_PLANES = int(paramValue) # type: ignore
         elif (paramName == 'pixPerMm'):
-            scParams.pixPerMm = paramValue
+            scParams.pixPerMm = paramValue # type: ignore
         elif (paramName == 'VDB_2D_ECHO_APEX_TO_SKINLINE'):
-            scParams.VDB_2D_ECHO_APEX_TO_SKINLINE = paramValue
+            scParams.VDB_2D_ECHO_APEX_TO_SKINLINE = paramValue # type: ignore
         elif (paramName == 'VDB_2D_ECHO_START_WIDTH_GC'):
-            scParams.VDB_2D_ECHO_START_WIDTH_GC = paramValue
+            scParams.VDB_2D_ECHO_START_WIDTH_GC = paramValue # type: ignore
         elif (paramName == 'VDB_2D_ECHO_STOP_WIDTH_GC'):
-            scParams.VDB_2D_ECHO_STOP_WIDTH_GC = paramValue
+            scParams.VDB_2D_ECHO_STOP_WIDTH_GC = paramValue # type: ignore
         elif (paramName == 'VDB_THREED_START_ELEVATION_ACTUAL'):
-            scParams.VDB_THREED_START_ELEVATION_ACTUAL = paramValue
+            scParams.VDB_THREED_START_ELEVATION_ACTUAL = paramValue # type: ignore
         elif (paramName == 'VDB_THREED_STOP_ELEVATION_ACTUAL'):
-            scParams.VDB_THREED_STOP_ELEVATION_ACTUAL = paramValue
+            scParams.VDB_THREED_STOP_ELEVATION_ACTUAL = paramValue # type: ignore
         elif (paramName == 'VDB_2D_ECHO_STOP_DEPTH_SIP'):
-            scParams.VDB_2D_ECHO_STOP_DEPTH_SIP = paramValue
+            scParams.VDB_2D_ECHO_STOP_DEPTH_SIP = paramValue # type: ignore
         elif (paramName == 'VDB_2D_ECHO_START_DEPTH_SIP'):
-            scParams.VDB_2D_ECHO_START_DEPTH_SIP = paramValue
+            scParams.VDB_2D_ECHO_START_DEPTH_SIP = paramValue # type: ignore
         elif (paramName == 'VDB_2D_ECHO_SLACK_TIME_MM'):
-            scParams.VDB_2D_ECHO_SLACK_TIME_MM = paramValue
+            scParams.VDB_2D_ECHO_SLACK_TIME_MM = paramValue # type: ignore
 
     file.close()        
     print('Finished reading SIP scan converstion VDB params...')
@@ -180,6 +173,7 @@ def readSIP3dInterleavedV5(filename, numberOfPlanes=32, numberOfParams=5):
     file = open(filename, "rb")
     param = SipVolParams()
     img = SipVolDataStruct()
+    linImageList = []; nLinImageList = []
     while (True):
         tmpLine = np.fromfile(file, count=numberOfParams, dtype='<u4')
         
@@ -210,8 +204,8 @@ def readSIP3dInterleavedV5(filename, numberOfPlanes=32, numberOfParams=5):
             break
         lineBuf = lineBuf.reshape((int(param.imagePitch[-1]/2), param.numberLines[-1]), order='F')
 
-        img.linImage.append(lineBuf[np.arange(0, lineBuf.shape[0], 2)])
-        img.nLinImage.append(lineBuf[np.arange(1, lineBuf.shape[0], 2)])
+        linImageList.append(lineBuf[np.arange(0, lineBuf.shape[0], 2)])
+        nLinImageList.append(lineBuf[np.arange(1, lineBuf.shape[0], 2)])
 
         if file.tell() >= os.fstat(file.fileno()).st_size:
             break
@@ -226,8 +220,8 @@ def readSIP3dInterleavedV5(filename, numberOfPlanes=32, numberOfParams=5):
     tmpLin = np.zeros((img.linImage[0].shape[0], img.linImage[0].shape[1], numberOfPlanes))
     tmpNLin = np.zeros((img.nLinImage[0].shape[0], img.nLinImage[0].shape[1], numberOfPlanes))
 
-    img.linImage = np.array(img.linImage)
-    img.nLinImage = np.array(img.nLinImage)
+    img.linImage = np.array(linImageList)
+    img.nLinImage = np.array(nLinImageList)
     img.linVol = np.zeros(([numVolumes] + list(tmpLin.shape)), dtype=np.uint16)
     img.nLinVol = np.zeros(([numVolumes] + list(tmpNLin.shape)), dtype=np.uint16)
 
@@ -244,9 +238,9 @@ def readSIP3dInterleavedV5(filename, numberOfPlanes=32, numberOfParams=5):
 
 class Philips4dParser:
     def __init__(self):
-        self.scParams: ScParams = None
-        self.destFolder: Path = None
-        self.sipVolDat: SipVolDataStruct = None
+        self.scParams: ScParams
+        self.destFolder: Path
+        self.sipVolDat: SipVolDataStruct
     
     def prepVolRead(self, pathToData, sipFilename, destFolder, pixPerMm=1.2):
         # Input paths/filenames
@@ -272,7 +266,7 @@ class Philips4dParser:
 
         return self.destFolder
 
-    def saveSingleVol(self, volIndices: int) -> None:
+    def saveSingleVol(self, volIndices: List[int]) -> Tuple[list, list, tuple, tuple]:
         for volIndex in tqdm(volIndices):
             linVol, bmodeDims = scanConvert3dVolumeSeries(self.linVol[volIndex], self.scParams)
             nLinVol, ceusDims = scanConvert3dVolumeSeries(self.nLinVol[volIndex], self.scParams)
