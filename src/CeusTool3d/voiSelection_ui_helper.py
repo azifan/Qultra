@@ -20,8 +20,8 @@ from src.CeusTool3d.saveVoi_ui_helper import SaveVoiGUI
 from src.CeusTool3d.ticAnalysis_ui_helper import TicAnalysisGUI
 from src.CeusTool3d.interpolationLoading_ui_helper import InterpolationLoadingGUI
 from src.CeusTool3d.advancedRoi_ui_helper import AdvancedRoiDrawGUI
-from src.DataLayer.qtSupport import MouseTracker, qImToPIL
-from src.DataLayer.transforms import calculateSpline3D, calculateSpline, removeDuplicates
+from src.Utils.qtSupport import MouseTracker, qImToPIL
+from src.Utils.spline import calculateSpline3D, calculateSpline, removeDuplicates
 
 system = platform.system()
 

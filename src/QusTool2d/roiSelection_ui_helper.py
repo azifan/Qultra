@@ -12,23 +12,17 @@ import matplotlib.patches as patches
 from PyQt5.QtWidgets import QWidget, QHBoxLayout
 from PyQt5.QtGui import QImage
 
-from pyQus.analysisObjects import UltrasoundImage, Config
-from pyQus.spectral import SpectralAnalysis
-
-from src.DataLayer.spectral import SpectralData
-from src.DataLayer.dataObjects import ScConfig
+from pyquantus.parse.objects import ScConfig
+from pyquantus.qus import UltrasoundImage, AnalysisConfig, SpectralAnalysis, SpectralData
+from pyquantus.parse.terason import terasonRfParser
+from pyquantus.parse.canon import canonIqParser
 import src.Parsers.verasonicsMatParser as vera
-import src.Parsers.canonBinParser as canon
-import src.Parsers.terasonRfParser as tera
-from src.Parsers.philipsMatParser import getImage as philipsMatParser
-from src.Parsers.philipsRfParser import philipsRfParser
 from src.QusTool2d.roiSelection_ui import Ui_constructRoi
 from src.QusTool2d.editImageDisplay_ui_helper import EditImageDisplayGUI
 from src.QusTool2d.analysisParamsSelection_ui_helper import AnalysisParamsGUI
 import src.QusTool2d.selectImage_ui_helper as SelectImageSection
 from src.QusTool2d.loadRoi_ui_helper import LoadRoiGUI
 from src.QusTool2d.saveRoi_ui_helper import SaveRoiGUI
-from src.Utils.roiFuncs import computeSpecWindowsIQ, computeSpecWindowsRF
 
 system = platform.system()
 
@@ -376,42 +370,33 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self, imageFilePath, phantomFilePath
     ):  # Open initial image given data and phantom files previously inputted
         raise NotImplementedError("Not updated with refactor")
-        tmpLocation = imageFilePath.split("/")
-        dataFileName = tmpLocation[-1]
-        dataFileLocation = imageFilePath[: len(imageFilePath) - len(dataFileName)]
-        tmpPhantLocation = phantomFilePath.split("/")
-        phantFileName = tmpPhantLocation[-1]
-        phantFileLocation = phantomFilePath[: len(phantomFilePath) - len(phantFileName)]
+        # tmpLocation = imageFilePath.split("/")
+        # dataFileName = tmpLocation[-1]
+        # dataFileLocation = imageFilePath[: len(imageFilePath) - len(dataFileName)]
+        # tmpPhantLocation = phantomFilePath.split("/")
+        # phantFileName = tmpPhantLocation[-1]
+        # phantFileLocation = phantomFilePath[: len(phantomFilePath) - len(phantFileName)]
 
-        (imArray, imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct,) = vera.getImage(
-            dataFileName, dataFileLocation, phantFileName, phantFileLocation
-        )
-        self.AnalysisInfo.verasonics = True
+        # (imArray, imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct,) = vera.getImage(
+        #     dataFileName, dataFileLocation, phantFileName, phantFileLocation
+        # )
+        # self.AnalysisInfo.verasonics = True
 
-        self.AnalysisInfo.computeSpecWindows = computeSpecWindowsIQ
+        # from src.Utils.roiFuncs import computeSpecWindowsIQ, computeSpecWindowsRF
+        # self.AnalysisInfo.computeSpecWindows = computeSpecWindowsIQ
 
-        self.processImage(
-            imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
-        )
+        # self.processImage(
+        #     imArray, imgDataStruct, refDataStruct, imgInfoStruct, refInfoStruct
+        # )
 
-        self.editImageDisplayGUI.brightnessVal.setValue(1)
-        self.editImageDisplayGUI.sharpnessVal.setValue(1)
+        # self.editImageDisplayGUI.brightnessVal.setValue(1)
+        # self.editImageDisplayGUI.sharpnessVal.setValue(1)
 
     def openImageCanon(
         self, imageFilePath, phantomFilePath
-    ):  # Open initial image given data and phantom files previously inputted
-        # Find image and phantom paths
-        tmpLocation = imageFilePath.split("/")
-        dataFileName = tmpLocation[-1]
-        dataFileLocation = imageFilePath[: len(imageFilePath) - len(dataFileName)]
-        tmpPhantLocation = phantomFilePath.split("/")
-        phantFileName = tmpPhantLocation[-1]
-        phantFileLocation = phantomFilePath[: len(phantomFilePath) - len(phantFileName)]
-
+    ):
         # Open both images and record relevant data
-        imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = canon.getImage(
-            dataFileName, dataFileLocation, phantFileName, phantFileLocation
-        )
+        imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = canonIqParser(imageFilePath, phantomFilePath)
 
         scConfig = ScConfig()
         scConfig.width = imgInfoStruct.width1
@@ -439,7 +424,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.editImageDisplayGUI.sharpnessVal.setValue(3)
 
     def openImageTerason(self, imageFilePath, phantomFilePath):
-        imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = tera.getImage(
+        imgDataStruct, imgInfoStruct, refDataStruct, refInfoStruct = terasonRfParser(
             imageFilePath, phantomFilePath
         )
 
@@ -461,7 +446,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.ultrasoundImage.rf = imgDataStruct.rf
         self.ultrasoundImage.phantomRf = refDataStruct.rf
 
-        analysisConfig = Config()
+        analysisConfig = AnalysisConfig()
         analysisConfig.analysisFreqBand = [imgInfoStruct.lowBandFreq, imgInfoStruct.upBandFreq]
         analysisConfig.transducerFreqBand = [imgInfoStruct.minFrequency, imgInfoStruct.maxFrequency]
         analysisConfig.samplingFrequency = imgInfoStruct.samplingFrequency

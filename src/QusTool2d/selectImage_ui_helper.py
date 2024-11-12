@@ -9,15 +9,16 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
 
-from src.Parsers import philipsMatParser
+from pyquantus.parse.canon import findPreset
+from pyquantus.parse.philipsMat import philips2dRfMatParser
+from pyquantus.parse.philipsRf import philipsRfParser
+from pyquantus.parse.siemens import siemensRfParser
+from pyquantus.parse.clarius import clariusRfParser
+from pyquantus.qus import SpectralData
+from pyquantus.parse.objects import ScConfig
 from src.QusTool2d.selectImage_ui import Ui_selectImage
 from src.QusTool2d.roiSelection_ui_helper import RoiSelectionGUI
-from src.Parsers.canonBinParser import findPreset
-from src.Parsers.philipsRfParser import philipsRfParser
-import src.Parsers.siemensRfdParser as rfdParser
 import src.Parsers.philips3dRf as phil3d
-from src.Parsers.clariusRfParser import getClariusData
-from src.DataLayer.spectral import SpectralData, ScConfig
 
 system = platform.system()
 
@@ -227,15 +228,8 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         imageFilePath = self.imagePathInput.text()
         phantomFilePath = self.phantomPathInput.text()
 
-        tmpLocation = imageFilePath.split("/")
-        dataFileName = tmpLocation[-1]
-        dataFileLocation = imageFilePath[:len(imageFilePath)-len(dataFileName)]
-        tmpPhantLocation = phantomFilePath.split("/")
-        phantFileName = tmpPhantLocation[-1]
-        phantFileLocation = phantomFilePath[:len(phantomFilePath)-len(phantFileName)]
-
-
-        self.imArray, self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = rfdParser.getImage(dataFileName, dataFileLocation, phantFileName, phantFileLocation)
+        self.imArray, self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = siemensRfParser(
+            imageFilePath, phantomFilePath)
         self.initialImgRf = self.imgDataStruct.rf
         self.initialRefRf = self.refDataStruct.rf
 
@@ -250,7 +244,7 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         phantomInfoPath = phantomRfPath.replace(".raw", ".yml")
         phantomTgcPath = phantomRfPath.replace("_rf.raw", "_env.tgc.yml")
 
-        self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = getClariusData(
+        self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = clariusRfParser(
             imageRfPath, imageTgcPath, imageInfoPath,
             phantomRfPath, phantomTgcPath, phantomInfoPath
         )
@@ -307,7 +301,8 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         if phantomFilePath.suffix == '.mat':
             destPhantomFilePath = phantomFilePath
 
-        self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = philipsMatParser.getImage(destImgFilePath, destPhantomFilePath, self.frame)
+        self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = philips2dRfMatParser(
+            destImgFilePath, destPhantomFilePath, self.frame)
         self.imData = self.imgDataStruct.bMode
         self.initialImgRf = [self.imgDataStruct.rf]
         self.initialRefRf = [self.refDataStruct.rf]
@@ -321,6 +316,14 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         spectralData = SpectralData()
         spectralData.scConfig = scConfig
         self.roiSelectionGUI.spectralData = spectralData
+        self.roiSelectionGUI.ultrasoundImage.bmode = self.imgDataStruct.bMode
+        self.roiSelectionGUI.ultrasoundImage.scBmode = self.imgDataStruct.scBmodeStruct.scArr
+        self.roiSelectionGUI.ultrasoundImage.xmap = self.imgDataStruct.scBmodeStruct.xmap
+        self.roiSelectionGUI.ultrasoundImage.ymap = self.imgDataStruct.scBmodeStruct.ymap
+        self.roiSelectionGUI.ultrasoundImage.axialResRf = self.imgInfoStruct.depth / self.imgDataStruct.rf.shape[0]
+        self.roiSelectionGUI.ultrasoundImage.lateralResRf = self.roiSelectionGUI.ultrasoundImage.axialResRf * (
+            self.imgDataStruct.rf.shape[0]/self.imgDataStruct.rf.shape[1]
+        ) # placeholder
         self.acceptFrame()
 
     def displaySlidingFrames(self):

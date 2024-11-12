@@ -1,10 +1,10 @@
 import platform
 
+import numpy as np
 from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtGui import QImage, QPixmap
-import numpy as np
 
-from src.DataLayer.spectral import SpectralData
+from pyquantus.qus import SpectralData
 from src.QusTool2d.analysisParamsSelection_ui import Ui_analysisParams
 from src.QusTool2d.rfAnalysis_ui_helper import RfAnalysisGUI
 from src.QusTool2d.loadConfig_ui_helper import LoadConfigGUI

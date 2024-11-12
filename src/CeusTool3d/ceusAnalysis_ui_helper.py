@@ -14,7 +14,7 @@ import src.Utils.lognormalFunctions as lf
 from src.CeusTool3d.ceusAnalysis_ui import Ui_ceusAnalysis
 from src.CeusTool3d.exportData_ui_helper import ExportDataGUI
 from src.CeusTool3d.legend_ui_helper import LegendDisplay
-from src.DataLayer.qtSupport import MouseTracker, qImToPIL
+from src.Utils.qtSupport import MouseTracker, qImToPIL
 
 
 system = platform.system()

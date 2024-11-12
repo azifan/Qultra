@@ -11,7 +11,7 @@ from PyQt5.QtCore import QLine, Qt, QPoint, pyqtSlot
 
 from src.CeusTool3d.ticAnalysis_ui import Ui_ticEditor
 from src.CeusTool3d.ceusAnalysis_ui_helper import CeusAnalysisGUI
-from src.DataLayer.qtSupport import MouseTracker, qImToPIL
+from src.Utils.qtSupport import MouseTracker, qImToPIL
 
 system = platform.system()
 

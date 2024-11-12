@@ -8,7 +8,7 @@ import pyqtgraph as pg
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QWidget, QHBoxLayout
 
-from src.DataLayer.spectral import SpectralData
+from pyquantus.qus import SpectralData
 from src.QusTool2d.rfAnalysis_ui import Ui_rfAnalysis
 from src.QusTool2d.exportData_ui_helper import ExportDataGUI
 import src.QusTool2d.analysisParamsSelection_ui_helper as AnalysisParamsSelection
