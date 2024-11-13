@@ -3,7 +3,7 @@ import shutil
 import platform
 
 import nibabel as nib
-from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
+from PyQt6.QtWidgets import QWidget, QApplication, QFileDialog
 
 from src.CeusTool3d.selectImage_ui import Ui_selectImage
 from src.CeusTool3d.voiSelection_ui_helper import VoiSelectionGUI

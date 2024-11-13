@@ -5,9 +5,9 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QImage, QPixmap
+from PyQt6.QtWidgets import QWidget, QApplication, QFileDialog
 
 from pyquantus.parse.canon import findPreset
 from pyquantus.parse.philipsMat import philips2dRfMatParser
@@ -332,7 +332,7 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.bytesLine = self.imData.strides[0]
         self.arHeight = self.imData.shape[0]
         self.arWidth = self.imData.shape[1]
-        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8)
+        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format.Format_Grayscale8)
 
         quotient = self.imgInfoStruct.width / self.imgInfoStruct.depth
         if quotient > (721/501):
@@ -346,7 +346,7 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.xBorderMin = 410 + ((721 - self.widthScale)/2)
         self.xBorderMax = 1131 - ((721 - self.widthScale)/2)
 
-        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.imPreview.width(), self.imPreview.height(), Qt.IgnoreAspectRatio))
+        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.imPreview.width(), self.imPreview.height(), Qt.AspectRatioMode.IgnoreAspectRatio))
 
         self.totalFramesLabel.setHidden(False)
         self.ofFramesLabel.setHidden(False)
@@ -420,8 +420,8 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
     def plotPreviewFrame(self):
         self.imData = np.array(self.imArray[self.frame]).reshape(self.imArray.shape[1], self.imArray.shape[2])
         self.imData = np.require(self.imData,np.uint8,'C')
-        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format_Grayscale8)
-        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.imPreview.width(), self.imPreview.height(), Qt.IgnoreAspectRatio))
+        self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format.Format_Grayscale8)
+        self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.imPreview.width(), self.imPreview.height(), Qt.AspectRatioMode.IgnoreAspectRatio))
         self.update()
 
     def clearImagePath(self):

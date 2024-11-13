@@ -4,7 +4,7 @@ import platform
 
 from openpyxl import load_workbook, Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
-from PyQt5.QtWidgets import QWidget, QFileDialog, QApplication
+from PyQt6.QtWidgets import QWidget, QFileDialog, QApplication
 
 from src.CeusMcTool2d.exportData_ui import Ui_exportData
 

@@ -69,7 +69,8 @@ Thumbs.db
 __pycache__/
 
 # Virtual env
-venv/
+*venv*/
+.eggs/
 
 # RF parser files
 philips_rf_parser.o

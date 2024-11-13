@@ -6,7 +6,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import pyqtgraph as pg
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import QWidget, QHBoxLayout
+from PyQt6.QtWidgets import QWidget, QHBoxLayout
 
 from pyquantus.qus import SpectralData
 from src.QusTool2d.rfAnalysis_ui import Ui_rfAnalysis

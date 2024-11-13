@@ -2,7 +2,7 @@ import os
 import re
 import pickle
 
-from PyQt5.QtWidgets import QWidget, QFileDialog
+from PyQt6.QtWidgets import QWidget, QFileDialog
 
 from src.QusTool2d.saveConfig_ui import Ui_saveConfig
 from pyquantus.qus import AnalysisConfig

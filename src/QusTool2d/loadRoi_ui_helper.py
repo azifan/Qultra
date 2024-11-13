@@ -1,7 +1,7 @@
 import os
 import pickle
 
-from PyQt5.QtWidgets import QWidget, QFileDialog
+from PyQt6.QtWidgets import QWidget, QFileDialog
 from src.QusTool2d.loadRoi_ui import Ui_loadRoi
 import src.QusTool2d.roiSelection_ui_helper as RoiSelectionSection
 

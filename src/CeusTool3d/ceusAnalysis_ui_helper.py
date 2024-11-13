@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 import nibabel as nib
 from PIL.ImageQt import ImageQt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import QWidget, QFileDialog, QHBoxLayout
-from PyQt5.QtGui import QImage, QPixmap, QPainter, QCursor, QResizeEvent
-from PyQt5.QtCore import QLine, Qt, QPoint, pyqtSlot
+from PyQt6.QtWidgets import QWidget, QFileDialog, QHBoxLayout
+from PyQt6.QtGui import QImage, QPixmap, QPainter, QCursor, QResizeEvent
+from PyQt6.QtCore import QLine, Qt, QPoint, pyqtSlot
 
 import src.Utils.lognormalFunctions as lf
 from src.CeusTool3d.ceusAnalysis_ui import Ui_ceusAnalysis
@@ -170,14 +170,14 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             for i, pilIm in enumerate(pilIms):
                 pixmaps[i] = QPixmap.fromImage(ImageQt(pilIm))
             self.changeAxialSlices(); self.changeSagSlices(); self.changeCorSlices()
-            self.axialPlane.setCursor(QCursor(Qt.ArrowCursor))
-            self.sagPlane.setCursor(QCursor(Qt.ArrowCursor))
-            self.corPlane.setCursor(QCursor(Qt.ArrowCursor))
+            self.axialPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+            self.sagPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+            self.corPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
         else:
             if self.observingLabel.isHidden():
-                self.axialPlane.setCursor(QCursor(Qt.BlankCursor))
-                self.sagPlane.setCursor(QCursor(Qt.BlankCursor))
-                self.corPlane.setCursor(QCursor(Qt.BlankCursor))
+                self.axialPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
+                self.sagPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
+                self.corPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
             self.updateCrosshairs()
 
     def backFromParamap(self):
@@ -342,9 +342,9 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
     def resizeEvent(self, event: QResizeEvent):
         super().resizeEvent(event)
-        self.axialPlane.setAlignment(Qt.AlignCenter)
-        self.sagPlane.setAlignment(Qt.AlignCenter)
-        self.corPlane.setAlignment(Qt.AlignCenter)
+        self.axialPlane.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.sagPlane.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.corPlane.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.updateCrosshairs()
 
     def displayTp(self):
@@ -632,14 +632,14 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         if self.navigatingLabel.isHidden():
             self.navigatingLabel.show(); self.observingLabel.hide()
             if not self.showHideCrossButton.isChecked():
-                self.axialPlane.setCursor(QCursor(Qt.BlankCursor))
-                self.sagPlane.setCursor(QCursor(Qt.BlankCursor))
-                self.corPlane.setCursor(QCursor(Qt.BlankCursor))
+                self.axialPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
+                self.sagPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
+                self.corPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
         else:
             self.navigatingLabel.hide(); self.observingLabel.show()
-            self.axialPlane.setCursor(QCursor(Qt.ArrowCursor))
-            self.sagPlane.setCursor(QCursor(Qt.ArrowCursor))
-            self.corPlane.setCursor(QCursor(Qt.ArrowCursor))
+            self.axialPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+            self.sagPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+            self.corPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
 
     def updateCrosshairs(self):
         self.changeAxialSlices(); self.changeSagSlices(); self.changeCorSlices()
@@ -654,12 +654,18 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             pixmaps = [self.axialPlane.pixmap(), self.sagPlane.pixmap(), self.corPlane.pixmap()]
             points = [(xCoordAx, yCoordAx), (xCoordSag, yCoordSag), (xCoordCor, yCoordCor)]
             for i, pixmap in enumerate(pixmaps):
-                painter = QPainter(pixmap); painter.setPen(Qt.yellow)
+                painter = QPainter(pixmap); painter.setPen(Qt.GlobalColor.yellow)
                 coord = points[i]
                 vertLine = QLine(coord[0], 0, coord[0], pixmap.height())
                 latLine = QLine(0, coord[1], pixmap.width(), coord[1])
                 painter.drawLines([vertLine, latLine])
                 painter.end()
+                if i == 0:
+                    self.axialPlane.setPixmap(pixmap)
+                elif i == 1:
+                    self.sagPlane.setPixmap(pixmap)
+                else:         
+                    self.corPlane.setPixmap(pixmap)
 
     def moveToExport(self):
         del self.exportDataGUI
@@ -857,8 +863,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         heightAx, widthAx = data2dAx.shape  # getting height and width for each plane
         bytesLineAx, _ = data2dAx.strides
 
-        qImgAx = QImage(data2dAx, widthAx, heightAx, bytesLineAx, QImage.Format_Grayscale8)
-        qImgAx = qImgAx.convertToFormat(QImage.Format_ARGB32)
+        qImgAx = QImage(data2dAx, widthAx, heightAx, bytesLineAx, QImage.Format.Format_Grayscale8)
+        qImgAx = qImgAx.convertToFormat(QImage.Format.Format_ARGB32)
         self.imAxPIL = qImToPIL(qImgAx)
 
         if self.masterParamap is not None and self.cmap is not None:
@@ -867,7 +873,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             paramapAx = np.require(paramapAx, np.uint8, "C")
 
             bytesLineAxParamap, _ = paramapAx[:, :, 0].strides
-            paramapAxIm = QImage(paramapAx, paramapAx.shape[1], paramapAx.shape[0], bytesLineAxParamap, QImage.Format_ARGB32)
+            paramapAxIm = QImage(paramapAx, paramapAx.shape[1], paramapAx.shape[0], bytesLineAxParamap, QImage.Format.Format_ARGB32)
 
             pmapAxPIL = qImToPIL(paramapAxIm)
             self.imAxPIL.paste(pmapAxPIL, mask=pmapAxPIL)
@@ -878,14 +884,14 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             maskAxH, maskAxW = tempAx[:, :, 0].shape
             maskBytesLineAx, _ = tempAx[:, :, 0].strides
 
-            curMaskAxIm = QImage(tempAx, maskAxW, maskAxH, maskBytesLineAx, QImage.Format_ARGB32)
+            curMaskAxIm = QImage(tempAx, maskAxW, maskAxH, maskBytesLineAx, QImage.Format.Format_ARGB32)
 
             maskAx = qImToPIL(curMaskAxIm)
             self.imAxPIL.paste(maskAx, mask=maskAx)
 
         self.pixmapAx = QPixmap.fromImage(ImageQt(self.imAxPIL))
         self.axialPlane.setPixmap(self.pixmapAx.scaled(
-            self.axialPlane.width(), self.axialPlane.height(), Qt.KeepAspectRatio))
+            self.axialPlane.width(), self.axialPlane.height(), Qt.AspectRatioMode.KeepAspectRatio))
 
     def changeSagSlices(self):
         self.sagittalFrameNum.setText(str(self.newXVal + 1))
@@ -895,8 +901,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         heightSag, widthSag = data2dSag.shape  # getting height and width for each plane
         bytesLineSag, _ = data2dSag.strides
 
-        qImgSag = QImage(data2dSag, widthSag, heightSag, bytesLineSag, QImage.Format_Grayscale8)
-        qImgSag = qImgSag.convertToFormat(QImage.Format_ARGB32)
+        qImgSag = QImage(data2dSag, widthSag, heightSag, bytesLineSag, QImage.Format.Format_Grayscale8)
+        qImgSag = qImgSag.convertToFormat(QImage.Format.Format_ARGB32)
         self.imSagPIL = qImToPIL(qImgSag)
 
         if self.masterParamap is not None and self.cmap is not None:
@@ -904,7 +910,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             paramapSag = np.require(paramapSag, np.uint8, "C")
 
             bytesLineSagParamap, _ = paramapSag[:, :, 0].strides
-            paramapSagIm = QImage(paramapSag, paramapSag.shape[1], paramapSag.shape[0], bytesLineSagParamap, QImage.Format_ARGB32)
+            paramapSagIm = QImage(paramapSag, paramapSag.shape[1], paramapSag.shape[0], bytesLineSagParamap, QImage.Format.Format_ARGB32)
 
             pmapSagPIL = qImToPIL(paramapSagIm)
             self.imSagPIL.paste(pmapSagPIL, mask=pmapSagPIL)
@@ -914,14 +920,14 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             maskSagH, maskSagW = tempSag[:, :, 0].shape
             maskBytesLineSag, _ = tempSag[:, :, 0].strides
 
-            curMaskSagIm = QImage(tempSag, maskSagW, maskSagH, maskBytesLineSag, QImage.Format_ARGB32)
+            curMaskSagIm = QImage(tempSag, maskSagW, maskSagH, maskBytesLineSag, QImage.Format.Format_ARGB32)
 
             maskSag = qImToPIL(curMaskSagIm)
             self.imSagPIL.paste(maskSag, mask=maskSag)
 
         self.pixmapSag = QPixmap.fromImage(ImageQt(self.imSagPIL))
         self.sagPlane.setPixmap(self.pixmapSag.scaled(
-            self.sagPlane.width(), self.sagPlane.height(), Qt.KeepAspectRatio))
+            self.sagPlane.width(), self.sagPlane.height(), Qt.AspectRatioMode.KeepAspectRatio))
 
     def changeCorSlices(self):
         self.coronalFrameNum.setText(str(self.newYVal + 1))
@@ -932,8 +938,8 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         heightCor, widthCor = data2dCor.shape  # getting height and width for each plane
         bytesLineCor, _ = data2dCor.strides
 
-        qImgCor = QImage(data2dCor, widthCor, heightCor, bytesLineCor, QImage.Format_Grayscale8)
-        qImgCor = qImgCor.convertToFormat(QImage.Format_ARGB32)
+        qImgCor = QImage(data2dCor, widthCor, heightCor, bytesLineCor, QImage.Format.Format_Grayscale8)
+        qImgCor = qImgCor.convertToFormat(QImage.Format.Format_ARGB32)
         self.imCorPIL = qImToPIL(qImgCor)
 
         if self.masterParamap is not None and self.cmap is not None:
@@ -942,7 +948,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             paramapCor = np.require(paramapCor, np.uint8, "C")
 
             bytesLineCorParamap, _ = paramapCor[:, :, 0].strides
-            paramapCorIm = QImage(paramapCor, paramapCor.shape[1], paramapCor.shape[0], bytesLineCorParamap, QImage.Format_ARGB32)
+            paramapCorIm = QImage(paramapCor, paramapCor.shape[1], paramapCor.shape[0], bytesLineCorParamap, QImage.Format.Format_ARGB32)
 
             pmapCorPIL = qImToPIL(paramapCorIm)
             self.imCorPIL.paste(pmapCorPIL, mask=pmapCorPIL)
@@ -953,12 +959,12 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             maskCorH, maskCorW = tempCor[:, :, 0].shape
             maskBytesLineCor, _ = tempCor[:, :, 0].strides
 
-            curMaskCorIm = QImage(tempCor, maskCorW, maskCorH, maskBytesLineCor, QImage.Format_ARGB32)
+            curMaskCorIm = QImage(tempCor, maskCorW, maskCorH, maskBytesLineCor, QImage.Format.Format_ARGB32)
 
             maskCor = qImToPIL(curMaskCorIm)
             self.imCorPIL.paste(maskCor, mask=maskCor)
 
         self.pixmapCor = QPixmap.fromImage(ImageQt(self.imCorPIL))
         self.corPlane.setPixmap(self.pixmapCor.scaled(
-            self.corPlane.width(), self.corPlane.height(), Qt.KeepAspectRatio))
+            self.corPlane.width(), self.corPlane.height(), Qt.AspectRatioMode.KeepAspectRatio))
 

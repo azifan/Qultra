@@ -9,9 +9,9 @@ import nibabel as nib
 import numpy as np
 import scipy.interpolate as interpolate
 from scipy.spatial import ConvexHull
-from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
-from PyQt5.QtGui import QPixmap, QImage, QResizeEvent, QWheelEvent, QPainter, QCursor
-from PyQt5.QtCore import Qt, QPoint, QLine, pyqtSlot
+from PyQt6.QtWidgets import QWidget, QApplication, QFileDialog
+from PyQt6.QtGui import QPixmap, QImage, QResizeEvent, QWheelEvent, QPainter, QCursor
+from PyQt6.QtCore import Qt, QPoint, QLine, pyqtSlot
 from scipy.ndimage import binary_fill_holes
 
 import src.Utils.utils as ut
@@ -227,14 +227,14 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             if self.navigatingLabel.isHidden():
                 self.navigatingLabel.show(); self.observingLabel.hide()
                 if not self.showHideCrossButton.isChecked():
-                    self.axialPlane.setCursor(QCursor(Qt.BlankCursor))
-                    self.sagPlane.setCursor(QCursor(Qt.BlankCursor))
-                    self.corPlane.setCursor(QCursor(Qt.BlankCursor))
+                    self.axialPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
+                    self.sagPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
+                    self.corPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
             else:
                 self.navigatingLabel.hide(); self.observingLabel.show()
-                self.axialPlane.setCursor(QCursor(Qt.ArrowCursor))
-                self.sagPlane.setCursor(QCursor(Qt.ArrowCursor))
-                self.corPlane.setCursor(QCursor(Qt.ArrowCursor))
+                self.axialPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+                self.sagPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+                self.corPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
 
     def startSaveVoi(self):
         del self.saveVoiGUI
@@ -448,14 +448,14 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             for i, pilIm in enumerate(pilIms):
                 pixmaps[i] = QPixmap.fromImage(ImageQt(pilIm))
             self.changeAxialSlices(); self.changeSagSlices(); self.changeCorSlices()
-            self.axialPlane.setCursor(QCursor(Qt.ArrowCursor))
-            self.sagPlane.setCursor(QCursor(Qt.ArrowCursor))
-            self.corPlane.setCursor(QCursor(Qt.ArrowCursor))
+            self.axialPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+            self.sagPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+            self.corPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
         else:
             if self.observingLabel.isHidden():
-                self.axialPlane.setCursor(QCursor(Qt.BlankCursor))
-                self.sagPlane.setCursor(QCursor(Qt.BlankCursor))
-                self.corPlane.setCursor(QCursor(Qt.BlankCursor))
+                self.axialPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
+                self.sagPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
+                self.corPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
             self.updateCrosshairs()
 
     def openImage(self, bmodePath):
@@ -611,12 +611,18 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             pixmaps = [self.axialPlane.pixmap(), self.sagPlane.pixmap(), self.corPlane.pixmap()]
             points = [(xCoordAx, yCoordAx), (xCoordSag, yCoordSag), (xCoordCor, yCoordCor)]
             for i, pixmap in enumerate(pixmaps):
-                painter = QPainter(pixmap); painter.setPen(Qt.yellow)
+                painter = QPainter(pixmap); painter.setPen(Qt.GlobalColor.yellow)
                 coord = points[i]
                 vertLine = QLine(coord[0], 0, coord[0], pixmap.height())
                 latLine = QLine(0, coord[1], pixmap.width(), coord[1])
                 painter.drawLines([vertLine, latLine])
                 painter.end()
+                if i == 0:
+                    self.axialPlane.setPixmap(pixmap)
+                elif i == 1:
+                    self.sagPlane.setPixmap(pixmap)
+                else:         
+                    self.corPlane.setPixmap(pixmap)
 
 
     def hideDrawVoiLayout(self):
@@ -673,9 +679,9 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
     
     def resizeEvent(self, event: QResizeEvent):
         super().resizeEvent(event)
-        self.axialPlane.setAlignment(Qt.AlignCenter)
-        self.sagPlane.setAlignment(Qt.AlignCenter)
-        self.corPlane.setAlignment(Qt.AlignCenter)
+        self.axialPlane.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.sagPlane.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.corPlane.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.updateCrosshairs()
 
     def changeAxialSlices(self):
@@ -687,8 +693,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         heightAx, widthAx = data2dAx.shape  # getting height and width for each plane
         bytesLineAx, _ = data2dAx.strides
 
-        qImgAx = QImage(data2dAx, widthAx, heightAx, bytesLineAx, QImage.Format_Grayscale8)
-        qImgAx = qImgAx.convertToFormat(QImage.Format_ARGB32)
+        qImgAx = QImage(data2dAx, widthAx, heightAx, bytesLineAx, QImage.Format.Format_Grayscale8)
+        qImgAx = qImgAx.convertToFormat(QImage.Format.Format_ARGB32)
 
         tempAx = self.maskCoverImg[:, :, self.newZVal, :]  # 2D data for axial
         tempAx = np.rot90(np.flipud(tempAx), 3)
@@ -696,13 +702,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         maskAxH, maskAxW = tempAx[:, :, 0].shape
         maskBytesLineAx, _ = tempAx[:, :, 0].strides
 
-        curMaskAxIm = QImage(tempAx, maskAxW, maskAxH, maskBytesLineAx, QImage.Format_ARGB32)
+        curMaskAxIm = QImage(tempAx, maskAxW, maskAxH, maskBytesLineAx, QImage.Format.Format_ARGB32)
 
         self.imAxPIL = qImToPIL(qImgAx); maskAx = qImToPIL(curMaskAxIm)
         self.imAxPIL.paste(maskAx, mask=maskAx)
         self.pixmapAx = QPixmap.fromImage(ImageQt(self.imAxPIL))
         self.axialPlane.setPixmap(self.pixmapAx.scaled(
-            self.axialPlane.width(), self.axialPlane.height(), Qt.KeepAspectRatio))
+            self.axialPlane.width(), self.axialPlane.height(), Qt.AspectRatioMode.KeepAspectRatio))
 
     def changeSagSlices(self):
         self.sagittalFrameNum.setText(str(self.newXVal + 1))
@@ -712,21 +718,21 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         heightSag, widthSag = data2dSag.shape
         bytesLineSag, _ = data2dSag.strides
         
-        qImgSag = QImage(data2dSag, widthSag, heightSag, bytesLineSag, QImage.Format_Grayscale8)
-        qImgSag = qImgSag.convertToFormat(QImage.Format_ARGB32)
+        qImgSag = QImage(data2dSag, widthSag, heightSag, bytesLineSag, QImage.Format.Format_Grayscale8)
+        qImgSag = qImgSag.convertToFormat(QImage.Format.Format_ARGB32)
 
         tempSag = self.maskCoverImg[self.newXVal, :, :, :]  # 2D data for sagittal
         tempSag = np.require(tempSag, np.uint8, "C")
         maskSagH, maskSagW = tempSag[:, :, 0].shape
         maskBytesLineSag, _ = tempSag[:, :, 0].strides
 
-        curMaskSagIm = QImage(tempSag, maskSagW, maskSagH, maskBytesLineSag, QImage.Format_ARGB32)
+        curMaskSagIm = QImage(tempSag, maskSagW, maskSagH, maskBytesLineSag, QImage.Format.Format_ARGB32)
 
         self.imSagPIL = qImToPIL(qImgSag); maskSag = qImToPIL(curMaskSagIm)
         self.imSagPIL.paste(maskSag, mask=maskSag)
         self.pixmapSag = QPixmap.fromImage(ImageQt(self.imSagPIL))
         self.sagPlane.setPixmap(self.pixmapSag.scaled(
-            self.sagPlane.width(), self.sagPlane.height(), Qt.KeepAspectRatio))
+            self.sagPlane.width(), self.sagPlane.height(), Qt.AspectRatioMode.KeepAspectRatio))
 
     def changeCorSlices(self):
         self.coronalFrameNum.setText(str(self.newYVal + 1))
@@ -737,8 +743,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         heightCor, widthCor = data2dCor.shape
         bytesLineCor, _ = data2dCor.strides
 
-        qImgCor = QImage(data2dCor, widthCor, heightCor, bytesLineCor, QImage.Format_Grayscale8)
-        qImgCor = qImgCor.convertToFormat(QImage.Format_ARGB32)
+        qImgCor = QImage(data2dCor, widthCor, heightCor, bytesLineCor, QImage.Format.Format_Grayscale8)
+        qImgCor = qImgCor.convertToFormat(QImage.Format.Format_ARGB32)
 
         tempCor = self.maskCoverImg[:, self.newYVal, :, :]  # 2D data for coronal
         tempCor = np.fliplr(np.rot90(tempCor, 3))
@@ -746,13 +752,13 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         maskCorH, maskCorW = tempCor[:, :, 0].shape
         maskBytesLineCor, _ = tempCor[:, :, 0].strides
 
-        curMaskCorIm = QImage(tempCor, maskCorW, maskCorH, maskBytesLineCor, QImage.Format_ARGB32)
+        curMaskCorIm = QImage(tempCor, maskCorW, maskCorH, maskBytesLineCor, QImage.Format.Format_ARGB32)
 
         self.imCorPIL = qImToPIL(qImgCor); maskCor = qImToPIL(curMaskCorIm)
         self.imCorPIL.paste(maskCor, mask=maskCor)
         self.pixmapCor = QPixmap.fromImage(ImageQt(self.imCorPIL))
         self.corPlane.setPixmap(self.pixmapCor.scaled(
-            self.corPlane.width(), self.corPlane.height(), Qt.KeepAspectRatio))
+            self.corPlane.width(), self.corPlane.height(), Qt.AspectRatioMode.KeepAspectRatio))
 
     def acceptRoi(self):
         # 2d interpolation
@@ -946,9 +952,9 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                 pass
             self.multiUseRoiButton.clicked.connect(self.acceptRoi)
             self.observingLabel.show(); self.navigatingLabel.hide()
-            self.axialPlane.setCursor(QCursor(Qt.ArrowCursor))
-            self.sagPlane.setCursor(QCursor(Qt.ArrowCursor))
-            self.corPlane.setCursor(QCursor(Qt.ArrowCursor))
+            self.axialPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+            self.sagPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+            self.corPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
         elif not len(self.curPointsPlottedX):
             self.multiUseRoiButton.setText("Undo Last ROI")
             try:

@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt6.QtWidgets import QWidget, QApplication, QHBoxLayout
+from PyQt6.QtGui import QImage, QPixmap
 
 import src.Utils.lognormalFunctions as lf
 from src.CeusMcTool2d.ticAnalysis_ui import Ui_ticEditor
@@ -202,7 +202,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.mcData = np.require(self.mcResultsArray[self.curFrameIndex], np.uint8, "C")
         self.bytesLineMc, _ = self.mcData[:, :, 0].strides
         self.qImgMc = QImage(
-            self.mcData, self.x, self.y, self.bytesLineMc, QImage.Format_RGB888
+            self.mcData, self.x, self.y, self.bytesLineMc, QImage.Format.Format_RGB888
         )
         self.imDisplayLabel.setPixmap(
             QPixmap.fromImage(self.qImgMc).scaled(self.widthScale, self.depthScale)
@@ -213,7 +213,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         )
         self.bytesLineMask, _ = self.maskCoverImg[:, :, 0].strides
         self.qImgMask = QImage(
-            self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32
+            self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format.Format_ARGB32
         )
         self.maskDisplayLabel.setPixmap(
             QPixmap.fromImage(self.qImgMask).scaled(self.widthScale, self.depthScale)

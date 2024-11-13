@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.colors as colors
 import nibabel as nib
-from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout, QFileDialog
-from PyQt5.QtGui import QPixmap, QImage
+from PyQt6.QtWidgets import QWidget, QApplication, QHBoxLayout, QFileDialog
+from PyQt6.QtGui import QPixmap, QImage
 
 from src.CeusMcTool2d.ceusAnalysis_ui import Ui_ceusAnalysis
 from src.CeusMcTool2d.exportData_ui_helper import ExportDataGUI
@@ -253,7 +253,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         # self.tmppvParamap = None
 
         # self.bmodeCoverPixmap = QPixmap(381, 351)
-        # self.bmodeCoverPixmap.fill(Qt.transparent)
+        # self.bmodeCoverPixmap.fill(Qt.GlobalColor.transparent)
         # self.bmodeCoverLabel.setPixmap(self.bmodeCoverPixmap)
 
         self.setMouseTracking(True)
@@ -843,7 +843,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.mcData = np.require(self.mcResultsArray[self.curFrameIndex], np.uint8, "C")
         self.bytesLine, _ = self.mcData[:, :, 0].strides
         self.qImg = QImage(
-            self.mcData, self.x, self.y, self.bytesLine, QImage.Format_RGB888
+            self.mcData, self.x, self.y, self.bytesLine, QImage.Format.Format_RGB888
         )
         self.imPlane.setPixmap(
             QPixmap.fromImage(self.qImg).scaled(self.widthScale, self.depthScale)
@@ -862,7 +862,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
             )
         self.bytesLineMask, _ = self.maskCoverImg[:, :, 0].strides
         self.qImgMask = QImage(
-            self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32
+            self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format.Format_ARGB32
         )
         self.maskCoverLabel.setPixmap(
             QPixmap.fromImage(self.qImgMask).scaled(self.widthScale, self.depthScale)

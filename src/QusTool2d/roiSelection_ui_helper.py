@@ -9,8 +9,8 @@ import scipy.interpolate as interpolate
 from matplotlib.widgets import RectangleSelector, Cursor
 import matplotlib.patches as patches
 
-from PyQt5.QtWidgets import QWidget, QHBoxLayout
-from PyQt5.QtGui import QImage
+from PyQt6.QtWidgets import QWidget, QHBoxLayout
+from PyQt6.QtGui import QImage
 
 from pyquantus.parse.objects import ScConfig
 from pyquantus.qus import UltrasoundImage, AnalysisConfig, SpectralAnalysis, SpectralData
@@ -482,7 +482,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             flippedIm.shape[1],
             flippedIm.shape[0],
             flippedIm.strides[0],
-            QImage.Format_RGB888,
+            QImage.Format.Format_RGB888,
         )
 
         qIm.mirrored().save(
@@ -497,7 +497,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 flippedIm.shape[1],
                 flippedIm.shape[0],
                 flippedIm.strides[0],
-                QImage.Format_RGB888,
+                QImage.Format.Format_RGB888,
             )
 
             qIm.mirrored().save(

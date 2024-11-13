@@ -1,8 +1,8 @@
 import platform
 
 import numpy as np
-from PyQt5.QtWidgets import QWidget, QApplication
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt6.QtWidgets import QWidget, QApplication
+from PyQt6.QtGui import QImage, QPixmap
 
 from pyquantus.qus import SpectralData
 from src.QusTool2d.analysisParamsSelection_ui import Ui_analysisParams
@@ -308,7 +308,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
                 self.maskCoverMesh.shape[1],
                 self.maskCoverMesh.shape[0],
                 self.bytesLineMesh,
-                QImage.Format_ARGB32,
+                QImage.Format.Format_ARGB32,
             )
 
             self.previewFrameMesh.setPixmap(
@@ -376,7 +376,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             self.maskCoverImg.shape[1],
             self.maskCoverImg.shape[0],
             self.bytesLineMask,
-            QImage.Format_ARGB32,
+            QImage.Format.Format_ARGB32,
         )
 
         self.previewFrameMask.setPixmap(
@@ -388,7 +388,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             self.arWidth,
             self.arHeight,
             self.bytesLine,
-            QImage.Format_RGB888,
+            QImage.Format.Format_RGB888,
         )
         self.previewFrame.setPixmap(
             QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale)
