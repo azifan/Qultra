@@ -19,6 +19,8 @@ pyuic6 src/CeusTool3d/interpolationLoading.ui -o src/CeusTool3d/interpolationLoa
 pyuic6 src/CeusTool3d/advancedRoi.ui -o src/CeusTool3d/advancedRoi_ui.py
 
 pyuic6 src/QusTool2d/selectImage.ui -o src/QusTool2d/selectImage_ui.py
+pyuic6 src/QusTool2d/loadingScreen.ui -o src/QusTool2d/loadingScreen_ui.py
+pyuic6 src/QusTool2d/windowsTooLarge.ui -o src/QusTool2d/windowsTooLarge_ui.py
 pyuic6 src/QusTool2d/saveRoi.ui -o src/QusTool2d/saveRoi_ui.py
 pyuic6 src/QusTool2d/roiSelection.ui -o src/QusTool2d/roiSelection_ui.py
 pyuic6 src/QusTool2d/rfAnalysis.ui -o src/QusTool2d/rfAnalysis_ui.py

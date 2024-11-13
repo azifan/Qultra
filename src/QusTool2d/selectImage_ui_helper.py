@@ -16,6 +16,7 @@ from pyquantus.parse.siemens import siemensRfParser
 from pyquantus.parse.clarius import clariusRfParser
 from pyquantus.qus import SpectralData
 from pyquantus.parse.objects import ScConfig
+from src.QusTool2d.loadingScreen_ui_helper import LoadingScreenGUI
 from src.QusTool2d.selectImage_ui import Ui_selectImage
 from src.QusTool2d.roiSelection_ui_helper import RoiSelectionGUI
 import src.Parsers.philips3dRf as phil3d
@@ -155,13 +156,14 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.fileExts = None
         self.frame = 0
         self.imArray: np.ndarray
+        self.loadingScreen = LoadingScreenGUI()
 
         self.terasonButton.clicked.connect(self.terasonClicked)
         self.philipsButton.clicked.connect(self.philipsClicked)
         self.canonButton.clicked.connect(self.canonClicked)
         self.clariusButton.clicked.connect(self.clariusClicked)
         self.siemensButton.clicked.connect(self.siemensClicked)
-        self.verasonicsButton.clicked.connect(self.verasonicsClicked)
+        # self.verasonicsButton.clicked.connect(self.verasonicsClicked)
         self.chooseImageFileButton.clicked.connect(self.selectImageFile)
         self.choosePhantomFileButton.clicked.connect(self.selectPhantomFile)
         self.clearImagePathButton.clicked.connect(self.clearImagePath)
@@ -179,6 +181,8 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         if os.path.exists(self.imagePathInput.text()) and os.path.exists(
             self.phantomPathInput.text()
         ):
+            self.loadingScreen.show()
+            QApplication.processEvents()
             if self.roiSelectionGUI is not None:
                 plt.close(self.roiSelectionGUI.figure)
             del self.roiSelectionGUI
@@ -222,6 +226,7 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
             self.roiSelectionGUI.show()
             self.roiSelectionGUI.lastGui = self
             self.selectImageErrorMsg.setHidden(True)
+            self.loadingScreen.hide()
             self.hide()
 
     def openSiemensImage(self):
@@ -382,6 +387,7 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.totalFramesLabel.setText(str(self.imArray.shape[0]-1))
         self.curFrameSlider.valueChanged.connect(self.frameChanged)
 
+        self.loadingScreen.hide()
         self.update()   
     
     def frameChanged(self):
@@ -415,6 +421,7 @@ class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
         self.roiSelectionGUI.processImage(self.imgDataStruct, self.refDataStruct, self.imgInfoStruct, self.refInfoStruct)
         self.roiSelectionGUI.lastGui = self
         self.roiSelectionGUI.show()
+        self.loadingScreen.hide()
         self.hide()
 
     def plotPreviewFrame(self):

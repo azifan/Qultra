@@ -14,6 +14,7 @@ from src.QusTool2d.exportData_ui_helper import ExportDataGUI
 import src.QusTool2d.analysisParamsSelection_ui_helper as AnalysisParamsSelection
 from src.QusTool2d.psGraphDisplay_ui_helper import PsGraphDisplay
 from src.QusTool2d.saveConfig_ui_helper import SaveConfigGUI
+from src.QusTool2d.windowsTooLarge_ui_helper import WindowsTooLargeGUI
 
 system = platform.system()
 
@@ -173,6 +174,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.newData = None
         self.psGraphDisplay = PsGraphDisplay()
         self.saveConfigGUI = SaveConfigGUI()
+        self.windowsTooLargeGUI = WindowsTooLargeGUI()
         self.selectedImage: np.ndarray | None = None
 
         # Display B-Mode
@@ -213,11 +215,14 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.saveConfigGUI.config = self.spectralData.spectralAnalysis.config
         self.saveConfigGUI.show()
 
-    def completeSpectralAnalysis(self):
+    def completeSpectralAnalysis(self) -> int:
         if hasattr(self.spectralData, 'scConfig'):
             self.spectralData.spectralAnalysis.splineToPreSc()
         self.spectralData.spectralAnalysis.generateRoiWindows()
-        self.spectralData.spectralAnalysis.computeSpecWindows()
+        success = self.spectralData.spectralAnalysis.computeSpecWindows()
+        if success < 0:
+            self.windowsTooLargeGUI.show()
+            return -1
         self.attCoefVal.setText(f"{np.round(self.spectralData.spectralAnalysis.attenuationCoef, decimals=2)}")
         self.attCorrVal.setText(f"{np.round(self.spectralData.spectralAnalysis.attenuationCorr, decimals=2)}")
         self.bscVal.setText(f"{np.round(self.spectralData.spectralAnalysis.backScatterCoef, decimals=2)}")
@@ -259,6 +264,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.psGraphDisplay.plotGraph.setYRange(np.amin(npsArr), np.amax(npsArr))
 
         self.plotOnCanvas()
+        return 0
 
     def displayNps(self):
         if self.displayNpsButton.isChecked():

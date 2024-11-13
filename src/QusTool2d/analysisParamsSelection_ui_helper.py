@@ -428,7 +428,10 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             self.imagePathInput.text().split("/")[-1],
             self.phantomPathInput.text().split("/")[-1],
         )
-        self.rfAnalysisGUI.completeSpectralAnalysis()
+        success = self.rfAnalysisGUI.completeSpectralAnalysis()
+
+        if success < 0:
+            return
         self.rfAnalysisGUI.show()
         self.rfAnalysisGUI.lastGui = self
         self.hide()
