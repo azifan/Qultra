@@ -31,56 +31,24 @@ From here, a lognormal curve is fitted, returning the area under the curve (AUC)
 ## Requirements
 
 * [Python](https://www.python.org/downloads/)
-* [Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) (preferred)
 
 ## Environment
 
-### Conda (preferred)
+First, download [Python3.11.8](https://www.python.org/downloads/release/python-3118/) (non-Conda version) from the Python website. Once installed, note its path. We will refer to this path as `$PYTHON` below.
 
-Once you have Conda installed on your machine (Miniconda and Anaconda Distribution each suffice), use `env.yml` to create a conda-enabled virtual environment. This can be completed using the following commands:
-
-```shell
-git clone https://github.com/TUL-Dev/QuantUS.git
-cd QuantUS
-conda env create -f env.yml
-```
-
-From here, this environment can be activated using the `conda activate QuantUS-env` command.
-
-### VirtualEnv (deprecated)
-
-Deprecated but continued for historic purposes, this environment uses `pip` and the `virtualenv` Python library to create a Pip-enabled virtual environment. This can be completed using the following commands:
+Next, complete the following steps. Note lines commented with `# Unix` should only be run on MacOS or Linux while lines commented with `# Windows` should only be run on Windows.
 
 ```shell
 git clone https://github.com/TUL-Dev/QuantUS.git
 cd QuantUS
-pip install --upgrade pip
-python -m pip install virtualenv
-virtualenv --python="python3.9" venv
-source venv/bin/activate # Unix
-call venv\bin\activate.bat # Windows
+$PYTHON pip install virtualenv
+$PYTHON -m virtualenv .venv
+source .venv/bin/activate # Unix
+call .venv\bin\activate.bat # Windows
 pip install -r requirements.txt
 ```
 
-Following this example, this environment can be accessed via the `source venv/bin/activate` command from the repository directory.
-
-#### Troubleshooting for Mac
-
-To run these commands, make sure you have [HomeBrew](https://brew.sh/) installed.
-
-If you encounter an error after running `pip install -r requirements.txt`, try the following code and then run the command again:
-
-```shell
-brew install qt5
-
-brew link qt5 --force
-
-pip install wheel setuptools pip --upgrade
-
-pip install pyqt5==5.15.9 --config-settings --confirm-license= --verbose
-```
-
-If an error persists after running `python main.py`, try `export QT_QPA_PLATFORM_PLUGIN_PATH=/opt/homebrew/Cellar/qt@5/5.15.13_1/plugins`.
+Following this example, this environment can be accessed via the `source .venv/bin/activate` command from the repository directory.
 
 ## Building
 
@@ -105,14 +73,14 @@ To finish preparing QuantUS to be run, to support the Philips RF parser, compile
 ### Mac/Linux
 
 ```shell
-[conda activate QuantUS-env | source venv/bin/activate]
+source venv/bin/activate
 python main.py
 ```
 
 ### Windows
 
 ```shell
-[conda activate QuantUS-env | call venv\scripts\activate.bat]
+call venv\scripts\activate.bat
 python main.py
 ```
 
@@ -129,6 +97,6 @@ data.
 This dataset can be installed locally using our Python virtual environment. Specifically, the commands for installation are
 
 ```shell
-[conda activate QuantUS-env | source venv/bin/activate | call venv\Scripts\activate.bat]
+source venv/bin/activate | call venv\Scripts\activate.bat
 python sampleData.py
 ```
