@@ -64,10 +64,6 @@ ren saveQt.sh saveQt.bat
 .\saveQt.bat
 ```
 
-### Extra step for Windows
-
-To finish preparing QuantUS to be run, to support the Philips RF parser, compile `src\Parsers\philips_rf_parser_windows.c` into a `src\Parsers\philips_rf_parser.exe` executable using Windows C compiler of choice.
-
 ## Running
 
 ### Mac/Linux
