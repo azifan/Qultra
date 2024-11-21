@@ -5,7 +5,6 @@ from scipy.interpolate import RectBivariateSpline
 class OutImStruct():
     def __init__(self):
         self.scArr: np.ndarray
-        self.preScArr: np.ndarray
         self.xmap: np.ndarray # sc --> preSC
         self.ymap: np.ndarray # sc --> preSC
 
@@ -94,7 +93,6 @@ def scanConvert(inIm, width, tilt, startDepth, stopDepth, desiredHeight=500):
     
     OutIm = OutImStruct()
     OutIm.scArr = outIm
-    OutIm.preScArr = inIm
     OutIm.ymap = inIm_indy
     OutIm.xmap = inIm_indx
     return OutIm, hCm, wCm

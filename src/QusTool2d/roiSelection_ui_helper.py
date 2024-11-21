@@ -406,7 +406,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         scConfig.numSamplesDrOut = imgInfoStruct.numSamplesDrOut
         self.spectralData.scConfig = scConfig
 
-        self.ultrasoundImage.bmode = imgDataStruct.scBmodeStruct.preScArr
+        self.ultrasoundImage.bmode = imgDataStruct.bMode
         self.ultrasoundImage.scBmode = imgDataStruct.scBmodeStruct.scArr
         self.ultrasoundImage.xmap = imgDataStruct.scBmodeStruct.xmap
         self.ultrasoundImage.ymap = imgDataStruct.scBmodeStruct.ymap
