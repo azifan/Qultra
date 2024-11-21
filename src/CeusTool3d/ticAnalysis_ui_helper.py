@@ -5,13 +5,13 @@ import matplotlib.pyplot as plt
 from PIL.ImageQt import ImageQt
 from matplotlib.widgets import RectangleSelector
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout
-from PyQt5.QtGui import QPixmap, QPainter, QImage, QCursor, QResizeEvent
-from PyQt5.QtCore import QLine, Qt, QPoint, pyqtSlot
+from PyQt6.QtWidgets import QWidget, QApplication, QHBoxLayout
+from PyQt6.QtGui import QPixmap, QPainter, QImage, QCursor, QResizeEvent
+from PyQt6.QtCore import QLine, Qt, QPoint, pyqtSlot
 
 from src.CeusTool3d.ticAnalysis_ui import Ui_ticEditor
 from src.CeusTool3d.ceusAnalysis_ui_helper import CeusAnalysisGUI
-from src.DataLayer.qtSupport import MouseTracker, qImToPIL
+from src.Utils.qtSupport import MouseTracker, qImToPIL
 
 system = platform.system()
 
@@ -141,14 +141,14 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
     def planeClicked(self, pos):
         if self.navigatingLabel.isHidden():
             self.navigatingLabel.show(); self.observingLabel.hide()
-            self.axialPlane.setCursor(QCursor(Qt.BlankCursor))
-            self.sagPlane.setCursor(QCursor(Qt.BlankCursor))
-            self.corPlane.setCursor(QCursor(Qt.BlankCursor))
+            self.axialPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
+            self.sagPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
+            self.corPlane.setCursor(QCursor(Qt.CursorShape.BlankCursor))
         else:
             self.navigatingLabel.hide(); self.observingLabel.show()
-            self.axialPlane.setCursor(QCursor(Qt.ArrowCursor))
-            self.sagPlane.setCursor(QCursor(Qt.ArrowCursor))
-            self.corPlane.setCursor(QCursor(Qt.ArrowCursor))
+            self.axialPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+            self.sagPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+            self.corPlane.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
         
 
     @pyqtSlot(QPoint)
@@ -443,8 +443,8 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         heightAx, widthAx = data2dAx.shape
         bytesLineAx, _ = data2dAx.strides
         
-        qImgAx = QImage(data2dAx, widthAx, heightAx, bytesLineAx, QImage.Format_Grayscale8)
-        qImgAx = qImgAx.convertToFormat(QImage.Format_ARGB32)
+        qImgAx = QImage(data2dAx, widthAx, heightAx, bytesLineAx, QImage.Format.Format_Grayscale8)
+        qImgAx = qImgAx.convertToFormat(QImage.Format.Format_ARGB32)
 
         tempAx = self.maskCoverImg[:, :, self.newZVal, :]  # 2D data for axial
         tempAx = np.rot90(np.flipud(tempAx), 3)  # rotate ccw 270
@@ -452,13 +452,13 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         maskAxH, maskAxW = tempAx[:, :, 0].shape
         maskBytesLineAx, _ = tempAx[:, :, 0].strides
 
-        curMaskAxIm = QImage(tempAx, maskAxW, maskAxH, maskBytesLineAx, QImage.Format_ARGB32)
+        curMaskAxIm = QImage(tempAx, maskAxW, maskAxH, maskBytesLineAx, QImage.Format.Format_ARGB32)
 
         imAxPIL = qImToPIL(qImgAx); maskAx = qImToPIL(curMaskAxIm)
         imAxPIL.paste(maskAx, mask=maskAx)
         pixmapAx = QPixmap.fromImage(ImageQt(imAxPIL))
         self.axialPlane.setPixmap(pixmapAx.scaled(
-            self.axialPlane.width(), self.axialPlane.height(), Qt.KeepAspectRatio))
+            self.axialPlane.width(), self.axialPlane.height(), Qt.AspectRatioMode.KeepAspectRatio))
 
     def changeSagSlices(self):
         data2dSag = self.data4dImg[self.newXVal, :, :, self.curSliceIndex]
@@ -466,21 +466,21 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         heightSag, widthSag = data2dSag.shape
         bytesLineSag, _ = data2dSag.strides
 
-        qImgSag = QImage(data2dSag, widthSag, heightSag, bytesLineSag, QImage.Format_Grayscale8)
-        qImgSag = qImgSag.convertToFormat(QImage.Format_ARGB32)
+        qImgSag = QImage(data2dSag, widthSag, heightSag, bytesLineSag, QImage.Format.Format_Grayscale8)
+        qImgSag = qImgSag.convertToFormat(QImage.Format.Format_ARGB32)
 
         tempSag = self.maskCoverImg[self.newXVal, :, :, :]
         tempSag = np.require(tempSag, np.uint8, "C")
         maskSagH, maskSagW = tempSag[:, :, 0].shape
         maskBytesLineSag, _ = tempSag[:, :, 0].strides
 
-        curMaskSagIm = QImage(tempSag, maskSagW, maskSagH, maskBytesLineSag, QImage.Format_ARGB32)
+        curMaskSagIm = QImage(tempSag, maskSagW, maskSagH, maskBytesLineSag, QImage.Format.Format_ARGB32)
 
         imSagPIL = qImToPIL(qImgSag); maskSag = qImToPIL(curMaskSagIm)
         imSagPIL.paste(maskSag, mask=maskSag)
         pixmapSag = QPixmap.fromImage(ImageQt(imSagPIL))
         self.sagPlane.setPixmap(pixmapSag.scaled(
-            self.sagPlane.width(), self.sagPlane.height(), Qt.KeepAspectRatio))
+            self.sagPlane.width(), self.sagPlane.height(), Qt.AspectRatioMode.KeepAspectRatio))
 
     def changeCorSlices(self):
         data2dCor = self.data4dImg[:, self.newYVal, :, self.curSliceIndex]
@@ -489,8 +489,8 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         heightCor, widthCor = data2dCor.shape
         bytesLineCor, _ = data2dCor.strides
 
-        qImgCor = QImage(data2dCor, widthCor, heightCor, bytesLineCor, QImage.Format_Grayscale8)
-        qImgCor = qImgCor.convertToFormat(QImage.Format_ARGB32)
+        qImgCor = QImage(data2dCor, widthCor, heightCor, bytesLineCor, QImage.Format.Format_Grayscale8)
+        qImgCor = qImgCor.convertToFormat(QImage.Format.Format_ARGB32)
 
         tempCor = self.maskCoverImg[:, self.newYVal, :, :]
         tempCor = np.fliplr(np.rot90(tempCor, 3))
@@ -498,13 +498,13 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         maskCorH, maskCorW = tempCor[:, :, 0].shape
         maskBytesLineCor, _ = tempCor[:, :, 0].strides
 
-        curMaskCorIm = QImage(tempCor, maskCorW,maskCorH, maskBytesLineCor, QImage.Format_ARGB32)
+        curMaskCorIm = QImage(tempCor, maskCorW,maskCorH, maskBytesLineCor, QImage.Format.Format_ARGB32)
 
         imCorPIL = qImToPIL(qImgCor); maskCor = qImToPIL(curMaskCorIm)
         imCorPIL.paste(maskCor, mask=maskCor)
         pixmapCor = QPixmap.fromImage(ImageQt(imCorPIL))
         self.corPlane.setPixmap(pixmapCor.scaled(
-            self.corPlane.width(), self.corPlane.height(), Qt.KeepAspectRatio))
+            self.corPlane.width(), self.corPlane.height(), Qt.AspectRatioMode.KeepAspectRatio))
         
     def updateCrosshairs(self):
         self.changeAxialSlices(); self.changeSagSlices(); self.changeCorSlices()
@@ -518,18 +518,24 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         pixmaps = [self.axialPlane.pixmap(), self.sagPlane.pixmap(), self.corPlane.pixmap()]
         points = [(xCoordAx, yCoordAx), (xCoordSag, yCoordSag), (xCoordCor, yCoordCor)]
         for i, pixmap in enumerate(pixmaps):
-            painter = QPainter(pixmap); painter.setPen(Qt.yellow)
+            painter = QPainter(pixmap); painter.setPen(Qt.GlobalColor.yellow)
             coord = points[i]
             vertLine = QLine(coord[0], 0, coord[0], pixmap.height())
             latLine = QLine(0, coord[1], pixmap.width(), coord[1])
             painter.drawLines([vertLine, latLine])
             painter.end()
+            if i == 0:
+                self.axialPlane.setPixmap(pixmap)
+            elif i == 1:
+                self.sagPlane.setPixmap(pixmap)
+            else:         
+                self.corPlane.setPixmap(pixmap)
 
     def resizeEvent(self, event: QResizeEvent):
         super().resizeEvent(event)
-        self.axialPlane.setAlignment(Qt.AlignCenter)
-        self.sagPlane.setAlignment(Qt.AlignCenter)
-        self.corPlane.setAlignment(Qt.AlignCenter)
+        self.axialPlane.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.sagPlane.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.corPlane.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.updateCrosshairs()
 
 

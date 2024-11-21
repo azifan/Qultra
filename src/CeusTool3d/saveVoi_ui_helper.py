@@ -1,7 +1,7 @@
 import os
 import re
 
-from PyQt5.QtWidgets import QWidget, QFileDialog
+from PyQt6.QtWidgets import QWidget, QFileDialog
 
 from src.CeusTool3d.saveVoi_ui import Ui_saveVoi
 

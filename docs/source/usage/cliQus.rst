@@ -128,7 +128,6 @@ Our preparation includes more metadata assignments as follows:
     ultrasoundImage.lateralResRf = ultrasoundImage.axialResRf * (
         imgDataStruct.rf.shape[0]/imgDataStruct.rf.shape[1]
     ) # placeholder
-    ultrasoundImage.bmode = imgDataStruct.scBmodeStruct.preScArr
     ultrasoundImage.phantomRf = refDataStruct.rf
     ultrasoundImage.rf = imgDataStruct.rf
     ultrasoundImage.scBmode = imgDataStruct.scBmode

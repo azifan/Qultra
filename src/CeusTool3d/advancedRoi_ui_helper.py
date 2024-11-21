@@ -6,8 +6,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import scipy.interpolate as interpolate
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout
-from PyQt5.QtGui import QResizeEvent
+from PyQt6.QtWidgets import QWidget, QApplication, QHBoxLayout
+from PyQt6.QtGui import QResizeEvent
 
 from src.CeusTool3d.advancedRoi_ui import Ui_advancedRoi
 

@@ -1,12 +1,21 @@
 import struct
-from pathlib import Path
 
 import numpy as np
 from scipy.signal import hilbert
+from typing import Tuple
 
-from src.DataLayer.transforms import DataOutputStruct, InfoStruct, scanConvert, iqToRf
+from pyquantus.parse.objects import DataOutputStruct, InfoStruct
+from pyquantus.parse.transforms import scanConvert, iqToRf
 
-def findPreset(filename):
+def findPreset(filename: str) -> int:
+    """Find the preset of the Canon file (experiment-specific convention).
+
+    Args:
+        filename (str): The file path of the Canon file.
+
+    Returns:
+        int: The number of samples in the Canon file, which corresponds to the preset.
+    """
     headersize = 16
 
     file_obj = open(filename, 'rb')
@@ -22,7 +31,15 @@ def findPreset(filename):
 
     return numSamplesDrOut
 
-def readIQ(filename):
+def readIQ(filename: str) -> Tuple[np.ndarray, np.ndarray, float, int, float]:
+    """Read IQ data from a Canon file.
+
+    Args:
+        filename (str): The file path of the Canon file.
+
+    Returns:
+        Tuple: B-mode image, IQ data, digitizing rate, number of samples, and decimation factor.
+    """
     headersize = 16
 
     file_obj = open(filename, 'rb')
@@ -78,54 +95,39 @@ def readIQ(filename):
 
     return bmode, iq, digitizingRateHz, numSamplesDrOut, decimationFactor
 
-class FileStruct():
-    def __init__(self, filedirectory, filename):
-        self.name = filename
-        self.directory = filedirectory
+def readFileInfo() -> InfoStruct:
+    """Set default values for Canon IQ file metadata.
 
-def getImage(filename, filedirectory, refname, refdirectory):
-    Files = FileStruct(filedirectory, filename)
-    RefFiles = FileStruct(refdirectory, refname)
-
-    [ImgInfo, RefInfo, ImgData, RefData] = getData(Files, RefFiles)
-    
-    return ImgData, ImgInfo, RefData, RefInfo
-
-def getData(Files, RefFiles):
-    ImgInfo = readFileInfo(Files.name, Files.directory)
-    [ImgData, ImgInfo] = readFileImg(ImgInfo, Path(Files.directory) / Path(Files.name))
-
-    RefInfo = readFileInfo(RefFiles.name, RefFiles.directory)
-    [RefData, RefInfo] = readFileImg(RefInfo, Path(RefFiles.directory) / Path(RefFiles.name))
-
-    return [ImgInfo, RefInfo, ImgData, RefData]
-
-def readFileInfo(filename, filepath):    
-    studyID = filename[:-4]
-    studyEXT = filename[-4:]
-
+    Returns:
+        InfoStruct: The default Canon IQ file metadata.
+    """
     Info = InfoStruct()
     Info.minFrequency = 0
     Info.maxFrequency = 8000000
     Info.lowBandFreq = 3000000 #Hz
     Info.upBandFreq = 5000000 #Hz
     Info.centerFrequency = 4000000 #Hz
-    Info.studyMode = "RF"
-    Info.filename = filename
-    Info.filepath = filepath
-    Info.probe = "C5-?"
-    Info.system = "EPIQ7"
-    Info.studyID = studyID
-    Info.studyEXT = studyEXT
 
     # Scan Convert Settings
     Info.tilt1 = 0
     Info.width1 = 70 #degrees
+    
+    Info.clipFact = 1
+    Info.dynRange = 50
 
     return Info
 
-def readFileImg(Info, filePath):
-    bmode, iqData, Info.rxFrequency, Info.numSamplesDrOut, decimationFactor = readIQ(filePath)
+def readFileImg(Info: InfoStruct, filePath: str) -> Tuple[DataOutputStruct, InfoStruct]:
+    """Read Canon IQ data and parse it.
+
+    Args:
+        Info (InfoStruct): Canon IQ file metadata
+        filePath (str): The file path of the Canon IQ data.
+
+    Returns:
+        Tuple[DataOutputStruct, InfoStruct]: Image data and image metadata.
+    """
+    bmode, iqData, Info.samplingFrequency, Info.numSamplesDrOut, decimationFactor = readIQ(filePath)
     if Info.numSamplesDrOut == 1400: #Preset 1
         Info.depth = 150 #mm
         # print("Preset 1 found!")
@@ -136,11 +138,15 @@ def readFileImg(Info, filePath):
         print("ERROR: No preset found!")
         exit()
 
-    Info.samplingFrequency = Info.rxFrequency
-    rfData = iqToRf(iqData, Info.rxFrequency, decimationFactor, Info.centerFrequency)
+    rfData = iqToRf(iqData, Info.samplingFrequency, decimationFactor, Info.centerFrequency)
     bmode = np.zeros(rfData.shape)
     for i in range(rfData.shape[1]):
-        bmode[:,i] = 20*np.log10(abs(hilbert(rfData[:,i])))           
+        bmode[:,i] = 20*np.log10(abs(hilbert(rfData[:,i])))  
+        
+    clippedMax = Info.clipFact*np.amax(bmode)
+    bmode = np.clip(bmode, clippedMax-Info.dynRange, clippedMax)
+    bmode -= np.amin(bmode)
+    bmode *= (255/np.amax(bmode))     
 
     Info.endDepth1 = Info.depth/1000 #m
     Info.startDepth1 = Info.endDepth1/4 #m
@@ -150,18 +156,29 @@ def readFileImg(Info, filePath):
     Info.width = wCm1*10 #mm
     Info.lateralRes = Info.width/scBmodeStruct.scArr.shape[1]
     Info.axialRes = Info.depth/scBmodeStruct.scArr.shape[0]
-    Info.maxval = np.amax(scBmodeStruct.scArr)
 
     Data = DataOutputStruct()
     Data.scBmodeStruct = scBmodeStruct
-    Data.scBmode = scBmodeStruct.scArr * (255/Info.maxval)
     Data.rf = rfData
-    Data.bMode = bmode * (255/np.amax(bmode))
+    
+    Data.bMode = bmode
+    Data.scBmode = Data.scBmodeStruct.scArr
 
     return Data, Info
 
+def canonIqParser(imgPath: str, refPath: str) -> Tuple[DataOutputStruct, InfoStruct, DataOutputStruct, InfoStruct]:
+    """Parse Canon IQ data. Entry-point of entire parser.
 
-if __name__ == "__main__":
-    getImage("20220112112155_IQ.bin","/Users/davidspector/Home/Stanford/Project_Data/Misc Data/","20220112112155_IQ.bin","/Users/davidspector/Home/Stanford/Project_Data/Misc Data/")
+    Args:
+        imgPath (str): The file path of the Canon IQ data.
+        refPath (str): The file path of the Canon IQ phantom data.
 
+    Returns:
+        Tuple: Image data, image info, phantom data, and phantom info.
+    """
+    imgInfo = readFileInfo()
+    imgData, imgInfo = readFileImg(imgInfo, imgPath)
 
+    refInfo = readFileInfo()
+    refData, refInfo = readFileImg(refInfo, refPath)
+    return imgData, imgInfo, refData, refInfo

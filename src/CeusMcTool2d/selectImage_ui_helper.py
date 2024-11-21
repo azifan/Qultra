@@ -4,8 +4,8 @@ import platform
 from pathlib import Path
 
 import pandas as pd
-from PyQt5.QtWidgets import QWidget, QApplication, QHeaderView, QTableWidgetItem, QFileDialog
-from PyQt5.QtCore import Qt
+from PyQt6.QtWidgets import QWidget, QApplication, QHeaderView, QTableWidgetItem, QFileDialog
+from PyQt6.QtCore import Qt
 
 from src.CeusMcTool2d.selectImage_ui import Ui_selectImage
 from src.CeusMcTool2d.roiSelection_ui_helper import RoiSelectionGUI
@@ -110,7 +110,7 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         self.format = None
 
         header = self.imagesScrollArea.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        # header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setStyleSheet(
             """
         QHeaderView::section{

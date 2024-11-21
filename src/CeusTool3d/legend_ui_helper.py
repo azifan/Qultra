@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QApplication
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QApplication
 
 from src.CeusTool3d.legend_ui import Ui_legend
 

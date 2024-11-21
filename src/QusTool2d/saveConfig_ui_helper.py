@@ -2,10 +2,10 @@ import os
 import re
 import pickle
 
-from PyQt5.QtWidgets import QWidget, QFileDialog
+from PyQt6.QtWidgets import QWidget, QFileDialog
 
 from src.QusTool2d.saveConfig_ui import Ui_saveConfig
-from pyQus.analysisObjects import Config
+from pyquantus.qus import AnalysisConfig
 
 
 class SaveConfigGUI(Ui_saveConfig, QWidget):
@@ -17,7 +17,7 @@ class SaveConfigGUI(Ui_saveConfig, QWidget):
         
         self.imName: str
         self.phantomName: str
-        self.config: Config
+        self.config: AnalysisConfig
 
         self.chooseFolderButton.clicked.connect(self.chooseFolder)
         self.clearFolderButton.clicked.connect(self.clearFolder)

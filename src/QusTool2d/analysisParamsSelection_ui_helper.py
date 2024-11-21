@@ -1,10 +1,10 @@
 import platform
 
-from PyQt5.QtWidgets import QWidget, QApplication
-from PyQt5.QtGui import QImage, QPixmap
 import numpy as np
+from PyQt6.QtWidgets import QWidget, QApplication
+from PyQt6.QtGui import QImage, QPixmap
 
-from src.DataLayer.spectral import SpectralData
+from pyquantus.qus import SpectralData
 from src.QusTool2d.analysisParamsSelection_ui import Ui_analysisParams
 from src.QusTool2d.rfAnalysis_ui_helper import RfAnalysisGUI
 from src.QusTool2d.loadConfig_ui_helper import LoadConfigGUI
@@ -308,7 +308,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
                 self.maskCoverMesh.shape[1],
                 self.maskCoverMesh.shape[0],
                 self.bytesLineMesh,
-                QImage.Format_ARGB32,
+                QImage.Format.Format_ARGB32,
             )
 
             self.previewFrameMesh.setPixmap(
@@ -376,7 +376,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             self.maskCoverImg.shape[1],
             self.maskCoverImg.shape[0],
             self.bytesLineMask,
-            QImage.Format_ARGB32,
+            QImage.Format.Format_ARGB32,
         )
 
         self.previewFrameMask.setPixmap(
@@ -388,7 +388,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             self.arWidth,
             self.arHeight,
             self.bytesLine,
-            QImage.Format_RGB888,
+            QImage.Format.Format_RGB888,
         )
         self.previewFrame.setPixmap(
             QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale)
@@ -428,7 +428,10 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             self.imagePathInput.text().split("/")[-1],
             self.phantomPathInput.text().split("/")[-1],
         )
-        self.rfAnalysisGUI.completeSpectralAnalysis()
+        success = self.rfAnalysisGUI.completeSpectralAnalysis()
+
+        if success < 0:
+            return
         self.rfAnalysisGUI.show()
         self.rfAnalysisGUI.lastGui = self
         self.hide()

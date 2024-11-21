@@ -8,9 +8,9 @@ import nibabel as nib
 import scipy.interpolate as interpolate
 from scipy.ndimage import binary_fill_holes
 from pydicom.pixel_data_handlers import convert_color_space
-from PyQt5.QtWidgets import QWidget, QApplication, QFileDialog
-from PyQt5.QtGui import QPixmap, QPainter, QImage
-from PyQt5.QtCore import QLine, Qt
+from PyQt6.QtWidgets import QWidget, QApplication, QFileDialog
+from PyQt6.QtGui import QPixmap, QPainter, QImage, QMouseEvent
+from PyQt6.QtCore import QLine, Qt
 
 import src.Utils.motionCorrection as mc
 from src.CeusMcTool2d.roiSelection_ui import Ui_constructRoi
@@ -938,7 +938,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.mcImDisplayLabel.resize(self.widthScale, self.depthScale)
 
         self.imCoverPixmap = QPixmap(self.widthScale, self.depthScale)
-        self.imCoverPixmap.fill(Qt.transparent)
+        self.imCoverPixmap.fill(Qt.GlobalColor.transparent)
         self.imCoverLabel.setPixmap(self.imCoverPixmap)
 
         self.curLeftLineX = 0
@@ -949,8 +949,8 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.fullPath = cePath
 
         # painter = QPainter(self.imCoverLabel.pixmap())
-        # self.imCoverLabel.pixmap().fill(Qt.transparent)
-        # painter.setPen(Qt.yellow)
+        # self.imCoverLabel.pixmap().fill(Qt.GlobalColor.transparent)
+        # painter.setPen(Qt.GlobalColor.yellow)
         # xScale = self.widthScale/self.x
         # yScale = self.depthScale/self.y
         # self.bmodeStartX = self.imX0 + int(xScale*self.x0_bmode)
@@ -1063,7 +1063,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.mcImDisplayLabel.resize(self.widthScale, self.depthScale)
 
         self.imCoverPixmap = QPixmap(self.widthScale, self.depthScale)
-        self.imCoverPixmap.fill(Qt.transparent)
+        self.imCoverPixmap.fill(Qt.GlobalColor.transparent)
         self.imCoverLabel.setPixmap(self.imCoverPixmap)
 
         self.maskCoverImg = np.zeros([self.y, self.x, 4])
@@ -1157,113 +1157,116 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.imX0 += xBuffer
             self.imX1 -= xBuffer
 
-        try:
-            self.x0_bmode, self.x0_CE, self.w_bmode, self.w_CE = find_x0_bmode_CE(
-                ds, self.CE_side, ar.shape[2]
-            )
-            manufacturer = ds.Manufacturer
-            model = ds.ManufacturerModelName
-            imBoundariesPath = os.path.join("CeusMcTool2d", "imBoundaries.json")
+        # try:
+        #     self.x0_bmode, self.x0_CE, self.w_bmode, self.w_CE = find_x0_bmode_CE(
+        #         ds, self.CE_side, ar.shape[2]
+        #     )
+        #     manufacturer = ds.Manufacturer
+        #     model = ds.ManufacturerModelName
+        #     imBoundariesPath = os.path.join("CeusMcTool2d", "imBoundaries.json")
 
-            try:
-                self.y0_bmode = int(ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0)
-                self.h_bmode = int(
-                    ds.SequenceOfUltrasoundRegions[0].RegionLocationMaxY1
-                    - ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0
-                    + 1
-                )
-                with open(imBoundariesPath, "r") as fp:
-                    imDimsHashTable = json.load(fp)
-                try:
-                    relativeImDims = imDimsHashTable[", ".join((manufacturer, model))]
-                except (NameError, KeyError):
-                    imDimsHashTable[", ".join((manufacturer, model))] = [
-                        self.x0_bmode / self.x,
-                        self.y0_bmode / self.y,
-                        self.w_bmode / self.x,
-                        self.h_bmode / self.y,
-                    ]
-                    os.remove(imBoundariesPath)
-                    with open(imBoundariesPath, "w") as fp:
-                        json.dump(imDimsHashTable, fp, sort_keys=True, indent=4)
-            except (FileNotFoundError, NameError, ValueError, AttributeError, IndexError, KeyError):
-                with open(imBoundariesPath, "r") as fp:
-                    imDimsHashTable = json.load(fp)
-                try:
-                    relativeImDims = imDimsHashTable[", ".join((manufacturer, model))]
-                except (NameError, ValueError, IndexError, FileNotFoundError, KeyError):
-                    print("Transducer model and data format not supported!")
-                    return
-                self.y0_bmode = round(relativeImDims[1] * self.y)
-                self.w_bmode = round(relativeImDims[2] * self.x)
-                self.h_bmode = round(relativeImDims[3] * self.y)
-                self.x0_bmode = round(relativeImDims[0] * self.x)
-                if self.CE_side == "r":
-                    self.x0_CE = self.x0_bmode + self.w_bmode
-                else:
-                    self.x0_CE = (
-                        self.x0_bmode - self.w_bmode
-                    )  # assumes CE and bmode have same width
-                self.w_CE = self.w_bmode
-            self.y0_CE = self.y0_bmode
-            self.h_CE = self.h_bmode
+        #     try:
+        #         self.y0_bmode = int(ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0)
+        #         self.h_bmode = int(
+        #             ds.SequenceOfUltrasoundRegions[0].RegionLocationMaxY1
+        #             - ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0
+        #             + 1
+        #         )
+        #         with open(imBoundariesPath, "r") as fp:
+        #             imDimsHashTable = json.load(fp)
+        #         try:
+        #             relativeImDims = imDimsHashTable[", ".join((manufacturer, model))]
+        #         except (NameError, KeyError):
+        #             imDimsHashTable[", ".join((manufacturer, model))] = [
+        #                 self.x0_bmode / self.x,
+        #                 self.y0_bmode / self.y,
+        #                 self.w_bmode / self.x,
+        #                 self.h_bmode / self.y,
+        #             ]
+        #             os.remove(imBoundariesPath)
+        #             with open(imBoundariesPath, "w") as fp:
+        #                 json.dump(imDimsHashTable, fp, sort_keys=True, indent=4)
+        #     except (FileNotFoundError, NameError, ValueError, AttributeError, IndexError, KeyError):
+        #         with open(imBoundariesPath, "r") as fp:
+        #             imDimsHashTable = json.load(fp)
+        #         try:
+        #             relativeImDims = imDimsHashTable[", ".join((manufacturer, model))]
+        #         except (NameError, ValueError, IndexError, FileNotFoundError, KeyError):
+        #             print("Transducer model and data format not supported!")
+        #             return
+        #         self.y0_bmode = round(relativeImDims[1] * self.y)
+        #         self.w_bmode = round(relativeImDims[2] * self.x)
+        #         self.h_bmode = round(relativeImDims[3] * self.y)
+        #         self.x0_bmode = round(relativeImDims[0] * self.x)
+        #         if self.CE_side == "r":
+        #             self.x0_CE = self.x0_bmode + self.w_bmode
+        #         else:
+        #             self.x0_CE = (
+        #                 self.x0_bmode - self.w_bmode
+        #             )  # assumes CE and bmode have same width
+        #         self.w_CE = self.w_bmode
+        #     self.y0_CE = self.y0_bmode
+        #     self.h_CE = self.h_bmode
 
-            self.imPlane.move(self.imX0, self.imY0)
-            self.imPlane.resize(self.widthScale, self.depthScale)
-            self.imMaskLayer.move(self.imX0, self.imY0)
-            self.imMaskLayer.resize(self.widthScale, self.depthScale)
-            self.imCoverLabel.move(self.imX0, self.imY0)
-            self.imCoverLabel.resize(self.widthScale, self.depthScale)
-            self.mcImDisplayLabel.move(self.imX0, self.imY0)
-            self.mcImDisplayLabel.resize(self.widthScale, self.depthScale)
+        #     self.imPlane.move(self.imX0, self.imY0)
+        #     self.imPlane.resize(self.widthScale, self.depthScale)
+        #     self.imMaskLayer.move(self.imX0, self.imY0)
+        #     self.imMaskLayer.resize(self.widthScale, self.depthScale)
+        #     self.imCoverLabel.move(self.imX0, self.imY0)
+        #     self.imCoverLabel.resize(self.widthScale, self.depthScale)
+        #     self.mcImDisplayLabel.move(self.imX0, self.imY0)
+        #     self.mcImDisplayLabel.resize(self.widthScale, self.depthScale)
 
-            self.imCoverPixmap = QPixmap(self.widthScale, self.depthScale)
-            self.imCoverPixmap.fill(Qt.transparent)
-            self.imCoverLabel.setPixmap(self.imCoverPixmap)
+        #     self.imCoverPixmap = QPixmap(self.widthScale, self.depthScale)
+        #     self.imCoverPixmap.fill(Qt.GlobalColor.transparent)
+        #     self.imCoverLabel.setPixmap(self.imCoverPixmap)
 
-            painter = QPainter(self.imCoverLabel.pixmap())
-            self.imCoverLabel.pixmap().fill(Qt.transparent)
-            painter.setPen(Qt.yellow)
-            xScale = self.widthScale / self.x
-            yScale = self.depthScale / self.y
-            self.bmodeStartX = self.imX0 + int(xScale * self.x0_bmode)
-            self.bmodeEndX = self.bmodeStartX + int(xScale * self.w_bmode)
-            self.bmodeStartY = self.imY0 + int(yScale * self.y0_bmode)
-            self.bmodeEndY = self.bmodeStartY + int(yScale * self.h_bmode)
-            self.ceStartX = self.imX0 + int(xScale * self.x0_CE)
-            self.ceEndX = self.ceStartX + int(xScale * self.w_CE)
-            self.ceStartY = self.imY0 + int(yScale * self.y0_CE)
-            self.ceEndY = self.ceStartY + int(yScale * self.h_CE)
-            painter.drawRect(
-                int(self.x0_bmode * xScale),
-                int(self.y0_bmode * yScale),
-                int(self.w_bmode * xScale),
-                int(self.h_bmode * yScale),
-            )
-            painter.drawRect(
-                int(self.x0_CE * xScale),
-                int(self.y0_CE * yScale),
-                int(self.w_CE * xScale),
-                int(self.h_CE * yScale),
-            )
-            painter.end()
-            self.update()
+        #     canvas = self.imCoverLabel.pixmap()
+        #     painter = QPainter(canvas)
+        #     self.imCoverLabel.pixmap().fill(Qt.GlobalColor.transparent)
+        #     painter.setPen(Qt.GlobalColor.yellow)
+        #     xScale = self.widthScale / self.x
+        #     yScale = self.depthScale / self.y
+        #     self.bmodeStartX = self.imX0 + int(xScale * self.x0_bmode)
+        #     self.bmodeEndX = self.bmodeStartX + int(xScale * self.w_bmode)
+        #     self.bmodeStartY = self.imY0 + int(yScale * self.y0_bmode)
+        #     self.bmodeEndY = self.bmodeStartY + int(yScale * self.h_bmode)
+        #     self.ceStartX = self.imX0 + int(xScale * self.x0_CE)
+        #     self.ceEndX = self.ceStartX + int(xScale * self.w_CE)
+        #     self.ceStartY = self.imY0 + int(yScale * self.y0_CE)
+        #     self.ceEndY = self.ceStartY + int(yScale * self.h_CE)
+        #     painter.drawRect(
+        #         int(self.x0_bmode * xScale),
+        #         int(self.y0_bmode * yScale),
+        #         int(self.w_bmode * xScale),
+        #         int(self.h_bmode * yScale),
+        #     )
+        #     painter.drawRect(
+        #         int(self.x0_CE * xScale),
+        #         int(self.y0_CE * yScale),
+        #         int(self.w_CE * xScale),
+        #         int(self.h_CE * yScale),
+        #     )
+        #     painter.end()
+        #     self.imCoverLabel.setPixmap(canvas)
+        #     self.update()
 
-        except AttributeError:
-            self.loadRoiButton.setHidden(True)
-            self.newRoiButton.setHidden(True)
-            self.defImBoundsButton.setHidden(False)
-            self.defImBoundsButton.clicked.connect(self.startBoundDef)
-            self.cineRate = ds.CineRate
+        # except AttributeError:
+        self.loadRoiButton.setHidden(True)
+        self.newRoiButton.setHidden(True)
+        self.defImBoundsButton.setHidden(False)
+        self.defImBoundsButton.clicked.connect(self.startBoundDef)
+        self.cineRate = ds.CineRate
 
-            self.imCoverPixmap = QPixmap(self.widthScale, self.depthScale)
-            self.imCoverPixmap.fill(Qt.transparent)
-            self.imCoverLabel.setPixmap(self.imCoverPixmap)
+        self.imCoverPixmap = QPixmap(self.widthScale, self.depthScale)
+        self.imCoverPixmap.fill(Qt.GlobalColor.transparent)
+        self.imCoverLabel.setPixmap(self.imCoverPixmap)
 
-            self.curLeftLineX = 0
-            self.curRightLineX = self.widthScale - 1
-            self.curTopLineY = 0
-            self.curBottomLineY = self.depthScale - 1
+        self.curLeftLineX = 0
+        self.curRightLineX = self.widthScale - 1
+        self.curTopLineY = 0
+        self.curBottomLineY = self.depthScale - 1
+        #########################################################
 
         self.sliceArray = np.round(
             [i * (1 / self.cineRate) for i in range(self.numSlices)], decimals=2
@@ -1294,9 +1297,10 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.drawRoiButton.clicked.connect(self.startRoiDraw)
 
     def updateBoundLines(self, line):
-        painter = QPainter(self.imCoverLabel.pixmap())
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
-        painter.setPen(Qt.green)
+        canvas = self.imCoverLabel.pixmap()
+        painter = QPainter(canvas)
+        canvas.fill(Qt.GlobalColor.transparent)
+        painter.setPen(Qt.GlobalColor.green)
         if line == "Bottom Y":
             painter.drawLine(
                 self.curLeftLineX,
@@ -1327,49 +1331,58 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             )
         else:
             print("Bound line error")
+        painter.end()
+        self.imCoverLabel.setPixmap(canvas)
         self.update()
 
     def leftChangedX(self):
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
-        painter = QPainter(self.imCoverLabel.pixmap())
-        painter.setPen(Qt.green)
+        canvas = self.imCoverLabel.pixmap()
+        painter = QPainter(canvas)
+        canvas.fill(Qt.GlobalColor.transparent)
+        painter.setPen(Qt.GlobalColor.green)
         self.curLeftLineX = self.horizontalSlider.value()
         painter.drawLine(
             self.curLeftLineX, self.curBottomLineY, self.curLeftLineX, self.curTopLineY
         )
         painter.end()
+        self.imCoverLabel.setPixmap(canvas)
         self.update()
 
     def horizContrastChanged(self):
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
-        painter = QPainter(self.imCoverLabel.pixmap())
-        painter.setPen(Qt.yellow)
+        canvas = self.imCoverLabel.pixmap()
+        painter = QPainter(canvas)
+        canvas.fill(Qt.GlobalColor.transparent)
+        painter.setPen(Qt.GlobalColor.yellow)
         painter.drawRect(self.x0_bmode, self.y0_bmode, self.w_bmode, self.h_bmode)
-        painter.setPen(Qt.cyan)
+        painter.setPen(Qt.GlobalColor.cyan)
         self.x0_CE = self.horizontalSlider.value()
         painter.drawRect(self.x0_CE, self.y0_CE, self.w_CE, self.h_CE)
         painter.end()
+        self.imCoverLabel.setPixmap(canvas)
         self.update()
 
     def verticalContrastChanged(self):
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
-        painter = QPainter(self.imCoverLabel.pixmap())
-        painter.setPen(Qt.yellow)
+        canvas = self.imCoverLabel.pixmap()
+        painter = QPainter(canvas)
+        canvas.fill(Qt.GlobalColor.transparent)
+        painter.setPen(Qt.GlobalColor.yellow)
         painter.drawRect(self.x0_bmode, self.y0_bmode, self.w_bmode, self.h_bmode)
-        painter.setPen(Qt.cyan)
+        painter.setPen(Qt.GlobalColor.cyan)
         self.y0_CE = self.horizontalSlider.value()
         painter.drawRect(self.x0_CE, self.y0_CE, self.w_CE, self.h_CE)
         painter.end()
+        self.imCoverLabel.setPixmap(canvas)
         self.update()
 
     def rightChangedX(self):
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
-        painter = QPainter(self.imCoverLabel.pixmap())
-        painter.setPen(Qt.cyan)
+        canvas = self.imCoverLabel.pixmap()
+        painter = QPainter(canvas)
+        canvas.fill(Qt.GlobalColor.transparent)
+        painter.setPen(Qt.GlobalColor.cyan)
         painter.drawLine(
             self.curLeftLineX, self.curBottomLineY, self.curLeftLineX, self.curTopLineY
         )
-        painter.setPen(Qt.green)
+        painter.setPen(Qt.GlobalColor.green)
         self.curRightLineX = self.horizontalSlider.value()
         painter.drawLine(
             self.curRightLineX,
@@ -1378,13 +1391,15 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.curTopLineY,
         )
         painter.end()
+        self.imCoverLabel.setPixmap(canvas)
         self.update()
 
     def topChangedY(self):
         self.curTopLineY = self.horizontalSlider.value()
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
-        painter = QPainter(self.imCoverLabel.pixmap())
-        painter.setPen(Qt.cyan)
+        canvas = self.imCoverLabel.pixmap()
+        painter = QPainter(canvas)
+        canvas.fill(Qt.GlobalColor.transparent)
+        painter.setPen(Qt.GlobalColor.cyan)
         painter.drawLine(
             self.curLeftLineX, self.curBottomLineY, self.curLeftLineX, self.curTopLineY
         )
@@ -1394,18 +1409,20 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.curRightLineX,
             self.curTopLineY,
         )
-        painter.setPen(Qt.green)
+        painter.setPen(Qt.GlobalColor.green)
         painter.drawLine(
             self.curLeftLineX, self.curTopLineY, self.curRightLineX, self.curTopLineY
         )
         painter.end()
+        self.imCoverLabel.setPixmap(canvas)
         self.update()
 
     def bottomChangedY(self):
         self.curBottomLineY = self.horizontalSlider.value()
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
-        painter = QPainter(self.imCoverLabel.pixmap())
-        painter.setPen(Qt.cyan)
+        canvas = self.imCoverLabel.pixmap()
+        painter = QPainter(canvas)
+        canvas.fill(Qt.GlobalColor.transparent)
+        painter.setPen(Qt.GlobalColor.cyan)
         painter.drawLine(
             self.curLeftLineX, self.curBottomLineY, self.curLeftLineX, self.curTopLineY
         )
@@ -1418,7 +1435,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         painter.drawLine(
             self.curLeftLineX, self.curTopLineY, self.curRightLineX, self.curTopLineY
         )
-        painter.setPen(Qt.green)
+        painter.setPen(Qt.GlobalColor.green)
         painter.drawLine(
             self.curLeftLineX,
             self.curBottomLineY,
@@ -1426,6 +1443,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.curBottomLineY,
         )
         painter.end()
+        self.imCoverLabel.setPixmap(canvas)
         self.update()
 
     def startBoundDef(self):
@@ -1443,7 +1461,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.boundDrawLabel.setText("Draw B-mode Left Border:")
         self.horizontalSlider.setMinimum(0)
         self.horizontalSlider.setMaximum(self.widthScale - 1)
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
         self.curRightLineX = self.widthScale - 1
         try:
             self.horizontalSlider.valueChanged.disconnect()
@@ -1460,7 +1477,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.acceptBoundsButton.setText("Accept Right")
         self.boundBackButton.setHidden(False)
         self.curTopLineY = 0
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
+        self.imCoverLabel.pixmap().fill(Qt.GlobalColor.transparent)
         self.horizontalSlider.valueChanged.disconnect()
         self.acceptBoundsButton.clicked.disconnect()
         self.horizontalSlider.setMinimum(self.curLeftLineX)
@@ -1475,7 +1492,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.boundDrawLabel.setText("Draw B-mode Top Border")
         self.acceptBoundsButton.setText("Accept Top")
         self.curBottomLineY = self.depthScale - 1
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
+        self.imCoverLabel.pixmap().fill(Qt.GlobalColor.transparent)
         self.boundBackButton.clicked.disconnect()
         self.horizontalSlider.valueChanged.disconnect()
         self.acceptBoundsButton.clicked.disconnect()
@@ -1539,10 +1556,11 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.verticalContrastChanged()
 
     def moveToAnalysis(self):
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
-        painter = QPainter(self.imCoverLabel.pixmap())
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
-        painter.setPen(Qt.yellow)
+        canvas = self.imCoverLabel.pixmap()
+        painter = QPainter(canvas)
+        canvas.fill(Qt.GlobalColor.transparent)
+        self.imCoverLabel.pixmap().fill(Qt.GlobalColor.transparent)
+        painter.setPen(Qt.GlobalColor.yellow)
         xScale = self.widthScale / self.x
         yScale = self.depthScale / self.y
         self.x0_bmode = int(self.x0_bmode / xScale)
@@ -1574,6 +1592,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             int(self.h_CE * yScale),
         )
         painter.end()
+        self.imCoverLabel.setPixmap(canvas)
         self.horizontalSlider.setHidden(True)
         self.boundDrawLabel.setHidden(True)
         self.acceptBoundsButton.setHidden(True)
@@ -1595,7 +1614,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             )
             self.bytesLineMc, _ = self.mcData[:, :, 0].strides
             self.qImgMc = QImage(
-                self.mcData, self.x, self.y, self.bytesLineMc, QImage.Format_RGB888
+                self.mcData, self.x, self.y, self.bytesLineMc, QImage.Format.Format_RGB888
             )
             self.mcImDisplayLabel.setPixmap(
                 QPixmap.fromImage(self.qImgMc).scaled(self.widthScale, self.depthScale)
@@ -1608,7 +1627,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.imData = np.require(self.imData, np.uint8, "C")
             self.bytesLineIm, _ = self.imData[:, :, 0].strides
             self.qImg = QImage(
-                self.imData, self.x, self.y, self.bytesLineIm, QImage.Format_RGB888
+                self.imData, self.x, self.y, self.bytesLineIm, QImage.Format.Format_RGB888
             )
             self.imPlane.setPixmap(
                 QPixmap.fromImage(self.qImg).scaled(self.widthScale, self.depthScale)
@@ -1616,7 +1635,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.maskCoverImg = np.require(self.maskCoverImg, np.uint8, "C")
         self.bytesLineMask, _ = self.maskCoverImg[:, :, 0].strides
         self.qImgMask = QImage(
-            self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format_ARGB32
+            self.maskCoverImg, self.x, self.y, self.bytesLineMask, QImage.Format.Format_ARGB32
         )
         self.imMaskLayer.setPixmap(
             QPixmap.fromImage(self.qImgMask).scaled(self.widthScale, self.depthScale)
@@ -1641,13 +1660,15 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         plotY = self.yCur - self.imY0 - 1
 
-        self.imCoverLabel.pixmap().fill(Qt.transparent)
-        painter = QPainter(self.imCoverLabel.pixmap())
-        painter.setPen(Qt.yellow)
+        canvas = self.imCoverLabel.pixmap()
+        painter = QPainter(canvas)
+        canvas.fill(Qt.GlobalColor.transparent)
+        painter.setPen(Qt.GlobalColor.yellow)
         bmodeVertLine = QLine(plotX, 0, plotX, self.depthScale)
         bmodeLatLine = QLine(0, plotY, self.widthScale, plotY)
         painter.drawLines([bmodeVertLine, bmodeLatLine])
         painter.end()
+        self.imCoverLabel.setPixmap(canvas)
 
         self.update()
 
@@ -1721,9 +1742,9 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.updateIm()
         # self.updateCrosshair()
 
-    def mousePressEvent(self, event):
-        self.xCur = event.x()
-        self.yCur = event.y()
+    def mousePressEvent(self, event: QMouseEvent):
+        self.xCur = event.pos().x()
+        self.yCur = event.pos().y()
         if self.drawRoiButton.isChecked():
             # Plot ROI points
             # if self.xCur < self.imX1 and self.xCur > self.imX0 and self.yCur < self.imY1 and self.yCur > self.imY0:
@@ -1767,9 +1788,9 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.curPointsPlottedY.append(self.actualY)
             self.updateSpline()
 
-    def mouseMoveEvent(self, event):
-        self.xCur = event.x()
-        self.yCur = event.y()
+    def mouseMoveEvent(self, event: QMouseEvent):
+        self.xCur = event.pos().x()
+        self.yCur = event.pos().y()
         # self.updateCrosshair()
 
     def acceptPolygon(self):

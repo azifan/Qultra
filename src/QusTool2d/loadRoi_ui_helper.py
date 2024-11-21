@@ -1,7 +1,8 @@
 import os
 import pickle
+from pathlib import Path
 
-from PyQt5.QtWidgets import QWidget, QFileDialog
+from PyQt6.QtWidgets import QWidget, QFileDialog
 from src.QusTool2d.loadRoi_ui import Ui_loadRoi
 import src.QusTool2d.roiSelection_ui_helper as RoiSelectionSection
 
@@ -11,12 +12,14 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
         self.setupUi(self)
         self.chooseRoiGUI: RoiSelectionSection.RoiSelectionGUI
 
+        self.wrongImageWarning.hide()
         self.chooseFileButton.clicked.connect(self.chooseFile)
         self.clearFileButton.clicked.connect(self.clearFile)
         self.openRoiButton.clicked.connect(self.getRoiPath)
         self.backButton.clicked.connect(self.backToChoice)
 
     def backToChoice(self):
+        self.wrongImageWarning.hide()
         self.hide()
         self.chooseRoiGUI.show()
 
@@ -33,9 +36,10 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
             with open(self.roiPathInput.text(), "rb") as f:
                 roiInfo = pickle.load(f)
 
-            if (self.chooseRoiGUI.imagePathInput.text() != roiInfo["Image Name"] or 
+            if (Path(self.chooseRoiGUI.imagePathInput.text()).stem != Path(roiInfo["Image Name"]).stem or 
                 self.chooseRoiGUI.phantomPathInput.text() != roiInfo["Phantom Name"]): 
                 print("Selected ROI for wrong image")
+                self.wrongImageWarning.show()
                 return
             
             self.chooseRoiGUI.spectralData.splineX = roiInfo["Spline X"]

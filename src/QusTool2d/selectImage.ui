@@ -755,7 +755,7 @@ of image data</string>
 }</string>
    </property>
    <property name="text">
-    <string>Verasonics IQ</string>
+    <string>Verasonics IQ (disabled)</string>
    </property>
   </widget>
   <widget class="QLabel" name="imagePathLabelCanon">

@@ -5,8 +5,8 @@ import numpy as np
 from scipy.signal import firwin, lfilter, hilbert
 from scipy.ndimage import correlate
 
-from src.DataLayer.transforms import DataOutputStruct, InfoStruct
-from src.Parsers.philipsRfParser import Rfdata, parseRF
+from pyquantus.parse.objects import DataOutputStruct, InfoStruct
+from pyquantus.parse.philipsRf import Rfdata, parseRF
 from src.Parsers.philipsSipVolumeParser import ScParams, readSIPscVDBParams, scanConvert3dVolumeSeries, formatVolumePix
 
 def QbpFilter(rfData: np.ndarray, Fc1: float, Fc2: float, FiltOrd: int) -> Tuple[np.ndarray, np.ndarray]:

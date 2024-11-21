@@ -4,9 +4,9 @@ from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QMovie
 from PyQt6.QtCore import QSize
 
-from src.CeusTool3d.interpolationLoading_ui import Ui_InterpolationLoading
+from src.QusTool2d.loadingScreen_ui import Ui_LoadingScreen
 
-class InterpolationLoadingGUI(Ui_InterpolationLoading, QWidget):
+class LoadingScreenGUI(Ui_LoadingScreen, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)

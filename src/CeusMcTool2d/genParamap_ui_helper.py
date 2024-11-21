@@ -1,7 +1,7 @@
 import os
 import re
 
-from PyQt5.QtWidgets import QWidget, QFileDialog
+from PyQt6.QtWidgets import QWidget, QFileDialog
 
 from src.CeusMcTool2d.genParamap_ui import Ui_genParamap
 from src.Utils.ceusParamap2d import get_paramap2d

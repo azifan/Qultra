@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget
+from PyQt6.QtWidgets import QWidget
 
 from src.QusTool2d.editImageDisplay_ui import Ui_editBmode
 
