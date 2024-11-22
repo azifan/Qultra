@@ -212,6 +212,8 @@ def readSIP3dInterleavedV5(filename, numberOfPlanes=32, numberOfParams=5):
 
     file.close()
 
+    img.linImage = np.array(linImageList)
+    img.nLinImage = np.array(nLinImageList)
     totalNumFrames = len(img.linImage)
     totalNumFramesFullVol = totalNumFrames - (totalNumFrames % numberOfPlanes)
     numVolumes = int(totalNumFramesFullVol/numberOfPlanes)
@@ -219,9 +221,6 @@ def readSIP3dInterleavedV5(filename, numberOfPlanes=32, numberOfParams=5):
     # Reshape data into volumes
     tmpLin = np.zeros((img.linImage[0].shape[0], img.linImage[0].shape[1], numberOfPlanes))
     tmpNLin = np.zeros((img.nLinImage[0].shape[0], img.nLinImage[0].shape[1], numberOfPlanes))
-
-    img.linImage = np.array(linImageList)
-    img.nLinImage = np.array(nLinImageList)
     img.linVol = np.zeros(([numVolumes] + list(tmpLin.shape)), dtype=np.uint16)
     img.nLinVol = np.zeros(([numVolumes] + list(tmpNLin.shape)), dtype=np.uint16)
 
@@ -248,9 +247,9 @@ class Philips4dParser:
         scParamFilename = str(vdbFilename+"_Extras.txt")
 
         self.scParams = readSIPscVDBParams(os.path.join(pathToData, scParamFilename))
-        if self.scParams.NUM_PLANES is None:
+        if not hasattr(self.scParams, 'NUM_PLANES'):
             self.scParams.NUM_PLANES = 20
-        if self.scParams.pixPerMm is None:
+        if not hasattr(self.scParams, 'pixPerMm'):
             self.scParams.pixPerMm = pixPerMm
 
         # Read in the interleaved SIP volume data time series (both linear/non-linear parts)
