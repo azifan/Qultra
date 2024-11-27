@@ -1,5 +1,6 @@
 import platform
 
+import cv2
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -172,6 +173,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.lastGui: AnalysisParamsSelection.AnalysisParamsGUI
         self.spectralData: SpectralData
         self.newData = None
+        self.cid = None; self.lastPlot = None
         self.psGraphDisplay = PsGraphDisplay()
         self.saveConfigGUI = SaveConfigGUI()
         self.windowsTooLargeGUI = WindowsTooLargeGUI()
@@ -334,7 +336,24 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         )
         self.cursor.set_active(False)
         plt.tick_params(bottom=False, left=False, labelbottom=False, labelleft=False)
+
+        if self.cid is None:
+            self.cid = self.figure.canvas.mpl_connect("button_press_event", self.onClick)
         self.canvas.draw()  # Refresh canvas
+
+    def onClick(self, event):
+        xCoord = round(event.xdata)
+        yCoord = round(event.ydata)
+        windowIdx = self.spectralData.finalWindowIdxMap[yCoord, xCoord]
+        if self.figLeg.get_visible() and windowIdx:
+            mask = self.spectralData.finalWindowIdxMap == windowIdx
+            contours, _ = cv2.findContours(np.transpose(mask).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            mask_coords = np.array(contours).reshape((-1, 2))
+            mask_coords = np.append(mask_coords, [mask_coords[0]], axis=0)
+            if self.lastPlot is not None:
+                self.lastPlot[0].remove()
+            self.lastPlot = self.ax.plot(mask_coords[:, 1], mask_coords[:, 0], color="white", linewidth=2)
+            self.canvas.draw()
 
     def mbfChecked(self):
         if self.displayMbfButton.isChecked():
