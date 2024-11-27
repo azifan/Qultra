@@ -114,14 +114,14 @@ def formatVolumePix(unformattedVolume: Iterable, lowerLim: int = 145, upperLim: 
     unformattedVolume = np.array(unformattedVolume).squeeze().astype(float)
     # unformattedVolume = np.flip(unformattedVolume.swapaxes(0,2), axis=1)
     unformattedVolume = np.transpose(unformattedVolume.swapaxes(0,1))
-    # unformattedVolume = unformattedVolume.swapaxes(0,2).swapaxes(1,2)
-    # for i, slice in enumerate(unformattedVolume):
-    #     unformattedVolume[i] = np.fliplr(slice)
-    # unformattedVolume = np.transpose(unformattedVolume)
-    # unformattedVolume = np.flip(unformattedVolume, axis=1)
-    unformattedVolume = np.clip(unformattedVolume, a_min=lowerLim, a_max=upperLim)
-    unformattedVolume -= np.amin(unformattedVolume)
-    unformattedVolume *= 255/np.amax(unformattedVolume) # type: ignore
+    # # unformattedVolume = unformattedVolume.swapaxes(0,2).swapaxes(1,2)
+    # # for i, slice in enumerate(unformattedVolume):
+    # #     unformattedVolume[i] = np.fliplr(slice)
+    # # unformattedVolume = np.transpose(unformattedVolume)
+    # # unformattedVolume = np.flip(unformattedVolume, axis=1)
+    # unformattedVolume = np.clip(unformattedVolume, a_min=lowerLim, a_max=upperLim)
+    # unformattedVolume -= np.amin(unformattedVolume)
+    # unformattedVolume *= 255/np.amax(unformattedVolume) # type: ignore
     return unformattedVolume.astype('uint8') # type: ignore
 
 def readSIPscVDBParams(filename):
