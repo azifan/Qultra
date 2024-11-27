@@ -45,6 +45,7 @@ $PYTHON pip install virtualenv
 $PYTHON -m virtualenv .venv
 source .venv/bin/activate # Unix
 call .venv\bin\activate.bat # Windows
+sudo apt-get update & sudo apt-get install python3-dev # Linux
 pip install -r requirements.txt
 ```
 
