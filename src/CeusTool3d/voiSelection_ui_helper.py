@@ -14,7 +14,8 @@ from PyQt6.QtGui import QPixmap, QImage, QResizeEvent, QWheelEvent, QPainter, QC
 from PyQt6.QtCore import Qt, QPoint, QLine, pyqtSlot
 from scipy.ndimage import binary_fill_holes
 
-import src.Utils.utils as ut
+# import src.Utils.utils as ut
+import ticAnalyze
 from src.CeusTool3d.voiSelection_ui import Ui_constructVoi
 from src.CeusTool3d.saveVoi_ui_helper import SaveVoiGUI
 from src.CeusTool3d.ticAnalysis_ui_helper import TicAnalysisGUI
@@ -345,9 +346,9 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.voxelScale *= len(self.interpolatedPoints[0])
         print("Num voxels:", len(self.interpolatedPoints[0]))
         simplifiedMask = self.maskCoverImg[:, :, :, 2]
-        TIC = ut.generate_TIC(
+        TIC = ticAnalyze.generate_TIC(
             self.ceus4dImg, simplifiedMask, times, 24.09, self.voxelScale
-        )  # hard-coded for now
+        )  # hard-coded for nowm
 
         # Bunch of checks
         if np.isnan(np.sum(TIC[:, 1])):

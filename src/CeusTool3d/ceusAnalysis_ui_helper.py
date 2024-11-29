@@ -10,7 +10,8 @@ from PyQt6.QtWidgets import QWidget, QFileDialog, QHBoxLayout
 from PyQt6.QtGui import QImage, QPixmap, QPainter, QCursor, QResizeEvent
 from PyQt6.QtCore import QLine, Qt, QPoint, pyqtSlot
 
-import src.Utils.lognormalFunctions as lf
+# import src.Utils.lognormalFunctions as lf
+import ticAnalyze
 from src.CeusTool3d.ceusAnalysis_ui import Ui_ceusAnalysis
 from src.CeusTool3d.exportData_ui_helper import ExportDataGUI
 from src.CeusTool3d.legend_ui_helper import LegendDisplay
@@ -746,7 +747,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
         # Do the fitting
         try:
-            params, _, wholecurve = lf.data_fit(
+            params, _, wholecurve = ticAnalyze.data_fit(
                 [x, self.lastGui.ticY], normFact, autoT0
             )
             self.ax.plot(self.lastGui.ticX[:, 0], wholecurve)
