@@ -460,13 +460,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     def openImage(self, bmodePath):
         self.nibImg = nib.load(self.inputTextPath, mmap=False)
-        dataNibImg = self.nibImg.get_fdata(dtype=np.float16)
-
-        clippedFact = 0.95; dynRange = 70
-        clippedMax = clippedFact*np.amax(dataNibImg)
-        dataNibImg = np.clip(dataNibImg, clippedMax - dynRange, clippedMax)
-        dataNibImg -= np.amin(dataNibImg)
-        dataNibImg *= 255/np.amax(dataNibImg)
+        dataNibImg = self.nibImg.get_fdata()
         
         dataNibImg = dataNibImg.astype(np.uint8)
         self.ceus4dImg = dataNibImg.copy()

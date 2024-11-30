@@ -29,10 +29,16 @@ def formatTimeSeries(destFolder: str, dataName: str, bmode: bool) -> str:
         f.close()
         frameNum += 1
     
-    timeSeriesVols = np.transpose(timeSeriesVols)
+    dataNibImg = np.transpose(timeSeriesVols).astype(np.float16)
+    clippedFact = 0.95; dynRange = 70
+    clippedMax = clippedFact*np.amax(dataNibImg)
+    dataNibImg = np.clip(dataNibImg, clippedMax - dynRange, clippedMax)
+    dataNibImg -= np.amin(dataNibImg)
+    dataNibImg *= 255/np.amax(dataNibImg)
+    print(dataNibImg.shape)
     
     affine = np.eye(4)
-    niiarray = nib.Nifti1Image(timeSeriesVols.astype('uint8'), affine)
+    niiarray = nib.Nifti1Image(dataNibImg.astype('uint8'), affine)
     niiarray.header['pixdim'] = orgres
     if bmode:
         outputPath = os.path.join(destFolder, str(dataName+'_BMODE.nii.gz'))
