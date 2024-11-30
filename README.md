@@ -70,14 +70,14 @@ ren saveQt.sh saveQt.bat
 ### Mac/Linux
 
 ```shell
-source venv/bin/activate
+source .venv/bin/activate
 python main.py
 ```
 
 ### Windows
 
 ```shell
-call venv\scripts\activate.bat
+call .venv\scripts\activate.bat
 python main.py
 ```
 
@@ -94,6 +94,6 @@ data.
 This dataset can be installed locally using our Python virtual environment. Specifically, the commands for installation are
 
 ```shell
-source venv/bin/activate | call venv\Scripts\activate.bat
+source .venv/bin/activate | call .venv\Scripts\activate.bat
 python sampleData.py
 ```
