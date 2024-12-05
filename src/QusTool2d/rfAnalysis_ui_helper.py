@@ -146,27 +146,6 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 background-color: rgba(0,0,0,0);
             }"""
             )
-            self.indMbfLabel.setStyleSheet(
-                """QLabel {
-                font-size: 14px;
-                color: white;
-                background-color: rgba(0,0,0,0);
-            }"""
-            )
-            self.indSiVal.setStyleSheet(
-                """QLabel {
-                font-size: 14px;
-                color: white;
-                background-color: rgba(0,0,0,0);
-            }"""
-            )
-            self.indSiLabel.setStyleSheet(
-                """QLabel {
-                font-size: 14px;
-                color: white;
-                background-color: rgba(0,0,0,0);
-            }"""
-            )
 
         self.exportDataGUI = ExportDataGUI()
         self.lastGui: AnalysisParamsSelection.AnalysisParamsGUI

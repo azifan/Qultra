@@ -41,10 +41,10 @@ Next, complete the following steps. Note lines commented with `# Unix` should on
 ```shell
 git clone https://github.com/TUL-Dev/QuantUS.git
 cd QuantUS
-$PYTHON pip install virtualenv
+$PYTHON -m pip install virtualenv
 $PYTHON -m virtualenv .venv
 source .venv/bin/activate # Unix
-call .venv\bin\activate.bat # Windows
+.venv\Scripts\activate # Windows cmd
 sudo apt-get update & sudo apt-get install python3-dev # Linux
 pip install -r requirements.txt
 ```
