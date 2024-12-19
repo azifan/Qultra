@@ -12,7 +12,8 @@ def newParse(rfPath: Path):
     
     scParams: ScParams = readSIPscVDBParams(scParamPath)
     numPlanes = scParams.NUM_PLANES
-    
+    p0 = round(numPlanes/2)
+    v
     
     
     
