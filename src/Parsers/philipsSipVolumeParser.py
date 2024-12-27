@@ -21,6 +21,7 @@ class ScParams():
         self.VDB_2D_ECHO_STOP_DEPTH_SIP: float
         self.VDB_2D_ECHO_START_DEPTH_SIP: float
         self.VDB_2D_ECHO_SLACK_TIME_MM: float
+        self.VDB_THREED_RT_VOLUME_RATE: float
 
         self.NumXmtCols: int
         self.NumRcvCols: int
@@ -163,6 +164,8 @@ def readSIPscVDBParams(filename):
             scParams.VDB_2D_ECHO_START_DEPTH_SIP = paramValue # type: ignore
         elif (paramName == 'VDB_2D_ECHO_SLACK_TIME_MM'):
             scParams.VDB_2D_ECHO_SLACK_TIME_MM = paramValue # type: ignore
+        elif (paramName == 'VDB_THREED_RT_VOLUME_RATE'):
+            scParams.VDB_THREED_RT_VOLUME_RATE = paramValue # type: ignore
 
     file.close()        
     print('Finished reading SIP scan converstion VDB params...')
@@ -240,6 +243,60 @@ class Philips4dParser:
         self.scParams: ScParams
         self.destFolder: Path
         self.sipVolDat: SipVolDataStruct
+        
+    def prepVolRead2(self, pathToData, sipFilename, destFolder, pixPerMm=1.2):
+        vdbFilename = str("_".join(sipFilename.split("_")[:2]) + "_vdbDump.xml")
+        scParamPath = Path(pathToData) / str(vdbFilename+"_Extras.txt")
+        
+        nonLinSample=2; nonLinThr=3.5e4; nonLinDiv=1.7e4
+        linSample=1; linThr=3e4; linDiv=3e4
+        stpSample=2
+
+        self.scParams: ScParams = readSIPscVDBParams(scParamPath)
+        if not hasattr(self.scParams, 'NUM_PLANES'):
+            self.scParams.NUM_PLANES = 20
+        if not hasattr(self.scParams, 'pixPerMm'):
+            self.scParams.pixPerMm = pixPerMm
+        if not hasattr(self.scParams, 'VDB_THREED_RT_VOLUME_RATE'):
+            self.scParams.VDB_THREED_RT_VOLUME_RATE = 0
+            
+        numPlanes = self.scParams.NUM_PLANES
+        p0 = round(numPlanes/2)
+        paramLen = 5
+        rfPath = Path(pathToData) / sipFilename
+        params = np.fromfile(rfPath, dtype=np.int32, count=paramLen)
+        numSamples = int(params[0]/stpSample)
+        numLines = int(params[1])
+        numPixels = numSamples * numLines
+        AZ_XBR_OUT = int(params[3])
+        EL_ML = int(params[4])
+
+        buffer = np.fromfile(rfPath, dtype=np.uint16, count=-1)
+        paramOffs = 2*paramLen
+        numSlices = int(buffer.size / (numPixels + paramOffs))
+        numVolumes = int(np.floor(numSlices / numPlanes))
+
+        out = np.zeros((numSamples, numLines, numVolumes))
+        for v in range(numVolumes):
+            offs = (numPixels + paramOffs) * numPlanes * v + (numPixels + paramOffs) * (p0-1) + paramOffs
+            offs = int(offs)
+            out[:,:,v] = buffer[offs:offs+numPixels].reshape((numSamples, numLines), order='F')
+            
+        self.nLinVol = out[np.arange(nonLinSample-1, out.shape[0], stpSample)] # most likely contrast
+        self.linVol = out[np.arange(linSample-1, out.shape[0], stpSample)] # most likely B-mode
+        
+        self.nLinVol = (self.nLinVol - nonLinThr)*255/nonLinDiv
+        self.nLinVol = np.clip(self.nLinVol, 0, 255)
+        self.linVol = (self.linVol - linThr)*255/linDiv
+        self.linVol = np.clip(self.linVol, 0, 255)
+        
+        # Make dest folder
+        self.destFolder = Path(destFolder)
+        destFolderName = "_".join(sipFilename.split("_")[:2])
+        self.destFolder = self.destFolder / Path(destFolderName)
+        self.destFolder.mkdir(exist_ok=True, parents=True)
+
+        return self.destFolder
     
     def prepVolRead(self, pathToData, sipFilename, destFolder, pixPerMm=1.2):
         # Input paths/filenames
@@ -284,14 +341,14 @@ class Philips4dParser:
     
 def sipParser(dataFolder, destFolder, sipFilename, nProcs, pixPerMm):
     procs = []
-    Example = Philips4dParser()
-    volDestPath = Example.prepVolRead(dataFolder, sipFilename, destFolder, pixPerMm)
+    PhilipsParser = Philips4dParser()
+    volDestPath = PhilipsParser.prepVolRead(dataFolder, sipFilename, destFolder, pixPerMm)
 
-    volInds = list(range(Example.linVol.shape[0]))
+    volInds = list(range(PhilipsParser.linVol.shape[0]))
     splitInds = np.array_split(volInds, nProcs)
 
     for indChunk in splitInds:
-        proc = mp.Process(target=Example.saveSingleVol, args=(indChunk,))
+        proc = mp.Process(target=PhilipsParser.saveSingleVol, args=(indChunk,))
         procs.append(proc)
 
     # start processes
@@ -302,9 +359,9 @@ def sipParser(dataFolder, destFolder, sipFilename, nProcs, pixPerMm):
     for proc in procs:
         proc.join()
 
-    bmodeDims, ceusDims, bmodeShape, ceusShape = Example.saveSingleVol([0])
+    bmodeDims, ceusDims, bmodeShape, ceusShape = PhilipsParser.saveSingleVol([0])
 
-    timeconst = 0 # no timeconst for now
+    timeconst = PhilipsParser.scParams.VDB_THREED_RT_VOLUME_RATE
     bmodeRes = [4., bmodeDims[0]/bmodeShape[0], bmodeDims[1]/bmodeShape[1], bmodeDims[2]/bmodeShape[2], timeconst, 0., 0., 0.]
     ceusRes = [4., ceusDims[0]/ceusShape[0], ceusDims[1]/ceusShape[1], ceusDims[2]/ceusShape[2], timeconst, 0., 0., 0.]
     with open(volDestPath / Path("bmode_volume_dims.pkl"), 'wb') as resFile:
