@@ -250,11 +250,11 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.saveVoiGUI.show()
 
     def saveVoi(self, fileDestination, name, frame):
-        segMask = np.zeros([self.x + 1, self.y + 1, self.z + 1, self.numSlices])
+        segMask = np.zeros([self.x + 1, self.y + 1, self.z + 1])
         for point in self.interpolatedPoints[0]:
-            segMask[point[0], point[1], point[2], frame] = 1
+            segMask[point[0], point[1], point[2]] = 1
 
-        affine = np.eye(4)
+        affine = np.eye(3)
         niiarray = nib.Nifti1Image(segMask.astype("uint8"), affine)
         niiarray.header["descrip"] = self.imagePathInput.text()
         outputPath = os.path.join(fileDestination, name)
