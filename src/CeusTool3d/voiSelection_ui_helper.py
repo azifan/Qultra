@@ -254,7 +254,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         for point in self.interpolatedPoints[0]:
             segMask[point[0], point[1], point[2]] = 1
 
-        affine = np.eye(3)
+        affine = np.eye(4)
         niiarray = nib.Nifti1Image(segMask.astype("uint8"), affine)
         niiarray.header["descrip"] = self.imagePathInput.text()
         outputPath = os.path.join(fileDestination, name)
@@ -460,7 +460,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     def openImage(self, bmodePath):
         self.nibImg = nib.load(self.inputTextPath, mmap=False)
-        dataNibImg = self.nibImg.get_fdata()
+        dataNibImg = np.transpose(self.nibImg.get_fdata())
         
         dataNibImg = dataNibImg.astype(np.uint8)
         self.ceus4dImg = dataNibImg.copy()
@@ -471,7 +471,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.curSliceSlider.setMaximum(self.numSlices - 1)
 
         if bmodePath is not None:
-            self.bmode4dImg = nib.load(bmodePath, mmap=False).get_fdata().astype(np.uint8)
+            self.bmode4dImg = np.transpose(nib.load(bmodePath, mmap=False).get_fdata().astype(np.uint8))
             self.toggleButton.show()
 
         self.header = self.nibImg.header["pixdim"]  # [dims, voxel dims (3 vals), timeconst, 0, 0, 0], assume mm/pix
