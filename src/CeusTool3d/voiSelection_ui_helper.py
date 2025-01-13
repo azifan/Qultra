@@ -266,10 +266,11 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter="*.nii.gz")
         if fileName != "":
             nibIm = nib.load(fileName)
-            if (
-                self.imagePathInput.text().replace("'", '"')
-                == str(nibIm.header["descrip"])[2:-1]
-            ):
+            niftiScan = bytes(nibIm.header["descrip"]).decode("UTF-8")
+            nameIdx = niftiScan.rfind(".nii.gz")
+            niftiScan = niftiScan[:nameIdx+len(".nii.gz")]
+            
+            if self.imagePathInput.text().replace("'", '"') == niftiScan:
                 mask = nibIm.get_fdata().astype(np.uint8)
             else:
                 print("Mask is not compatible with this image")
