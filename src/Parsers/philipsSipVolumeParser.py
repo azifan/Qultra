@@ -43,7 +43,7 @@ class SipVolDataStruct():
         self.linVol: np.ndarray
         self.nLinVol: np.ndarray
 
-def scanConvert3Va(rxLines, lineAngles, planeAngles, beamDist, imgSize, fovSize, z0, normalize=True):
+def scanConvert3Va(rxLines, lineAngles, planeAngles, beamDist, imgSize, fovSize, z0):
     pixSizeX = 1/(imgSize[0]-1)
     pixSizeY = 1/(imgSize[1]-1)
     pixSizeZ = 1/(imgSize[2]-1)
@@ -64,15 +64,11 @@ def scanConvert3Va(rxLines, lineAngles, planeAngles, beamDist, imgSize, fovSize,
     img = scipy.interpolate.interpn((beamDist, radLineAngles, radPlaneAngles), 
                                     rxLines, (R, TH, PHI), method='linear', bounds_error=False, fill_value=0)
     
-    if normalize:
-        img /= np.amax(img)
-        img *= 255
-    else:
-        img = np.array(img)
+    img = np.array(img)
 
     return img
 
-def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams, normalize=True) -> Tuple[np.ndarray, list]:
+def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams) -> Tuple[np.ndarray, list]:
     if len(dbEnvDatFullVolSeries.shape) != 4:
         numVolumes = 1
         nz, nx, ny = dbEnvDatFullVolSeries.shape
@@ -94,36 +90,40 @@ def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams, normalize=True) -
     fovSize   = [volWidth, volDepth, volHeight] # [Lateral, Elevation, Axial]
     imgSize = np.array(np.round(np.array([volWidth, volDepth, volHeight])*scParams.pixPerMm), dtype=np.uint32) # [Lateral, Elevation, Axial]
 
-    # Generate image
-    imgOut = []
-    if numVolumes > 1:
-        for k in range(numVolumes):
-            rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries[k].shape[1])
-            rxAngsElVec = np.einsum('ikj->ijk', np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries[k].shape[2]))
-            curImgOut = scanConvert3Va(dbEnvDatFullVolSeries[k], rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist, normalize=normalize)
-            imgOut.append(curImgOut)
-        imgOut = np.array(imgOut)
-    else:
-        rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries.shape[1])
-        rxAngsElVec = np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries.shape[2])
-        curImgOut = scanConvert3Va(dbEnvDatFullVolSeries, rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist, normalize=normalize)
-        imgOut = curImgOut
+    NonLinThr=3.5e4; NonLinDiv=1.7e4
+    width = abs(azimSteerAngleStart) + abs(azimSteerAngleEnd)
+    startDepth = scParams.VDB_2D_ECHO_START_DEPTH_SIP
+    endDepth = scParams.VDB_2D_ECHO_STOP_DEPTH_SIP
+    desiredHeight = 500
+    
+    scans = []
+    from pyquantus.parse.transforms import scanConvert
+    for scan in range(dbEnvDatFullVolSeries.shape[2]):
+        arr = np.fliplr(np.rot90(dbEnvDatFullVolSeries[:, :, scan], k=3))
+        out, _, _ = scanConvert((arr-NonLinThr)*255/NonLinDiv, width, startDepth, endDepth, desiredHeight)
+        scans.append(out.scArr)
+    imgOut = np.transpose(scans)
+    # # Generate image
+    # imgOut = []
+    # if numVolumes > 1:
+    #     for k in range(numVolumes):
+    #         rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries[k].shape[1])
+    #         rxAngsElVec = np.einsum('ikj->ijk', np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries[k].shape[2]))
+    #         curImgOut = scanConvert3Va(dbEnvDatFullVolSeries[k], rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
+    #         imgOut.append(curImgOut)
+    #     imgOut = np.array(imgOut)
+    # else:
+    #     rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries.shape[1])
+    #     rxAngsElVec = np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries.shape[2])
+    #     curImgOut = scanConvert3Va(dbEnvDatFullVolSeries, rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
+    #     imgOut = curImgOut
     
     return imgOut, fovSize
 
-def formatVolumePix(unformattedVolume: Iterable, lowerLim: int = 145, upperLim: int = 255) -> np.ndarray:
+def formatVolumePix(unformattedVolume: Iterable) -> np.ndarray:
     unformattedVolume = np.array(unformattedVolume).squeeze().astype(float)
-    # unformattedVolume = np.flip(unformattedVolume.swapaxes(0,2), axis=1)
     unformattedVolume = np.transpose(unformattedVolume.swapaxes(0,1))
-    # # unformattedVolume = unformattedVolume.swapaxes(0,2).swapaxes(1,2)
-    # # for i, slice in enumerate(unformattedVolume):
-    # #     unformattedVolume[i] = np.fliplr(slice)
-    # # unformattedVolume = np.transpose(unformattedVolume)
-    # # unformattedVolume = np.flip(unformattedVolume, axis=1)
-    # unformattedVolume = np.clip(unformattedVolume, a_min=lowerLim, a_max=upperLim)
-    # unformattedVolume -= np.amin(unformattedVolume)
-    # unformattedVolume *= 255/np.amax(unformattedVolume) # type: ignore
-    return unformattedVolume.astype('uint8') # type: ignore
+    return unformattedVolume
 
 def readSIPscVDBParams(filename):
     print("Reading SIP scan conversion VDB Params...")
@@ -276,19 +276,16 @@ class Philips4dParser:
         numSlices = int(buffer.size / (numPixels + paramOffs))
         numVolumes = int(np.floor(numSlices / numPlanes))
 
-        out = np.zeros((numSamples, numLines, numVolumes))
-        for v in range(numVolumes):
-            offs = (numPixels + paramOffs) * numPlanes * v + (numPixels + paramOffs) * (p0-1) + paramOffs
+        out = np.zeros((numSamples, numLines, numPlanes, numVolumes))
+        for v in tqdm(range(numVolumes)):
+            offs = (numPixels + paramOffs) * numPlanes * v + paramOffs
             offs = int(offs)
-            out[:,:,v] = buffer[offs:offs+numPixels].reshape((numSamples, numLines), order='F')
+            for a in range(numPlanes):
+                out[:,:,a,v] = buffer[offs:offs+numPixels].reshape((numSamples, numLines), order='F')
+                offs += numPixels + paramOffs
             
         self.nLinVol = out[np.arange(nonLinSample-1, out.shape[0], stpSample)] # most likely contrast
         self.linVol = out[np.arange(linSample-1, out.shape[0], stpSample)] # most likely B-mode
-        
-        self.nLinVol = (self.nLinVol - nonLinThr)*255/nonLinDiv
-        self.nLinVol = np.clip(self.nLinVol, 0, 255)
-        self.linVol = (self.linVol - linThr)*255/linDiv
-        self.linVol = np.clip(self.linVol, 0, 255)
         
         # Make dest folder
         self.destFolder = Path(destFolder)

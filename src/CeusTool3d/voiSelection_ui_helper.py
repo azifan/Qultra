@@ -691,6 +691,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
         data2dAx = self.data4dImg[:, :, self.newZVal, self.curSliceIndex]
         data2dAx = np.rot90(np.flipud(data2dAx), 3)
+        # data2dAx -= np.amin(data2dAx)
+        # data2dAx = (data2dAx.astype(np.float64) * (255/np.amax(data2dAx))).astype(np.uint8)
         data2dAx = np.require(data2dAx, np.uint8, "C")
         heightAx, widthAx = data2dAx.shape  # getting height and width for each plane
         bytesLineAx, _ = data2dAx.strides
@@ -716,6 +718,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.sagittalFrameNum.setText(str(self.newXVal + 1))
 
         data2dSag = self.data4dImg[self.newXVal, :, :, self.curSliceIndex]
+        # data2dSag -= np.amin(data2dSag)
+        # data2dSag = (data2dSag.astype(np.float64) * (255/np.amax(data2dSag))).astype(np.uint8)
         data2dSag = np.require(data2dSag, np.uint8, "C")
         heightSag, widthSag = data2dSag.shape
         bytesLineSag, _ = data2dSag.strides
@@ -741,6 +745,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
         data2dCor = self.data4dImg[:, self.newYVal, :, self.curSliceIndex]
         data2dCor = np.fliplr(np.rot90(data2dCor, 3))
+        # data2dCor -= np.amin(data2dCor)
+        # data2dCor = (data2dCor.astype(np.float64) * (255/np.amax(data2dCor))).astype(np.uint8)
         data2dCor = np.require(data2dCor, np.uint8, "C")
         heightCor, widthCor = data2dCor.shape
         bytesLineCor, _ = data2dCor.strides
