@@ -14,11 +14,11 @@ from pyquantus.parse.philipsMat import philips2dRfMatParser
 from pyquantus.parse.philipsRf import philipsRfParser
 from pyquantus.parse.siemens import siemensRfParser
 from pyquantus.parse.clarius import clariusRfParser
-from pyquantus.qus import SpectralData
+from pyquantus.utc import SpectralData
 from pyquantus.parse.objects import ScConfig
-from src.QusTool2d.loadingScreen_ui_helper import LoadingScreenGUI
-from src.QusTool2d.selectImage_ui import Ui_selectImage
-from src.QusTool2d.roiSelection_ui_helper import RoiSelectionGUI
+from src.UtcTool2d.loadingScreen_ui_helper import LoadingScreenGUI
+from src.UtcTool2d.selectImage_ui import Ui_selectImage
+from src.UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
 import src.Parsers.philips3dRf as phil3d
 
 system = platform.system()
@@ -34,7 +34,7 @@ def selectImageHelper(pathInput, fileExts):
             return
 
 
-class SelectImageGUI_QusTool2dIQ(Ui_selectImage, QWidget):
+class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -563,7 +563,7 @@ if __name__ == "__main__":
     import sys
 
     app = QApplication(sys.argv)
-    ui = SelectImageGUI_QusTool2dIQ()
+    ui = SelectImageGUI_UtcTool2dIQ()
     ui.show()
     sys.exit(app.exec_())
 

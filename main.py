@@ -4,15 +4,15 @@ from PyQt6.QtWidgets import QApplication, QWidget
 
 from src.CeusTool3d.selectImage_ui_helper import SelectImageGUI_CeusTool3d
 from src.CeusMcTool2d.selectImage_ui_helper import SelectImageGUI_CeusMcTool2d
-from src.QusTool2d.selectImage_ui_helper import SelectImageGUI_QusTool2dIQ
+from src.UtcTool2d.selectImage_ui_helper import SelectImageGUI_UtcTool2dIQ
 from welcome_ui import Ui_WelcomePage
 
 
-class QusGui(Ui_WelcomePage, QWidget):
+class WelcomeGui(Ui_WelcomePage, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.utc2dButton.clicked.connect(self.moveToQus2d)
+        self.utc2dButton.clicked.connect(self.moveToUtc2d)
         self.dceus3dButton.clicked.connect(self.moveToDceus3d)
         self.dceus2dButton.clicked.connect(self.moveToDceusMc2d)
         self.nextPage = None
@@ -29,9 +29,9 @@ class QusGui(Ui_WelcomePage, QWidget):
             ]
         )
 
-    def moveToQus2d(self):
+    def moveToUtc2d(self):
         del self.nextPage
-        self.nextPage = SelectImageGUI_QusTool2dIQ()
+        self.nextPage = SelectImageGUI_UtcTool2dIQ()
         self.nextPage.show()
         self.nextPage.welcomeGui = self
         self.hide()
@@ -56,6 +56,6 @@ class QusGui(Ui_WelcomePage, QWidget):
 # -----------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     welcomeApp = QApplication(sys.argv)
-    welcomeUI = QusGui()
+    welcomeUI = WelcomeGui()
     welcomeUI.show()
     sys.exit(welcomeApp.exec())

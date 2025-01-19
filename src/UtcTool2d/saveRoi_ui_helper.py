@@ -6,7 +6,7 @@ from typing import List
 import numpy as np
 from PyQt6.QtWidgets import QWidget, QFileDialog
 
-from src.QusTool2d.saveRoi_ui import Ui_saveRoi
+from src.UtcTool2d.saveRoi_ui import Ui_saveRoi
 
 
 class SaveRoiGUI(Ui_saveRoi, QWidget):
