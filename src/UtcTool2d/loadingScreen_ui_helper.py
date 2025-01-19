@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QMovie
 from PyQt6.QtCore import QSize
 
-from src.QusTool2d.loadingScreen_ui import Ui_LoadingScreen
+from src.UtcTool2d.loadingScreen_ui import Ui_LoadingScreen
 
 class LoadingScreenGUI(Ui_LoadingScreen, QWidget):
     def __init__(self):

@@ -4,8 +4,8 @@ import pickle
 
 from PyQt6.QtWidgets import QWidget, QFileDialog
 
-from src.QusTool2d.saveConfig_ui import Ui_saveConfig
-from pyquantus.qus import AnalysisConfig
+from src.UtcTool2d.saveConfig_ui import Ui_saveConfig
+from pyquantus.utc import AnalysisConfig
 
 
 class SaveConfigGUI(Ui_saveConfig, QWidget):

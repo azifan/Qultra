@@ -13,16 +13,16 @@ from PyQt6.QtWidgets import QWidget, QHBoxLayout
 from PyQt6.QtGui import QImage
 
 from pyquantus.parse.objects import ScConfig
-from pyquantus.qus import UltrasoundImage, AnalysisConfig, SpectralAnalysis, SpectralData
+from pyquantus.utc import UltrasoundImage, AnalysisConfig, SpectralAnalysis, SpectralData
 from pyquantus.parse.terason import terasonRfParser
 from pyquantus.parse.canon import canonIqParser
 import src.Parsers.verasonicsMatParser as vera
-from src.QusTool2d.roiSelection_ui import Ui_constructRoi
-from src.QusTool2d.editImageDisplay_ui_helper import EditImageDisplayGUI
-from src.QusTool2d.analysisParamsSelection_ui_helper import AnalysisParamsGUI
-import src.QusTool2d.selectImage_ui_helper as SelectImageSection
-from src.QusTool2d.loadRoi_ui_helper import LoadRoiGUI
-from src.QusTool2d.saveRoi_ui_helper import SaveRoiGUI
+from src.UtcTool2d.roiSelection_ui import Ui_constructRoi
+from src.UtcTool2d.editImageDisplay_ui_helper import EditImageDisplayGUI
+from src.UtcTool2d.analysisParamsSelection_ui_helper import AnalysisParamsGUI
+import src.UtcTool2d.selectImage_ui_helper as SelectImageSection
+from src.UtcTool2d.loadRoi_ui_helper import LoadRoiGUI
+from src.UtcTool2d.saveRoi_ui_helper import SaveRoiGUI
 
 system = platform.system()
 
@@ -162,7 +162,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
         self.scatteredPoints = []
         self.spectralData: SpectralData
-        self.lastGui: SelectImageSection.SelectImageGUI_QusTool2dIQ
+        self.lastGui: SelectImageSection.SelectImageGUI_UtcTool2dIQ
 
         self.crosshairCursor = Cursor(
             self.ax, color="gold", linewidth=0.4, useblit=True

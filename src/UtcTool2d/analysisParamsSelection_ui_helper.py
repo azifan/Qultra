@@ -4,11 +4,11 @@ import numpy as np
 from PyQt6.QtWidgets import QWidget, QApplication
 from PyQt6.QtGui import QImage, QPixmap
 
-from pyquantus.qus import SpectralData
-from src.QusTool2d.analysisParamsSelection_ui import Ui_analysisParams
-from src.QusTool2d.rfAnalysis_ui_helper import RfAnalysisGUI
-from src.QusTool2d.loadConfig_ui_helper import LoadConfigGUI
-import src.QusTool2d.roiSelection_ui_helper as RoiSelectionSection
+from pyquantus.utc import SpectralData
+from src.UtcTool2d.analysisParamsSelection_ui import Ui_analysisParams
+from src.UtcTool2d.rfAnalysis_ui_helper import RfAnalysisGUI
+from src.UtcTool2d.loadConfig_ui_helper import LoadConfigGUI
+import src.UtcTool2d.roiSelection_ui_helper as RoiSelectionSection
 
 system = platform.system()
 

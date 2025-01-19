@@ -6,7 +6,7 @@ from openpyxl import load_workbook, Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from PyQt6.QtWidgets import QWidget, QFileDialog, QApplication
 
-from src.QusTool2d.exportData_ui import Ui_exportData
+from src.UtcTool2d.exportData_ui import Ui_exportData
 
 system = platform.system()
 

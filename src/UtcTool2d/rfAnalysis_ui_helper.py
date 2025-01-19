@@ -8,13 +8,13 @@ import pyqtgraph as pg
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt6.QtWidgets import QWidget, QHBoxLayout
 
-from pyquantus.qus import SpectralData
-from src.QusTool2d.rfAnalysis_ui import Ui_rfAnalysis
-from src.QusTool2d.exportData_ui_helper import ExportDataGUI
-import src.QusTool2d.analysisParamsSelection_ui_helper as AnalysisParamsSelection
-from src.QusTool2d.psGraphDisplay_ui_helper import PsGraphDisplay
-from src.QusTool2d.saveConfig_ui_helper import SaveConfigGUI
-from src.QusTool2d.windowsTooLarge_ui_helper import WindowsTooLargeGUI
+from pyquantus.utc import SpectralData
+from src.UtcTool2d.rfAnalysis_ui import Ui_rfAnalysis
+from src.UtcTool2d.exportData_ui_helper import ExportDataGUI
+import src.UtcTool2d.analysisParamsSelection_ui_helper as AnalysisParamsSelection
+from src.UtcTool2d.psGraphDisplay_ui_helper import PsGraphDisplay
+from src.UtcTool2d.saveConfig_ui_helper import SaveConfigGUI
+from src.UtcTool2d.windowsTooLarge_ui_helper import WindowsTooLargeGUI
 
 system = platform.system()
 

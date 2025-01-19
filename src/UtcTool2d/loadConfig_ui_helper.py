@@ -2,8 +2,8 @@ import os
 import pickle
 
 from PyQt6.QtWidgets import QWidget, QFileDialog
-from src.QusTool2d.loadConfig_ui import Ui_loadConfig
-import src.QusTool2d.analysisParamsSelection_ui_helper as AnalysisConfigSection
+from src.UtcTool2d.loadConfig_ui import Ui_loadConfig
+import src.UtcTool2d.analysisParamsSelection_ui_helper as AnalysisConfigSection
 
 class LoadConfigGUI(Ui_loadConfig, QWidget):
     def __init__(self):

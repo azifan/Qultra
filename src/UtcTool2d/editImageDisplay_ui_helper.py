@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QWidget
 
-from src.QusTool2d.editImageDisplay_ui import Ui_editBmode
+from src.UtcTool2d.editImageDisplay_ui import Ui_editBmode
 
 class EditImageDisplayGUI(Ui_editBmode, QWidget):
     def __init__(self):

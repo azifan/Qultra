@@ -3,8 +3,8 @@ import pickle
 from pathlib import Path
 
 from PyQt6.QtWidgets import QWidget, QFileDialog
-from src.QusTool2d.loadRoi_ui import Ui_loadRoi
-import src.QusTool2d.roiSelection_ui_helper as RoiSelectionSection
+from src.UtcTool2d.loadRoi_ui import Ui_loadRoi
+import src.UtcTool2d.roiSelection_ui_helper as RoiSelectionSection
 
 class LoadRoiGUI(Ui_loadRoi, QWidget):
     def __init__(self):
