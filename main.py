@@ -5,14 +5,14 @@ from PyQt6.QtWidgets import QApplication, QWidget
 from src.CeusTool3d.selectImage_ui_helper import SelectImageGUI_CeusTool3d
 from src.CeusMcTool2d.selectImage_ui_helper import SelectImageGUI_CeusMcTool2d
 from src.QusTool2d.selectImage_ui_helper import SelectImageGUI_QusTool2dIQ
-from welcome_ui import Ui_qusPage
+from welcome_ui import Ui_WelcomePage
 
 
-class QusGui(Ui_qusPage, QWidget):
+class QusGui(Ui_WelcomePage, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.qus2dButton.clicked.connect(self.moveToQus2d)
+        self.utc2dButton.clicked.connect(self.moveToQus2d)
         self.dceus3dButton.clicked.connect(self.moveToDceus3d)
         self.dceus2dButton.clicked.connect(self.moveToDceusMc2d)
         self.nextPage = None

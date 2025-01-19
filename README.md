@@ -18,7 +18,7 @@ Notably, QuantUS addresses shortcomings in existing state-of-the-art tools by su
 
 Given user-inputted RF or IQ ultrasound data, this feature runs spectral analysis to compute quantitative ultrasound parameters and parametric maps on a custom region of interest (ROI). In QuantUS, the midband fit (MBF), spectral slope (SS), and spectral intercept (SI) spectral parameters as described by [El Kaffas et al.](https://pubmed.ncbi.nlm.nih.gov/26233222/) have been validated and used in numerous ultrasound studies. Additionally, the backscatter coefficient, attenuation coefficient, Nakagami parameter, effective scatterer size, and effecive scatterer concentration have all been implemented and are in the validation process.
 
-The UTC feature of QuantUS also supports a CLI for scalable batch processing. More information and an example can be found in [scCanonQus.ipynb](CLI-Demos/scCanonQus.ipynb) and [terasonQus.ipynb](CLI-Demos/terasonQus.ipynb). The CLI is accessible through QuantUS's pip-accessible [backend](https://github.com/TUL-Dev/PyQuantUS).
+The UTC feature of QuantUS also supports a CLI for scalable batch processing. More information and an example can be found in [scCanonUtc.ipynb](CLI-Demos/scCanonUtc.ipynb) and [terasonUtc.ipynb](CLI-Demos/terasonUtc.ipynb). The CLI is accessible through QuantUS's pip-accessible [backend](https://github.com/TUL-Dev/PyQuantUS).
 
 ![MBF Parametric Map Example](Images/mbfSc.png)
 
