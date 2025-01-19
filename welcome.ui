@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qusPage</class>
- <widget class="QWidget" name="qusPage">
+ <class>WelcomePage</class>
+ <widget class="QWidget" name="WelcomePage">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>QUS Tools</string>
+   <string>QuantUS Tools</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget {
@@ -47,7 +47,7 @@
      <number>100</number>
     </property>
     <item>
-     <widget class="QLabel" name="qusLabel">
+     <widget class="QLabel" name="UTCLabel">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
         <horstretch>0</horstretch>
@@ -85,7 +85,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="qus2dButton">
+     <widget class="QPushButton" name="utc2dButton">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -104,7 +104,7 @@
 }</string>
       </property>
       <property name="text">
-       <string>Quantitative Ultrasound Spectroscopy (QUS)</string>
+       <string>2D Ultrasound Tissue Characterization (UTC)</string>
       </property>
      </widget>
     </item>
