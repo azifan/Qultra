@@ -51,7 +51,8 @@ sudo apt-get update & sudo apt-get install python3-dev # Linux
 pip install -r requirements.txt
 ```
 
-Following this example, this environment can be accessed via the `source .venv/bin/activate` command from the repository directory.
+Following this example, this environment can be accessed via the `source .venv/bin/activate`
+command from the repository directory on Unix systems, and by `.venv\Scripts\activate` on Windows.
 
 ## Building
 
