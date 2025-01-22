@@ -42,8 +42,8 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
                 self.wrongImageWarning.show()
                 return
             
-            self.chooseRoiGUI.spectralData.splineX = roiInfo["Spline X"]
-            self.chooseRoiGUI.spectralData.splineY = roiInfo["Spline Y"]
+            self.chooseRoiGUI.utcData.splineX = roiInfo["Spline X"]
+            self.chooseRoiGUI.utcData.splineY = roiInfo["Spline Y"]
             self.chooseRoiGUI.plotOnCanvas()
             self.chooseRoiGUI.acceptLoadedRoiButton.setHidden(False)
             self.chooseRoiGUI.undoLoadedRoiButton.setHidden(False)

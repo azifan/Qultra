@@ -38,7 +38,7 @@ class LoadConfigGUI(Ui_loadConfig, QWidget):
                 print("Selected ROI for wrong image")
                 return
             
-            self.analysisParamsGUI.spectralData.spectralAnalysis.config = configInfo["Config"]
+            self.analysisParamsGUI.utcData.utcAnalysis.config = configInfo["Config"]
             self.analysisParamsGUI.initParams()
             # self.analysisParamsGUI.plotRoiPreview()
 

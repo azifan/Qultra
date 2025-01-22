@@ -8,7 +8,7 @@ import pyqtgraph as pg
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt6.QtWidgets import QWidget, QHBoxLayout
 
-from pyquantus.utc import SpectralData
+from pyquantus.utc import UtcData
 from src.UtcTool2d.rfAnalysis_ui import Ui_rfAnalysis
 from src.UtcTool2d.exportData_ui_helper import ExportDataGUI
 import src.UtcTool2d.analysisParamsSelection_ui_helper as AnalysisParamsSelection
@@ -149,7 +149,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
 
         self.exportDataGUI = ExportDataGUI()
         self.lastGui: AnalysisParamsSelection.AnalysisParamsGUI
-        self.spectralData: SpectralData
+        self.utcData: UtcData
         self.newData = None
         self.psGraphDisplay = PsGraphDisplay()
         self.saveConfigGUI = SaveConfigGUI()
@@ -191,43 +191,40 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
     def saveConfig(self):
         self.saveConfigGUI.imName = self.imagePathInput.text()
         self.saveConfigGUI.phantomName = self.phantomPathInput.text()
-        self.saveConfigGUI.config = self.spectralData.spectralAnalysis.config
+        self.saveConfigGUI.config = self.utcData.utcAnalysis.config
         self.saveConfigGUI.show()
 
-    def completeSpectralAnalysis(self) -> int:
-        if hasattr(self.spectralData, 'scConfig'):
-            self.spectralData.spectralAnalysis.splineToPreSc()
-        self.spectralData.spectralAnalysis.generateRoiWindows()
-        success = self.spectralData.spectralAnalysis.computeSpecWindows()
+    def completeUtcAnalysis(self) -> int:
+        if hasattr(self.utcData, 'scConfig'):
+            self.utcData.utcAnalysis.splineToPreSc()
+        self.utcData.utcAnalysis.generateRoiWindows()
+        success = self.utcData.utcAnalysis.computeUtcWindows(extraParams=False)
         if success < 0:
             self.windowsTooLargeGUI.show()
             return -1
-        self.attCoefVal.setText(f"{np.round(self.spectralData.spectralAnalysis.attenuationCoef, decimals=2)}")
-        self.attCorrVal.setText(f"{np.round(self.spectralData.spectralAnalysis.attenuationCorr, decimals=2)}")
-        self.bscVal.setText(f"{np.round(self.spectralData.spectralAnalysis.backScatterCoef, decimals=2)}")
-        self.spectralData.drawCmaps()
-        if hasattr(self.spectralData, 'scConfig'):
-            self.spectralData.scanConvertCmaps()
+        self.utcData.drawCmaps()
+        if hasattr(self.utcData, 'scConfig'):
+            self.utcData.scanConvertCmaps()
 
-        mbfMean = np.mean(self.spectralData.mbfArr)
-        ssMean = np.mean(self.spectralData.ssArr)
-        siMean = np.mean(self.spectralData.siArr)
+        mbfMean = np.mean(self.utcData.mbfArr)
+        ssMean = np.mean(np.array(self.utcData.ssArr)/1e6)
+        siMean = np.mean(self.utcData.siArr)
         self.avMbfVal.setText(f"{np.round(mbfMean, decimals=1)}")
         self.avSsVal.setText(f"{np.round(ssMean*1e6, decimals=2)}")
         self.avSiVal.setText(f"{np.round(siMean, decimals=1)}")
 
-        npsArr = [window.results.nps for window in self.spectralData.spectralAnalysis.roiWindows]
+        npsArr = [window.results.nps for window in self.utcData.utcAnalysis.roiWindows]
         avNps = np.mean(npsArr, axis=0)
-        f = self.spectralData.spectralAnalysis.roiWindows[0].results.f
+        f = self.utcData.utcAnalysis.roiWindows[0].results.f
         x = np.linspace(min(f), max(f), 100)
         y = ssMean*x + siMean
 
         del self.psGraphDisplay
         self.psGraphDisplay = PsGraphDisplay()
 
-        # ps = self.spectralData.spectralAnalysis.roiWindows[0].results.ps
-        # rps = self.spectralData.spectralAnalysis.roiWindows[0].results.rPs
-        # nps = self.spectralData.spectralAnalysis.roiWindows[0].results.nps
+        # ps = self.utcData.utcAnalysis.roiWindows[0].results.ps
+        # rps = self.utcData.utcAnalysis.roiWindows[0].results.rPs
+        # nps = self.utcData.utcAnalysis.roiWindows[0].results.nps
         # self.psGraphDisplay.plotGraph.plot(f/1e6, ps, pen=pg.mkPen(color="b"), name="PS")
         # self.psGraphDisplay.plotGraph.plot(f/1e6, rps, pen=pg.mkPen(color="r"), name="rPS")
         # self.psGraphDisplay.plotGraph.plot(f/1e6, nps+np.amin(ps), pen=pg.mkPen(color="g"), name="NPS")
@@ -236,9 +233,9 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.psGraphDisplay.plotGraph.plot(f/1e6, nps, pen=pg.mkPen(color=(0, 0, 255, 51)))
         self.psGraphDisplay.plotGraph.plot(f/1e6, avNps, pen=pg.mkPen(color="r", width=2))
         self.psGraphDisplay.plotGraph.plot(x/1e6, y, pen=pg.mkPen(color=(255, 172, 28), width=2))
-        self.psGraphDisplay.plotGraph.plot(2*[self.spectralData.analysisFreqBand[0]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
+        self.psGraphDisplay.plotGraph.plot(2*[self.utcData.analysisFreqBand[0]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
                                             pen=pg.mkPen(color="m", width=2))
-        self.psGraphDisplay.plotGraph.plot(2*[self.spectralData.analysisFreqBand[1]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
+        self.psGraphDisplay.plotGraph.plot(2*[self.utcData.analysisFreqBand[1]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
                                             pen=pg.mkPen(color="m", width=2))
         self.psGraphDisplay.plotGraph.setYRange(np.amin(npsArr), np.amax(npsArr))
 
@@ -252,21 +249,15 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.psGraphDisplay.hide()
 
     def moveToExport(self):
-        # if len(self.spectralData.dataFrame):
+        # if len(self.utcData.dataFrame):
         del self.exportDataGUI
         self.exportDataGUI = ExportDataGUI()
         curData = {
                 "Patient": [self.imagePathInput.text()],
                 "Phantom": [self.phantomPathInput.text()],
-                "Midband Fit (MBF)": [np.mean(self.spectralData.mbfArr)],
-                "Spectral Slope (SS)": [np.mean(self.spectralData.ssArr)],
-                "Spectral Intercept (SI)": [np.mean(self.spectralData.siArr)],
-                "Attenuation Coefficient": [self.spectralData.spectralAnalysis.attenuationCoef],
-                "Attenuation Coefficient R-Score": [self.spectralData.spectralAnalysis.attenuationCorr],
-                "Backscatter Coefficient": [self.spectralData.spectralAnalysis.backScatterCoef],
-                "Nakagami Params": [f"{self.spectralData.spectralAnalysis.nakagamiParams}"],
-                "Effective Scatterer Diameter": [self.spectralData.spectralAnalysis.effectiveScattererDiameter],
-                "Effective Scatterer Concentration": [self.spectralData.spectralAnalysis.effectiveScattererConcentration],
+                "Midband Fit (MBF)": [np.mean(self.utcData.mbfArr)],
+                "Spectral Slope (SS)": [np.mean(self.utcData.ssArr)],
+                "Spectral Intercept (SI)": [np.mean(self.utcData.siArr)],
                 "ROI Name": ""
             }
         self.exportDataGUI.dataFrame = pd.DataFrame.from_dict(curData)
@@ -280,7 +271,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
     def backToLastScreen(self):
         self.psGraphDisplay.hide()
         del self.psGraphDisplay
-        self.lastGui.spectralData = self.spectralData
+        self.lastGui.utcData = self.utcData
         self.lastGui.show()
         self.hide()
 
@@ -292,15 +283,15 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
 
     def plotOnCanvas(self):  # Plot current image on GUI
         self.ax.clear()
-        self.selectedImage = self.spectralData.finalBmode if self.selectedImage is None else self.selectedImage
-        quotient = self.spectralData.depth / self.spectralData.width
+        self.selectedImage = self.utcData.finalBmode if self.selectedImage is None else self.selectedImage
+        quotient = self.utcData.depth / self.utcData.width
         self.ax.imshow(self.selectedImage, aspect=quotient*(self.selectedImage.shape[1]/self.selectedImage.shape[0]))
         self.figure.set_facecolor((0, 0, 0, 0))
         self.ax.axis("off")
 
         self.ax.plot(
-            self.spectralData.splineX,
-            self.spectralData.splineY,
+            self.utcData.splineX,
+            self.utcData.splineY,
             color="cyan",
             zorder=1,
             linewidth=0.75,
@@ -320,10 +311,10 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             if self.displaySsButton.isChecked() or self.displaySiButton.isChecked():
                 self.displaySsButton.setChecked(False)
                 self.displaySiButton.setChecked(False)
-            self.selectedImage = self.spectralData.finalMbfIm
+            self.selectedImage = self.utcData.finalMbfIm
             self.updateLegend("MBF")
         else:
-            self.selectedImage = self.spectralData.finalBmode
+            self.selectedImage = self.utcData.finalBmode
             self.updateLegend("clear")
         self.plotOnCanvas()
         
@@ -332,10 +323,10 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             if self.displayMbfButton.isChecked() or self.displaySiButton.isChecked():
                 self.displayMbfButton.setChecked(False)
                 self.displaySiButton.setChecked(False)
-            self.selectedImage = self.spectralData.finalSsIm
+            self.selectedImage = self.utcData.finalSsIm
             self.updateLegend("SS")
         else:
-            self.selectedImage = self.spectralData.finalBmode
+            self.selectedImage = self.utcData.finalBmode
             self.updateLegend("clear")
         self.plotOnCanvas()
         
@@ -345,10 +336,10 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             if self.displayMbfButton.isChecked() or self.displaySsButton.isChecked():
                 self.displayMbfButton.setChecked(False)
                 self.displaySsButton.setChecked(False)
-            self.selectedImage = self.spectralData.finalSiIm
+            self.selectedImage = self.utcData.finalSiIm
             self.updateLegend("SI")
         else:
-            self.selectedImage = self.spectralData.finalBmode
+            self.selectedImage = self.utcData.finalBmode
             self.updateLegend("clear")
         self.plotOnCanvas()
 
@@ -370,11 +361,11 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.cax.set_yticks([0, 0.25, 0.5, 0.75, 1])
             self.cax.set_yticklabels(
                 [
-                    int(self.spectralData.minMbf * 10) / 10,
-                    int((((self.spectralData.maxMbf - self.spectralData.minMbf) / 4) + self.spectralData.minMbf) * 10) / 10,
-                    int((((self.spectralData.maxMbf - self.spectralData.minMbf) / 2) + self.spectralData.minMbf) * 10) / 10,
-                    int(((3 * (self.spectralData.maxMbf - self.spectralData.minMbf) / 4) + self.spectralData.minMbf) * 10) / 10,
-                    int(self.spectralData.maxMbf * 10) / 10,
+                    int(self.utcData.minMbf * 10) / 10,
+                    int((((self.utcData.maxMbf - self.utcData.minMbf) / 4) + self.utcData.minMbf) * 10) / 10,
+                    int((((self.utcData.maxMbf - self.utcData.minMbf) / 2) + self.utcData.minMbf) * 10) / 10,
+                    int(((3 * (self.utcData.maxMbf - self.utcData.minMbf) / 4) + self.utcData.minMbf) * 10) / 10,
+                    int(self.utcData.maxMbf * 10) / 10,
                 ]
             )
         elif curDisp == "SS":
@@ -389,11 +380,11 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.cax.set_yticks([0, 0.25, 0.5, 0.75, 1])
             self.cax.set_yticklabels(
                 [
-                    int(self.spectralData.minSs * 100000000) / 100,
-                    int((((self.spectralData.maxSs - self.spectralData.minSs) / 4) + self.spectralData.minSs) * 10000000) / 100,
-                    int((((self.spectralData.maxSs - self.spectralData.minSs) / 2) + self.spectralData.minSs) * 100000000) / 100,
-                    int(((3 * (self.spectralData.maxSs - self.spectralData.minSs) / 4) + self.spectralData.minSs) * 100000000) / 100,
-                    int(self.spectralData.maxSs * 100000000) / 100,
+                    int(self.utcData.minSs * 100000000) / 100,
+                    int((((self.utcData.maxSs - self.utcData.minSs) / 4) + self.utcData.minSs) * 10000000) / 100,
+                    int((((self.utcData.maxSs - self.utcData.minSs) / 2) + self.utcData.minSs) * 100000000) / 100,
+                    int(((3 * (self.utcData.maxSs - self.utcData.minSs) / 4) + self.utcData.minSs) * 100000000) / 100,
+                    int(self.utcData.maxSs * 100000000) / 100,
                 ]
             )
         elif curDisp == "SI":
@@ -408,11 +399,11 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.cax.set_yticks([0, 0.25, 0.5, 0.75, 1])
             self.cax.set_yticklabels(
                 [
-                    int(self.spectralData.minSi * 10) / 10,
-                    int((((self.spectralData.maxSi - self.spectralData.minSi) / 4) + self.spectralData.minSi) * 10) / 10,
-                    int((((self.spectralData.maxSi - self.spectralData.minSi) / 2) + self.spectralData.minSi) * 10) / 10,
-                    int(((3 * (self.spectralData.maxSi - self.spectralData.minSi) / 4) + self.spectralData.minSi) * 10) / 10,
-                    int(self.spectralData.maxSi * 10) / 10,
+                    int(self.utcData.minSi * 10) / 10,
+                    int((((self.utcData.maxSi - self.utcData.minSi) / 4) + self.utcData.minSi) * 10) / 10,
+                    int((((self.utcData.maxSi - self.utcData.minSi) / 2) + self.utcData.minSi) * 10) / 10,
+                    int(((3 * (self.utcData.maxSi - self.utcData.minSi) / 4) + self.utcData.minSi) * 10) / 10,
+                    int(self.utcData.maxSi * 10) / 10,
                 ]
             )
         elif curDisp == "" or curDisp == "clear":

@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import QWidget, QHBoxLayout
 from PyQt6.QtGui import QImage
 
 from pyquantus.parse.objects import ScConfig
-from pyquantus.utc import UltrasoundImage, AnalysisConfig, SpectralAnalysis, SpectralData
+from pyquantus.utc import UltrasoundImage, AnalysisConfig, UtcAnalysis, UtcData
 from pyquantus.parse.terason import terasonRfParser
 from pyquantus.parse.canon import canonIqParser
 import src.Parsers.verasonicsMatParser as vera
@@ -161,7 +161,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.analysisParamsGUI = AnalysisParamsGUI()
 
         self.scatteredPoints = []
-        self.spectralData: SpectralData
+        self.utcData: UtcData
         self.lastGui: SelectImageSection.SelectImageGUI_UtcTool2dIQ
 
         self.crosshairCursor = Cursor(
@@ -197,8 +197,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         del self.saveRoiGUI
         self.saveRoiGUI = SaveRoiGUI()
         self.acceptRect(moveOn=False)
-        self.saveRoiGUI.splineX = self.spectralData.splineX
-        self.saveRoiGUI.splineY = self.spectralData.splineY
+        self.saveRoiGUI.splineX = self.utcData.splineX
+        self.saveRoiGUI.splineY = self.utcData.splineY
         self.saveRoiGUI.frame = self.frame
         self.saveRoiGUI.imName = self.imagePathInput.text()
         self.saveRoiGUI.phantomName = self.phantomPathInput.text()
@@ -211,7 +211,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.newRoiButton.setHidden(False)
         self.drawRectangleButton.setHidden(False)
 
-        self.spectralData.rectCoords = []
+        self.utcData.rectCoords = []
         self.undoLastRoi()
 
     def openLoadRoiWindow(self):
@@ -229,9 +229,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.backFromFreehandButton.setHidden(True)
         self.undoLastRoi()
         self.drawRoiButton.setChecked(False)
-        self.crosshairCursor.set_active(False)
-        if not hasattr(self, 'cid'):
-            self.cid = self.figure.canvas.mpl_disconnect(self.cid)
+        self.recordDrawRoiClicked()
 
     def backFromRect(self):
         self.newRoiButton.setHidden(False)
@@ -249,7 +247,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.physicalRectWidthVal.setText("0")
         self.userDrawRectangleButton.setChecked(False)
         self.undoLastRoi()
-        self.spectralData.rectCoords = []
+        self.utcData.rectCoords = []
         self.selector.set_active(False)
         if len(self.ax.patches) > 0:
             self.ax.patches.pop()
@@ -314,19 +312,19 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
     def plotOnCanvas(self):  # Plot current image on GUI
         self.ax.clear()
-        quotient = self.spectralData.depth / self.spectralData.width
-        self.ax.imshow(self.spectralData.finalBmode, aspect=quotient*(self.spectralData.finalBmode.shape[1]/self.spectralData.finalBmode.shape[0]))
+        quotient = self.utcData.depth / self.utcData.width
+        self.ax.imshow(self.utcData.finalBmode, aspect=quotient*(self.utcData.finalBmode.shape[1]/self.utcData.finalBmode.shape[0]))
         self.figure.set_facecolor((0, 0, 0, 0)) #type: ignore
         self.ax.axis("off")
 
         try:
-            if self.spectralData.numSamplesDrOut == 1400:
+            if self.utcData.numSamplesDrOut == 1400:
                 # Preset 1 boundaries for 20220831121844_IQ.bin
                 self.ax.plot([148.76, 154.22], [0, 500], c="purple")  # left boundary
                 self.ax.plot([0, 716], [358.38, 386.78], c="purple")  # bottom boundary
                 self.ax.plot([572.47, 509.967], [0, 500], c="purple")  # right boundary
 
-            elif self.spectralData.numSamplesDrOut == 1496:
+            elif self.utcData.numSamplesDrOut == 1496:
                 # Preset 2 boundaries for 20220831121752_IQ.bin
                 self.ax.plot([146.9, 120.79], [0, 500], c="purple")  # left boundary
                 self.ax.plot([0, 644.76], [462.41, 500], c="purple")  # bottom boundary
@@ -337,8 +335,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         except (AttributeError, UnboundLocalError):
             pass
 
-        if hasattr(self.spectralData, 'splineX') and len(self.spectralData.splineX):
-            self.spline = self.ax.plot(self.spectralData.splineX, self.spectralData.splineY, 
+        if hasattr(self.utcData, 'splineX') and len(self.utcData.splineX):
+            self.spline = self.ax.plot(self.utcData.splineX, self.utcData.splineY, 
                                        color="cyan", zorder=1, linewidth=0.75)
         elif len(self.pointsPlottedX) > 0:
             self.scatteredPoints.append(
@@ -404,7 +402,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         scConfig.startDepth = imgInfoStruct.startDepth1
         scConfig.endDepth = imgInfoStruct.endDepth1
         scConfig.numSamplesDrOut = imgInfoStruct.numSamplesDrOut
-        self.spectralData.scConfig = scConfig
+        self.utcData.scConfig = scConfig
 
         self.ultrasoundImage.bmode = imgDataStruct.bMode
         self.ultrasoundImage.scBmode = imgDataStruct.scBmodeStruct.scArr
@@ -452,15 +450,15 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         analysisConfig.samplingFrequency = imgInfoStruct.samplingFrequency
         analysisConfig.centerFrequency = imgInfoStruct.centerFrequency
 
-        spectralAnalysis = SpectralAnalysis()
-        spectralAnalysis.ultrasoundImage = self.ultrasoundImage
-        spectralAnalysis.config = analysisConfig
+        utcAnalysis = UtcAnalysis()
+        utcAnalysis.ultrasoundImage = self.ultrasoundImage
+        utcAnalysis.config = analysisConfig
 
-        self.spectralData.spectralAnalysis = spectralAnalysis
-        self.spectralData.depth = imgInfoStruct.depth
-        self.spectralData.width = imgInfoStruct.width
+        self.utcData.utcAnalysis = utcAnalysis
+        self.utcData.depth = imgInfoStruct.depth
+        self.utcData.width = imgInfoStruct.width
         
-        self.spectralData.convertImagesToRGB()
+        self.utcData.convertImagesToRGB()
 
         self.displayInitialImage()
 
@@ -475,7 +473,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
 
     def displayInitialImage(self):
-        flippedIm = np.flipud(self.spectralData.finalBmode).astype(np.uint8)
+        flippedIm = np.flipud(self.utcData.finalBmode).astype(np.uint8)
 
         qIm = QImage(
             flippedIm.data,
@@ -489,8 +487,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             os.path.join("Junk", "bModeImRaw.png")
         )  # Save as .png file
 
-        if hasattr(self.spectralData, 'scConfig'):
-            flippedIm = np.flipud(self.spectralData.bmode).astype(np.uint8)
+        if hasattr(self.utcData, 'scConfig'):
+            flippedIm = np.flipud(self.utcData.bmode).astype(np.uint8)
 
             qIm = QImage(
                 flippedIm.data,
@@ -504,22 +502,20 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 os.path.join("Junk", "bModeImRawPreSc.png")
             )  # Save as .png file
 
-        self.spectralData.spectralAnalysis.initAnalysisConfig()
+        self.utcData.utcAnalysis.initAnalysisConfig()
 
         self.physicalDepthVal.setText(
-            str(np.round(self.spectralData.depth, decimals=2))
+            str(np.round(self.utcData.depth, decimals=2))
         )
         self.physicalWidthVal.setText(
-            str(np.round(self.spectralData.width, decimals=2))
+            str(np.round(self.utcData.width, decimals=2))
         )
-        self.pixelWidthVal.setText(str(self.spectralData.finalBmode.shape[1]))
-        self.pixelDepthVal.setText(str(self.spectralData.finalBmode.shape[0]))
+        self.pixelWidthVal.setText(str(self.utcData.finalBmode.shape[1]))
+        self.pixelDepthVal.setText(str(self.utcData.finalBmode.shape[0]))
         self.plotOnCanvas()
 
     def recordDrawRoiClicked(self):
         if self.drawRoiButton.isChecked():  # Set up b-mode to be drawn on
-            # image, =self.ax.plot([], [], marker="o",markersize=3, markerfacecolor="red")
-            # self.cid = image.figure.canvas.mpl_connect('button_press_event', self.interpolatePoints)
             self.cid = self.figure.canvas.mpl_connect(
                 "button_press_event", self.interpolatePoints
             )
@@ -542,20 +538,20 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
     def undoLastPt(self):  # When drawing ROI, undo last point plotted
         if len(self.pointsPlottedX) > 0:
-            self.scatteredPoints[-1].remove()
-            self.scatteredPoints.pop()
+            scatteredPoint = self.scatteredPoints.pop()
+            scatteredPoint.remove()
             self.pointsPlottedX.pop()
             self.pointsPlottedY.pop()
             if len(self.pointsPlottedX) > 0:
                 oldSpline = self.spline.pop(0)
                 oldSpline.remove()
                 if len(self.pointsPlottedX) > 1:
-                    self.spectralData.splineX, self.spectralData.splineY = calculateSpline(
+                    self.utcData.splineX, self.utcData.splineY = calculateSpline(
                         self.pointsPlottedX, self.pointsPlottedY
                     )
                     self.spline = self.ax.plot(
-                        self.spectralData.splineX,
-                        self.spectralData.splineY,
+                        self.utcData.splineX,
+                        self.utcData.splineY,
                         color="cyan",
                         linewidth=0.75,
                     )
@@ -566,24 +562,24 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def closeInterpolation(self):  # Finish drawing ROI
         if len(self.pointsPlottedX) > 2:
             self.ax.clear()
-            quotient = self.spectralData.depth / self.spectralData.width
-            self.ax.imshow(self.spectralData.finalBmode, aspect=quotient*(self.spectralData.finalBmode.shape[1]/self.spectralData.finalBmode.shape[0]))
+            quotient = self.utcData.depth / self.utcData.width
+            self.ax.imshow(self.utcData.finalBmode, aspect=quotient*(self.utcData.finalBmode.shape[1]/self.utcData.finalBmode.shape[0]))
             if self.pointsPlottedX[0] != self.pointsPlottedX[-1] and self.pointsPlottedY[0] != self.pointsPlottedY[-1]:
                 self.pointsPlottedX.append(self.pointsPlottedX[0])
                 self.pointsPlottedY.append(self.pointsPlottedY[0])
-            self.spectralData.splineX, self.spectralData.splineY = calculateSpline(
+            self.utcData.splineX, self.utcData.splineY = calculateSpline(
                 self.pointsPlottedX, self.pointsPlottedY
             )
-            self.spectralData.splineX = np.clip(self.spectralData.splineX, a_min=0, a_max=self.spectralData.pixWidth-1)
-            self.spectralData.splineY = np.clip(self.spectralData.splineY, a_min=0, a_max=self.spectralData.pixDepth-1)
+            self.utcData.splineX = np.clip(self.utcData.splineX, a_min=0, a_max=self.utcData.pixWidth-1)
+            self.utcData.splineY = np.clip(self.utcData.splineY, a_min=0, a_max=self.utcData.pixDepth-1)
 
             try:
-                if self.spectralData.numSamplesDrOut == 1400:
-                    self.spectralData.splineX = np.clip(self.spectralData.splineX, a_min=148, a_max=573)
-                    self.spectralData.splineY = np.clip(self.spectralData.splineY, a_min=0.5, a_max=387)
-                elif self.spectralData.numSamplesDrOut == 1496:
-                    self.spectralData.splineX = np.clip(self.spectralData.splineX, a_min=120, a_max=615)
-                    self.spectralData.splineY = np.clip(self.spectralData.splineY, a_min=0.5, a_max=645)
+                if self.utcData.numSamplesDrOut == 1400:
+                    self.utcData.splineX = np.clip(self.utcData.splineX, a_min=148, a_max=573)
+                    self.utcData.splineY = np.clip(self.utcData.splineY, a_min=0.5, a_max=387)
+                elif self.utcData.numSamplesDrOut == 1496:
+                    self.utcData.splineX = np.clip(self.utcData.splineX, a_min=120, a_max=615)
+                    self.utcData.splineY = np.clip(self.utcData.splineY, a_min=0.5, a_max=645)
                 # elif self.ImDisplayInfo.numSamplesDrOut != -1:
                 #     print("Preset not found!")
                 #     return
@@ -601,8 +597,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     def undoLastRoi(
         self,
     ):  # Remove previously drawn roi and prepare user to draw a new one
-        self.spectralData.splineX = np.array([])
-        self.spectralData.splineY = np.array([])
+        self.utcData.splineX = np.array([])
+        self.utcData.splineY = np.array([])
         self.pointsPlottedX = []
         self.pointsPlottedY = []
         self.drawRoiButton.setChecked(False)
@@ -616,24 +612,25 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self,
     ):  # Updates background photo when image settings are modified
         cvIm = Image.open(os.path.join("Junk", "bModeImRaw.png"))
-        self.spectralData.finalBmode = self.updateImageDisplay(cvIm)
+        self.utcData.finalBmode = self.updateImageDisplay(cvIm)
 
-        if hasattr(self.spectralData, 'scConfig'):
+        if hasattr(self.utcData, 'scConfig'):
             cvIm = Image.open(os.path.join("Junk", "bModeImRawPreSc.png"))
-            self.spectralData.bmode = self.updateImageDisplay(cvIm)
+            self.utcData.bmode = self.updateImageDisplay(cvIm)
         
         self.plotOnCanvas()
 
     def clearRect(self, event):
         if len(self.ax.patches) > 0:
-            self.ax.patches.pop()
+            rect = self.ax.patches[0]
+            rect.remove()
             self.canvas.draw()
 
     def interpolatePoints(
         self, event
     ):  # Update ROI being drawn using spline using 2D interpolation
         try:
-            if self.spectralData.numSamplesDrOut == 1400:
+            if self.utcData.numSamplesDrOut == 1400:
                 # Preset 1 boundaries for 20220831121844_IQ.bin
                 leftSlope = (500 - 0) / (154.22 - 148.76)
                 pointSlopeLeft = (event.ydata - 0) / (event.xdata - 148.76)
@@ -645,7 +642,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 rightSlope = (500 - 0) / (509.967 - 572.47)
                 pointSlopeRight = (event.ydata - 0) / (event.xdata - 572.47)
 
-            elif self.spectralData.numSamplesDrOut == 1496:
+            elif self.utcData.numSamplesDrOut == 1496:
                 # Preset 2 boundaries for 20220831121752_IQ.bin
                 leftSlope = (500 - 0) / (120.79 - 146.9)
                 pointSlopeLeft = (event.ydata - 0) / (event.xdata - 146.9)
@@ -681,8 +678,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 oldSpline.remove()
 
             xSpline, ySpline = calculateSpline(self.pointsPlottedX, self.pointsPlottedY)
-            xSpline = np.clip(xSpline, a_min=0, a_max=self.spectralData.pixWidth-1)
-            ySpline = np.clip(ySpline, a_min=0, a_max=self.spectralData.pixDepth-1)
+            xSpline = np.clip(xSpline, a_min=0, a_max=self.utcData.pixWidth-1)
+            ySpline = np.clip(ySpline, a_min=0, a_max=self.utcData.pixDepth-1)
             self.spline = self.ax.plot(
                 xSpline, ySpline, color="cyan", zorder=1, linewidth=0.75
             )
@@ -704,7 +701,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
 
     def drawRect(self, event1, event2):
         try:
-            if self.spectralData.numSamplesDrOut == 1400:
+            if self.utcData.numSamplesDrOut == 1400:
                 # Preset 1 boundaries for 20220831121844_IQ.bin
                 leftSlope = (500 - 0) / (154.22 - 148.76)
                 pointSlopeLeft = (event1.ydata - 0) / (event1.xdata - 148.76)
@@ -729,7 +726,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 if pointSlopeRight >= 0 or pointSlopeRight < rightSlope:
                     return
 
-            elif self.spectralData.numSamplesDrOut == 1496:
+            elif self.utcData.numSamplesDrOut == 1496:
                 # Preset 2 boundaries for 20220831121752_IQ.bin
                 leftSlope = (500 - 0) / (120.79 - 146.9)
                 pointSlopeLeft = (event1.ydata - 0) / (event1.xdata - 146.9)
@@ -761,7 +758,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         except (AttributeError, UnboundLocalError):
             pass
 
-        self.spectralData.rectCoords = [
+        self.utcData.rectCoords = [
             int(event1.xdata),
             int(event1.ydata),
             int(event2.xdata),
@@ -770,8 +767,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.plotPatch()
 
     def plotPatch(self):
-        if len(self.spectralData.rectCoords) > 0:
-            left, bottom, right, top = self.spectralData.rectCoords
+        if len(self.utcData.rectCoords) > 0:
+            left, bottom, right, top = self.utcData.rectCoords
             rect = patches.Rectangle(
                 (left, bottom),
                 (right - left),
@@ -786,13 +783,13 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.ax.add_patch(rect)
 
             mplPixWidth = abs(right - left)
-            imPixWidth = mplPixWidth * self.spectralData.lateralRes
-            mmWidth = self.spectralData.lateralRes * imPixWidth  # (mm/pixel)*pixels
+            imPixWidth = mplPixWidth * self.utcData.lateralRes
+            mmWidth = self.utcData.lateralRes * imPixWidth  # (mm/pixel)*pixels
             self.physicalRectWidthVal.setText(str(np.round(mmWidth, decimals=2)))
 
             mplPixHeight = abs(top - bottom)
-            imPixHeight = mplPixHeight * self.spectralData.axialRes
-            mmHeight = self.spectralData.axialRes * imPixHeight  # (mm/pixel)*pixels
+            imPixHeight = mplPixHeight * self.utcData.axialRes
+            mmHeight = self.utcData.axialRes * imPixHeight  # (mm/pixel)*pixels
             self.physicalRectHeightVal.setText(str(np.round(mmHeight, decimals=2)))
 
             self.figure.subplots_adjust(
@@ -820,18 +817,18 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 + list(np.ones(width).astype(int) * (bottom + height - 1))
                 + list(range(bottom + height - 1, bottom - 1, -1))
             )
-            self.spectralData.splineX = np.array(
+            self.utcData.splineX = np.array(
                 self.pointsPlottedX
             )  # Image boundaries already addressed at plotting phase
-            self.spectralData.splineY = np.array(
+            self.utcData.splineY = np.array(
                 self.pointsPlottedY
             )  # Image boundaries already addressed at plotting phase
             if moveOn:
                 self.acceptROI()
 
     def acceptROI(self):
-        if len(self.spectralData.splineX) > 1 and len(self.spectralData.splineX) == len(self.spectralData.splineY):
-            self.analysisParamsGUI.spectralData = self.spectralData
+        if len(self.utcData.splineX) > 1 and len(self.utcData.splineX) == len(self.utcData.splineY):
+            self.analysisParamsGUI.utcData = self.utcData
             self.analysisParamsGUI.initParams()
             self.analysisParamsGUI.lastGui = self
             self.analysisParamsGUI.setFilenameDisplays(
