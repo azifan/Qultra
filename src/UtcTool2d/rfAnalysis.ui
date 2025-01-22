@@ -453,7 +453,7 @@ QPushButton:checked {
   <widget class="QLabel" name="avMbfLabel">
    <property name="geometry">
     <rect>
-     <x>720</x>
+     <x>800</x>
      <y>0</y>
      <width>81</width>
      <height>51</height>
@@ -480,7 +480,7 @@ QPushButton:checked {
   <widget class="QLabel" name="avSsLabel">
    <property name="geometry">
     <rect>
-     <x>720</x>
+     <x>800</x>
      <y>35</y>
      <width>91</width>
      <height>51</height>
@@ -507,7 +507,7 @@ QPushButton:checked {
   <widget class="QLabel" name="avSiLabel">
    <property name="geometry">
     <rect>
-     <x>720</x>
+     <x>800</x>
      <y>70</y>
      <width>71</width>
      <height>51</height>
@@ -534,7 +534,7 @@ QPushButton:checked {
   <widget class="QLabel" name="avMbfVal">
    <property name="geometry">
     <rect>
-     <x>820</x>
+     <x>900</x>
      <y>0</y>
      <width>51</width>
      <height>51</height>
@@ -561,7 +561,7 @@ QPushButton:checked {
   <widget class="QLabel" name="avSsVal">
    <property name="geometry">
     <rect>
-     <x>820</x>
+     <x>900</x>
      <y>35</y>
      <width>51</width>
      <height>51</height>
@@ -588,7 +588,7 @@ QPushButton:checked {
   <widget class="QLabel" name="avSiVal">
    <property name="geometry">
     <rect>
-     <x>820</x>
+     <x>900</x>
      <y>70</y>
      <width>51</width>
      <height>51</height>
@@ -776,168 +776,6 @@ QPushButton:checked {
    </property>
    <property name="text">
     <string>Save Analysis Config</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="attCoefVal">
-   <property name="geometry">
-    <rect>
-     <x>980</x>
-     <y>0</y>
-     <width>51</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>0</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="bscVal">
-   <property name="geometry">
-    <rect>
-     <x>980</x>
-     <y>70</y>
-     <width>51</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>0</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="attCoefLabel">
-   <property name="geometry">
-    <rect>
-     <x>880</x>
-     <y>0</y>
-     <width>81</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Att. Coef</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="attCorrVal">
-   <property name="geometry">
-    <rect>
-     <x>980</x>
-     <y>35</y>
-     <width>51</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>0</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="bscLabel">
-   <property name="geometry">
-    <rect>
-     <x>880</x>
-     <y>70</y>
-     <width>71</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>BSC</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="attCorrLabel">
-   <property name="geometry">
-    <rect>
-     <x>880</x>
-     <y>35</y>
-     <width>91</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Att. Corr</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
    </property>
   </widget>
  </widget>

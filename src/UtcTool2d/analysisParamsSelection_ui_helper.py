@@ -4,7 +4,7 @@ import numpy as np
 from PyQt6.QtWidgets import QWidget, QApplication
 from PyQt6.QtGui import QImage, QPixmap
 
-from pyquantus.utc import SpectralData
+from pyquantus.utc import UtcData
 from src.UtcTool2d.analysisParamsSelection_ui import Ui_analysisParams
 from src.UtcTool2d.rfAnalysis_ui_helper import RfAnalysisGUI
 from src.UtcTool2d.loadConfig_ui_helper import LoadConfigGUI
@@ -200,7 +200,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.rfAnalysisGUI = RfAnalysisGUI()
         self.loadConfigGUI = LoadConfigGUI()
         self.lastGui: RoiSelectionSection.RoiSelectionGUI
-        self.spectralData: SpectralData
+        self.utcData: UtcData
 
         self.continueButton.clicked.connect(self.continueToRfAnalysis)
         self.backButton.clicked.connect(self.backToLastScreen)
@@ -213,46 +213,58 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
 
     def initParams(self):
         self.axWinSizeVal.setMinimum(
-            2 * self.spectralData.waveLength
+            2 * self.utcData.waveLength
         )  # should be at least 10 times wavelength, must be at least 2 times
         self.latWinSizeVal.setMinimum(
-            2 * self.spectralData.waveLength
+            2 * self.utcData.waveLength
         )  # should be at least 10 times wavelength, must be at least 2 times
 
-        self.axWinSizeVal.setValue(self.spectralData.axWinSize)
-        self.latWinSizeVal.setValue(self.spectralData.latWinSize)
-        self.axOverlapVal.setValue(int(self.spectralData.axOverlap*100))
-        self.latOverlapVal.setValue(int(self.spectralData.latOverlap*100))
-        self.windowThresholdVal.setValue(int(self.spectralData.roiWindowThreshold*100))
-        self.minFreqVal.setValue(self.spectralData.transducerFreqBand[0]/1000000)
-        self.maxFreqVal.setValue(self.spectralData.transducerFreqBand[1]/1000000)
-        self.lowBandFreqVal.setValue(self.spectralData.analysisFreqBand[0]/1000000)
-        self.upBandFreqVal.setValue(self.spectralData.analysisFreqBand[1]/1000000)
-        self.samplingFreqVal.setValue(self.spectralData.samplingFrequency/1000000)
+        self.axWinSizeVal.setValue(self.utcData.axWinSize)
+        self.latWinSizeVal.setValue(self.utcData.latWinSize)
+        self.axOverlapVal.setValue(int(self.utcData.axOverlap*100))
+        self.latOverlapVal.setValue(int(self.utcData.latOverlap*100))
+        self.windowThresholdVal.setValue(int(self.utcData.roiWindowThreshold*100))
+        self.minFreqVal.setValue(self.utcData.transducerFreqBand[0]/1000000)
+        self.maxFreqVal.setValue(self.utcData.transducerFreqBand[1]/1000000)
+        self.lowBandFreqVal.setValue(self.utcData.analysisFreqBand[0]/1000000)
+        self.upBandFreqVal.setValue(self.utcData.analysisFreqBand[1]/1000000)
+        self.samplingFreqVal.setValue(self.utcData.samplingFrequency/1000000)
 
         self.imageDepthVal.setText(
-            str(np.round(self.spectralData.depth, decimals=1))
+            str(np.round(self.utcData.depth, decimals=1))
         )
         self.imageWidthVal.setText(
-            str(np.round(self.spectralData.width, decimals=1))
+            str(np.round(self.utcData.width, decimals=1))
         )
+        
+        self.axWavelengthRatioVal.setText(
+            str(np.round(self.axWinSizeVal.value() / self.utcData.waveLength, decimals=2))
+        )
+        self.latWavelengthRatioVal.setText(
+            str(np.round(self.latWinSizeVal.value() / self.utcData.waveLength, decimals=2))
+        )
+        
+        self.axWinSizeVal.valueChanged.connect(self.updateRoiSize)
+        self.latWinSizeVal.valueChanged.connect(self.updateRoiSize)
+        self.axOverlapVal.valueChanged.connect(self.updateRoiSize)
+        self.latOverlapVal.valueChanged.connect(self.updateRoiSize)
 
     def singleRoiWindow(self):
         self.axOverlapVal.setValue(0)
         self.latOverlapVal.setValue(0)
         self.windowThresholdVal.setValue(50)
 
-        mplPixWidth = max(self.spectralData.splineX) - min(
-            self.spectralData.splineX
+        mplPixWidth = max(self.utcData.splineX) - min(
+            self.utcData.splineX
         )
-        imPixWidth = mplPixWidth * self.spectralData.lateralRes
-        mmWidth = self.spectralData.lateralRes * imPixWidth  # (mm/pixel)*pixels
+        imPixWidth = mplPixWidth * self.utcData.lateralRes
+        mmWidth = self.utcData.lateralRes * imPixWidth  # (mm/pixel)*pixels
 
-        mplPixHeight = max(self.spectralData.splineY) - min(
-            self.spectralData.splineY
+        mplPixHeight = max(self.utcData.splineY) - min(
+            self.utcData.splineY
         )
-        imPixHeight = mplPixHeight * self.spectralData.axialRes
-        mmHeight = self.spectralData.axialRes * imPixHeight  # (mm/pixel)*pixels
+        imPixHeight = mplPixHeight * self.utcData.axialRes
+        mmHeight = self.utcData.axialRes * imPixHeight  # (mm/pixel)*pixels
 
         self.axWinSizeVal.setValue(np.round(mmHeight, decimals=2))
         self.latWinSizeVal.setValue(np.round(mmWidth, decimals=2))
@@ -262,66 +274,68 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
     def updateRoiSize(self):
         if self.axWinSizeVal.value() > 0 and self.latWinSizeVal.value() > 0:
             self.axWavelengthRatioVal.setText(
-                str(np.round(self.axWinSizeVal.value() / self.spectralData.waveLength, decimals=2))
+                str(np.round(self.axWinSizeVal.value() / self.utcData.waveLength, decimals=2))
             )
             self.latWavelengthRatioVal.setText(
-                str(np.round(self.latWinSizeVal.value() / self.spectralData.waveLength, decimals=2))
+                str(np.round(self.latWinSizeVal.value() / self.utcData.waveLength, decimals=2))
             )
 
-            self.maskCoverMesh.fill(0)
-            axialRSize = self.axWinSizeVal.value()
-            lateralRSize = self.latWinSizeVal.value()
-            axialRes = self.spectralData.axialRes
-            lateralRes = self.spectralData.lateralRes
-            axialSize = round(axialRSize / axialRes)  # in pixels :: mm/(mm/pixel)
-            lateralSize = round(lateralRSize / lateralRes)
-            axialOverlap = self.axOverlapVal.value() / 100
-            lateralOverlap = self.latOverlapVal.value() / 100
+            # self.maskCoverMesh.fill(0)
+            # axialRSize = self.axWinSizeVal.value()
+            # lateralRSize = self.latWinSizeVal.value()
+            # axialRes = self.utcData.axialRes
+            # lateralRes = self.utcData.lateralRes
+            # axialSize = round(axialRSize / axialRes)  # in pixels :: mm/(mm/pixel)
+            # lateralSize = round(lateralRSize / lateralRes)
+            # axialOverlap = self.axOverlapVal.value() / 100
+            # lateralOverlap = self.latOverlapVal.value() / 100
 
-            xScale = self.spectralData.roiWidthScale / (self.spectralData.pixWidth)
-            yScale = self.spectralData.roiDepthScale / (self.spectralData.pixDepth)
-            x = self.spectralData.splineX / xScale
-            y = self.spectralData.splineY / yScale
+            # xScale = self.utcData.roiWidthScale / (self.utcData.pixWidth)
+            # yScale = self.utcData.roiDepthScale / (self.utcData.pixDepth)
+            # x = self.utcData.splineX / xScale
+            # y = self.utcData.splineY / yScale
 
-            # Some axial/lateral dims
-            axialSize = round(axialRSize / axialRes)  # in pixels :: mm/(mm/pixel)
-            lateralSize = round(lateralRSize / lateralRes)
+            # # Some axial/lateral dims
+            # axialSize = round(axialRSize / axialRes)  # in pixels :: mm/(mm/pixel)
+            # lateralSize = round(lateralRSize / lateralRes)
 
-            # Overlap fraction determines the incremental distance between ROIs
-            axialIncrement = axialSize * (1 - axialOverlap)
-            lateralIncrement = lateralSize * (1 - lateralOverlap)
+            # # Overlap fraction determines the incremental distance between ROIs
+            # axialIncrement = axialSize * (1 - axialOverlap)
+            # lateralIncrement = lateralSize * (1 - lateralOverlap)
 
-            for x in np.arange(0, self.maskCoverMesh.shape[0], axialIncrement):
-                ind = round(x)
-                if ind < self.maskCoverMesh.shape[0]:
-                    self.maskCoverMesh[ind - 2 : ind + 2, 0:] = [0, 255, 255, 255]
+            # for x in np.arange(0, self.maskCoverMesh.shape[0], axialIncrement):
+            #     ind = round(x)
+            #     if ind < self.maskCoverMesh.shape[0]:
+            #         self.maskCoverMesh[ind - 2 : ind + 2, 0:] = [0, 255, 255, 255]
 
-            for y in np.arange(0, self.maskCoverMesh.shape[1], lateralIncrement):
-                ind = round(y)
-                if ind < self.maskCoverMesh.shape[1]:
-                    self.maskCoverMesh[0:, ind] = [0, 255, 255, 255]
+            # for y in np.arange(0, self.maskCoverMesh.shape[1], lateralIncrement):
+            #     ind = round(y)
+            #     if ind < self.maskCoverMesh.shape[1]:
+            #         self.maskCoverMesh[0:, ind] = [0, 255, 255, 255]
 
-            self.maskCoverMesh = np.require(self.maskCoverMesh, np.uint8, "C")
-            self.bytesLineMesh, _ = self.maskCoverMesh[:, :, 0].strides
-            self.qImgMesh = QImage(
-                self.maskCoverMesh,
-                self.maskCoverMesh.shape[1],
-                self.maskCoverMesh.shape[0],
-                self.bytesLineMesh,
-                QImage.Format.Format_ARGB32,
-            )
+            # self.maskCoverMesh = np.require(self.maskCoverMesh, np.uint8, "C")
+            # self.bytesLineMesh, _ = self.maskCoverMesh[:, :, 0].strides
+            # self.qImgMesh = QImage(
+            #     self.maskCoverMesh,
+            #     self.maskCoverMesh.shape[1],
+            #     self.maskCoverMesh.shape[0],
+            #     self.bytesLineMesh,
+            #     QImage.Format.Format_ARGB32,
+            # )
 
-            self.previewFrameMesh.setPixmap(
-                QPixmap.fromImage(self.qImgMesh).scaled(
-                    self.widthScale, self.depthScale
-                )
-            )
+            # self.previewFrameMesh.setPixmap(
+            #     QPixmap.fromImage(self.qImgMesh).scaled(
+            #         self.widthScale, self.depthScale
+            #     )
+            # )
+            
+            self.update()
 
     def plotRoiPreview(self):
-        self.minX = min(self.spectralData.splineX)
-        self.maxX = max(self.spectralData.splineX)
-        self.minY = min(self.spectralData.splineY)
-        self.maxY = max(self.spectralData.splineY)
+        self.minX = min(self.utcData.splineX)
+        self.maxX = max(self.utcData.splineX)
+        self.minY = min(self.utcData.splineY)
+        self.maxY = max(self.utcData.splineY)
 
         quotient = (self.maxX - self.minX) / (self.maxY - self.minY)
         if quotient > (341 / 231):
@@ -336,16 +350,16 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.xLen = round(self.maxX - self.minX)
         self.yLen = round(self.maxY - self.minY)
 
-        self.xScale = self.spectralData.pixWidth / self.spectralData.roiWidthScale
-        self.yScale = self.spectralData.pixDepth / self.spectralData.roiDepthScale
+        self.xScale = self.utcData.pixWidth / self.utcData.roiWidthScale
+        self.yScale = self.utcData.pixDepth / self.utcData.roiDepthScale
         self.xLenBmode = round(self.xLen * self.xScale)
         self.yLenBmode = round(self.yLen * self.yScale)
         self.minXBmode = round(self.minX * self.xScale)
         self.minYBmode = round(self.minY * self.yScale)
-        endXBmode = min(self.minXBmode + self.xLenBmode, self.spectralData.pixWidth - 1)
-        endYBmode = min(self.minYBmode + self.yLenBmode, self.spectralData.pixDepth - 1)
+        endXBmode = min(self.minXBmode + self.xLenBmode, self.utcData.pixWidth - 1)
+        endYBmode = min(self.minYBmode + self.yLenBmode, self.utcData.pixDepth - 1)
         self.imData = np.require(
-            self.spectralData.finalBmode[self.minYBmode : endYBmode, self.minXBmode : endXBmode],
+            self.utcData.finalBmode[self.minYBmode : endYBmode, self.minXBmode : endXBmode],
             np.uint8,
             "C",
         )
@@ -357,14 +371,14 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.maskCoverImg = np.zeros((self.yLen, self.xLen, 4))
         self.maskCoverMesh = np.zeros((self.yLenBmode, self.xLenBmode, 4))
 
-        for i in range(len(self.spectralData.splineX)):
+        for i in range(len(self.utcData.splineX)):
             self.maskCoverImg[
-                max(round(self.spectralData.splineY[i] - self.minY - 1), 0) : max(
-                    round(self.spectralData.splineY[i] - self.minY - 1), 0
+                max(round(self.utcData.splineY[i] - self.minY - 1), 0) : max(
+                    round(self.utcData.splineY[i] - self.minY - 1), 0
                 )
                 + 2,
-                max(round(self.spectralData.splineX[i] - self.minX - 1), 0) : max(
-                    round(self.spectralData.splineX[i] - self.minX - 1), 0
+                max(round(self.utcData.splineX[i] - self.minX - 1), 0) : max(
+                    round(self.utcData.splineX[i] - self.minX - 1), 0
                 )
                 + 2,
             ] = [255, 255, 0, 255]
@@ -401,7 +415,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.latOverlapVal.valueChanged.connect(self.updateRoiSize)
 
     def backToLastScreen(self):
-        self.lastGui.spectralData = self.spectralData
+        self.lastGui.utcData = self.utcData
         self.lastGui.show()
         self.hide()
 
@@ -412,23 +426,23 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.phantomPathInput.setText(phantomName)
 
     def continueToRfAnalysis(self):
-        self.spectralData.axWinSize = self.axWinSizeVal.value()
-        self.spectralData.latWinSize = self.latWinSizeVal.value()
-        self.spectralData.axOverlap = self.axOverlapVal.value() / 100
-        self.spectralData.latOverlap = self.latOverlapVal.value() / 100
-        self.spectralData.roiWindowThreshold = self.windowThresholdVal.value() / 100
-        self.spectralData.transducerFreqBand = [self.minFreqVal.value() * 1000000, self.maxFreqVal.value() * 1000000] # Hz
-        self.spectralData.samplingFrequency = self.samplingFreqVal.value() * 1000000  # Hz
-        self.spectralData.analysisFreqBand = [self.lowBandFreqVal.value() * 1000000, self.upBandFreqVal.value() * 1000000] # Hz
+        self.utcData.axWinSize = self.axWinSizeVal.value()
+        self.utcData.latWinSize = self.latWinSizeVal.value()
+        self.utcData.axOverlap = self.axOverlapVal.value() / 100
+        self.utcData.latOverlap = self.latOverlapVal.value() / 100
+        self.utcData.roiWindowThreshold = self.windowThresholdVal.value() / 100
+        self.utcData.transducerFreqBand = [self.minFreqVal.value() * 1000000, self.maxFreqVal.value() * 1000000] # Hz
+        self.utcData.samplingFrequency = self.samplingFreqVal.value() * 1000000  # Hz
+        self.utcData.analysisFreqBand = [self.lowBandFreqVal.value() * 1000000, self.upBandFreqVal.value() * 1000000] # Hz
 
         del self.rfAnalysisGUI
         self.rfAnalysisGUI = RfAnalysisGUI()
-        self.rfAnalysisGUI.spectralData = self.spectralData
+        self.rfAnalysisGUI.utcData = self.utcData
         self.rfAnalysisGUI.setFilenameDisplays(
             self.imagePathInput.text().split("/")[-1],
             self.phantomPathInput.text().split("/")[-1],
         )
-        success = self.rfAnalysisGUI.completeSpectralAnalysis()
+        success = self.rfAnalysisGUI.completeUtcAnalysis()
 
         if success < 0:
             return

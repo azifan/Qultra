@@ -14,7 +14,7 @@ from pyquantus.parse.philipsMat import philips2dRfMatParser
 from pyquantus.parse.philipsRf import philipsRfParser
 from pyquantus.parse.siemens import siemensRfParser
 from pyquantus.parse.clarius import clariusRfParser
-from pyquantus.utc import SpectralData
+from pyquantus.utc import UtcData
 from pyquantus.parse.objects import ScConfig
 from src.UtcTool2d.loadingScreen_ui_helper import LoadingScreenGUI
 from src.UtcTool2d.selectImage_ui import Ui_selectImage
@@ -187,7 +187,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
                 plt.close(self.roiSelectionGUI.figure)
             del self.roiSelectionGUI
             self.roiSelectionGUI = RoiSelectionGUI()
-            self.roiSelectionGUI.spectralData = SpectralData()
+            self.roiSelectionGUI.utcData = UtcData()
             self.roiSelectionGUI.setFilenameDisplays(
                 self.imagePathInput.text().split("/")[-1],
                 self.phantomPathInput.text().split("/")[-1],
@@ -263,10 +263,10 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         scConfig.startDepth = self.imgInfoStruct.startDepth1
         scConfig.endDepth = self.imgInfoStruct.endDepth1
 
-        spectralData = SpectralData()
-        spectralData.scConfig = scConfig
-        spectralData.scConfig = scConfig
-        self.roiSelectionGUI.spectralData = spectralData
+        utcData = UtcData()
+        utcData.scConfig = scConfig
+        utcData.scConfig = scConfig
+        self.roiSelectionGUI.utcData = utcData
         self.roiSelectionGUI.ultrasoundImage.xmap = self.imgDataStruct.scBmodeStruct.xmap
         self.roiSelectionGUI.ultrasoundImage.ymap = self.imgDataStruct.scBmodeStruct.ymap
 
@@ -318,9 +318,9 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         scConfig.startDepth = self.imgInfoStruct.startDepth1
         scConfig.endDepth = self.imgInfoStruct.endDepth1
 
-        spectralData = SpectralData()
-        spectralData.scConfig = scConfig
-        self.roiSelectionGUI.spectralData = spectralData
+        utcData = UtcData()
+        utcData.scConfig = scConfig
+        self.roiSelectionGUI.utcData = utcData
         self.roiSelectionGUI.ultrasoundImage.bmode = self.imgDataStruct.bMode
         self.roiSelectionGUI.ultrasoundImage.scBmode = self.imgDataStruct.scBmodeStruct.scArr
         self.roiSelectionGUI.ultrasoundImage.xmap = self.imgDataStruct.scBmodeStruct.xmap
