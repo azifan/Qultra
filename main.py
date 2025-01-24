@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QApplication, QWidget
 
 from src.CeusTool3d.selectImage_ui_helper import SelectImageGUI_CeusTool3d
 from src.CeusMcTool2d.selectImage_ui_helper import SelectImageGUI_CeusMcTool2d
-from src.QusTool2d.selectImage_ui_helper import SelectImageGUI_QusTool2dIQ
+# from src.QusTool2d.selectImage_ui_helper import SelectImageGUI_QusTool2dIQ
 from welcome_ui import Ui_qusPage
 
 
@@ -12,7 +12,7 @@ class QusGui(Ui_qusPage, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.qus2dButton.clicked.connect(self.moveToQus2d)
+        # self.qus2dButton.clicked.connect(self.moveToQus2d)
         self.dceus3dButton.clicked.connect(self.moveToDceus3d)
         self.dceus2dButton.clicked.connect(self.moveToDceusMc2d)
         self.nextPage = None
@@ -29,12 +29,12 @@ class QusGui(Ui_qusPage, QWidget):
             ]
         )
 
-    def moveToQus2d(self):
-        del self.nextPage
-        self.nextPage = SelectImageGUI_QusTool2dIQ()
-        self.nextPage.show()
-        self.nextPage.welcomeGui = self
-        self.hide()
+    # def moveToQus2d(self):
+    #     del self.nextPage
+    #     self.nextPage = SelectImageGUI_QusTool2dIQ()
+    #     self.nextPage.show()
+    #     self.nextPage.welcomeGui = self
+    #     self.hide()
 
     def moveToDceus3d(self):
         del self.nextPage

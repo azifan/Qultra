@@ -5,6 +5,7 @@ from itertools import chain
 from contextlib import suppress
 
 from PIL.ImageQt import ImageQt
+from PIL import Image, ImageEnhance
 import nibabel as nib
 import numpy as np
 import scipy.interpolate as interpolate
@@ -143,6 +144,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.voiAlphaStatus.setValue(255)
         self.voiAlphaSpinBox.setValue(255)
 
+        self.enhanceContrastButton.setChecked(False)
+        self.enhanceContrastButton.clicked.connect(self.enhanceContrastChecked)
         self.drawNegVoiButton.clicked.connect(self.startNegDraw)
         self.backToPrevVoiButton.clicked.connect(self.backToPrevVoi)
         self.drawNewVoiButton.clicked.connect(self.drawNewVoi)
@@ -158,6 +161,11 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.showHideCrossButton.clicked.connect(self.showHideCross)
         self.interpolateVoiButton.clicked.connect(self.voi3dInterpolation)
         self.toggleButton.clicked.connect(self.toggleIms)
+        
+    def enhanceContrastChecked(self):
+        self.changeAxialSlices()
+        self.changeSagSlices()
+        self.changeCorSlices()
 
     def axAdvancedRoiDraw(self):
         axDrawings = np.array([planeDrawn[1] for planeDrawn in self.planesDrawn if planeDrawn[0] == "ax"])
@@ -690,7 +698,9 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.axialFrameNum.setText(str(self.newZVal + 1))
 
         data2dAx = self.data4dImg[:, :, self.newZVal, self.curSliceIndex]
-        data2dAx = np.rot90(np.flipud(data2dAx), 3)
+        data2dAx = np.rot90(np.flipud(data2dAx), 3).astype(np.uint8)
+        if self.enhanceContrastButton.isChecked():
+            data2dAx = np.array(ImageEnhance.Contrast(Image.fromarray(data2dAx)).enhance(2.0))
         # data2dAx -= np.amin(data2dAx)
         # data2dAx = (data2dAx.astype(np.float64) * (255/np.amax(data2dAx))).astype(np.uint8)
         data2dAx = np.require(data2dAx, np.uint8, "C")
@@ -717,7 +727,9 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
     def changeSagSlices(self):
         self.sagittalFrameNum.setText(str(self.newXVal + 1))
 
-        data2dSag = self.data4dImg[self.newXVal, :, :, self.curSliceIndex]
+        data2dSag = self.data4dImg[self.newXVal, :, :, self.curSliceIndex].astype(np.uint8)
+        if self.enhanceContrastButton.isChecked():
+            data2dSag = np.array(ImageEnhance.Contrast(Image.fromarray(data2dSag)).enhance(2.0))
         # data2dSag -= np.amin(data2dSag)
         # data2dSag = (data2dSag.astype(np.float64) * (255/np.amax(data2dSag))).astype(np.uint8)
         data2dSag = np.require(data2dSag, np.uint8, "C")
@@ -744,7 +756,9 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         self.coronalFrameNum.setText(str(self.newYVal + 1))
 
         data2dCor = self.data4dImg[:, self.newYVal, :, self.curSliceIndex]
-        data2dCor = np.fliplr(np.rot90(data2dCor, 3))
+        data2dCor = np.fliplr(np.rot90(data2dCor, 3)).astype(np.uint8)
+        if self.enhanceContrastButton.isChecked():
+            data2dCor = np.array(ImageEnhance.Contrast(Image.fromarray(data2dCor)).enhance(2.0))
         # data2dCor -= np.amin(data2dCor)
         # data2dCor = (data2dCor.astype(np.float64) * (255/np.amax(data2dCor))).astype(np.uint8)
         data2dCor = np.require(data2dCor, np.uint8, "C")

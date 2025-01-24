@@ -68,7 +68,7 @@ def scanConvert3Va(rxLines, lineAngles, planeAngles, beamDist, imgSize, fovSize,
 
     return img
 
-def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams) -> Tuple[np.ndarray, list]:
+def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams, isLin) -> Tuple[np.ndarray, list]:
     if len(dbEnvDatFullVolSeries.shape) != 4:
         numVolumes = 1
         nz, nx, ny = dbEnvDatFullVolSeries.shape
@@ -91,38 +91,49 @@ def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams) -> Tuple[np.ndarr
     imgSize = np.array(np.round(np.array([volWidth, volDepth, volHeight])*scParams.pixPerMm), dtype=np.uint32) # [Lateral, Elevation, Axial]
 
     NonLinThr=3.5e4; NonLinDiv=1.7e4
-    width = abs(azimSteerAngleStart) + abs(azimSteerAngleEnd)
-    startDepth = scParams.VDB_2D_ECHO_START_DEPTH_SIP
-    endDepth = scParams.VDB_2D_ECHO_STOP_DEPTH_SIP
-    desiredHeight = 500
+    LinThr=3e4; LinDiv=3e4
+    # width = abs(azimSteerAngleStart) + abs(azimSteerAngleEnd)
+    # startDepth = scParams.VDB_2D_ECHO_START_DEPTH_SIP
+    # endDepth = scParams.VDB_2D_ECHO_STOP_DEPTH_SIP
+    # desiredHeight = 500
     
-    scans = []
-    from pyquantus.parse.transforms import scanConvert
-    for scan in range(dbEnvDatFullVolSeries.shape[2]):
-        arr = np.fliplr(np.rot90(dbEnvDatFullVolSeries[:, :, scan], k=3))
-        out, _, _ = scanConvert((arr-NonLinThr)*255/NonLinDiv, width, startDepth, endDepth, desiredHeight)
-        scans.append(out.scArr)
-    imgOut = np.transpose(scans)
-    # # Generate image
-    # imgOut = []
-    # if numVolumes > 1:
-    #     for k in range(numVolumes):
-    #         rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries[k].shape[1])
-    #         rxAngsElVec = np.einsum('ikj->ijk', np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries[k].shape[2]))
-    #         curImgOut = scanConvert3Va(dbEnvDatFullVolSeries[k], rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
-    #         imgOut.append(curImgOut)
-    #     imgOut = np.array(imgOut)
-    # else:
-    #     rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries.shape[1])
-    #     rxAngsElVec = np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries.shape[2])
-    #     curImgOut = scanConvert3Va(dbEnvDatFullVolSeries, rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
-    #     imgOut = curImgOut
+    # scans = []
+    # from pyquantus.parse.transforms import scanConvert
+    # for scan in range(dbEnvDatFullVolSeries.shape[2]):
+    #     arr = dbEnvDatFullVolSeries[:, :, scan]
+    #     out, _, _ = scanConvert((arr-NonLinThr)*255/NonLinDiv, width, startDepth, endDepth, desiredHeight)
+    #     scans.append(np.transpose(out.scArr))
+    #     # scans.append((dbEnvDatFullVolSeries[:, :, scan]-NonLinThr)*255/NonLinDiv)
+    # imgOut = np.array(scans).swapaxes(0,1)
+    
+    # Generate image
+    imgOut = []
+    if numVolumes > 1:
+        for k in range(numVolumes):
+            rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries[k].shape[1])
+            rxAngsElVec = np.einsum('ikj->ijk', np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries[k].shape[2]))
+            curImgOut = scanConvert3Va(dbEnvDatFullVolSeries[k], rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
+            if not isLin:
+                imgOut.append((curImgOut-NonLinThr)*255/NonLinDiv)
+            else:
+                imgOut.append((curImgOut-LinThr)*255/LinDiv)
+        imgOut = np.array(imgOut)
+    else:
+        rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries.shape[1])
+        rxAngsElVec = np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries.shape[2])
+        curImgOut = scanConvert3Va(dbEnvDatFullVolSeries, rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
+        if not isLin:
+            imgOut = (curImgOut-NonLinThr)*255/NonLinDiv
+        else:
+            imgOut = (curImgOut-LinThr)*255/LinDiv
     
     return imgOut, fovSize
 
 def formatVolumePix(unformattedVolume: Iterable) -> np.ndarray:
-    unformattedVolume = np.array(unformattedVolume).squeeze().astype(float)
+    unformattedVolume = np.array(unformattedVolume).squeeze()
     unformattedVolume = np.transpose(unformattedVolume.swapaxes(0,1))
+    # unformattedVolume = np.transpose(unformattedVolume)
+    
     return unformattedVolume
 
 def readSIPscVDBParams(filename):
@@ -321,8 +332,8 @@ class Philips4dParser:
 
     def saveSingleVol(self, volIndices: List[int]) -> Tuple[list, list, tuple, tuple]:
         for volIndex in tqdm(volIndices):
-            linVol, bmodeDims = scanConvert3dVolumeSeries(self.linVol[volIndex], self.scParams)
-            nLinVol, ceusDims = scanConvert3dVolumeSeries(self.nLinVol[volIndex], self.scParams)
+            linVol, bmodeDims = scanConvert3dVolumeSeries(self.linVol[volIndex], self.scParams, isLin=True)
+            nLinVol, ceusDims = scanConvert3dVolumeSeries(self.nLinVol[volIndex], self.scParams, isLin=False)
             bmodeDims = [bmodeDims[2], bmodeDims[0], bmodeDims[1]]
             ceusDims = [ceusDims[2], ceusDims[0], bmodeDims[1]]
 
