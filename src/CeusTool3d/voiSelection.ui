@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1512</width>
-    <height>831</height>
+    <height>826</height>
    </rect>
   </property>
   <property name="mouseTracking">
@@ -307,9 +307,9 @@
        <property name="geometry">
         <rect>
          <x>150</x>
-         <y>690</y>
+         <y>700</y>
          <width>181</width>
-         <height>41</height>
+         <height>31</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -381,9 +381,9 @@ QPushButton:checked {
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>690</y>
+         <y>700</y>
          <width>131</width>
-         <height>41</height>
+         <height>31</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -402,9 +402,9 @@ QPushButton:checked {
        <property name="geometry">
         <rect>
          <x>150</x>
-         <y>640</y>
+         <y>660</y>
          <width>181</width>
-         <height>41</height>
+         <height>31</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -450,8 +450,8 @@ QPushButton:checked {
       <widget class="QLabel" name="observingLabel">
        <property name="geometry">
         <rect>
-         <x>15</x>
-         <y>645</y>
+         <x>10</x>
+         <y>650</y>
          <width>101</width>
          <height>31</height>
         </rect>
@@ -466,6 +466,27 @@ QPushButton:checked {
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
+      <widget class="QRadioButton" name="enhanceContrastButton">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>620</y>
+         <width>151</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QRadioButton {
+	font-size: 15px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+	border: 0px;
+}</string>
+       </property>
+       <property name="text">
+        <string>Enhance Contrast</string>
+       </property>
+      </widget>
       <zorder>roiSidebar</zorder>
       <zorder>rfAnalysisSidebar</zorder>
       <zorder>ticAnalysisSidebar</zorder>
@@ -476,6 +497,7 @@ QPushButton:checked {
       <zorder>imageSelectionSidebar</zorder>
       <zorder>navigatingLabel</zorder>
       <zorder>observingLabel</zorder>
+      <zorder>enhanceContrastButton</zorder>
      </widget>
     </item>
     <item>
