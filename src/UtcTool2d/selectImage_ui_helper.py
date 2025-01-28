@@ -248,27 +248,34 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         phantomRfPath = self.phantomPathInput.text()
         phantomInfoPath = phantomRfPath.replace(".raw", ".yml")
         phantomTgcPath = phantomRfPath.replace("_rf.raw", "_env.tgc.yml")
+        if not Path(imageTgcPath).exists():
+            imageTgcPath = None
+        if not Path(phantomTgcPath).exists():
+            phantomTgcPath = None
 
-        self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = clariusRfParser(
+        self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct, scanConverted = clariusRfParser(
             imageRfPath, imageTgcPath, imageInfoPath,
             phantomRfPath, phantomTgcPath, phantomInfoPath
         )
-        self.imArray = self.imgDataStruct.scBmode
+        
+        utcData = UtcData()
+        
+        if scanConverted:
+            self.imArray = self.imgDataStruct.scBmode
+            scConfig = ScConfig()
+            scConfig.width = self.imgInfoStruct.width1
+            scConfig.tilt = self.imgInfoStruct.tilt1
+            scConfig.startDepth = self.imgInfoStruct.startDepth1
+            scConfig.endDepth = self.imgInfoStruct.endDepth1
+            utcData.scConfig = scConfig
+            self.roiSelectionGUI.ultrasoundImage.xmap = self.imgDataStruct.scBmodeStruct.xmap
+            self.roiSelectionGUI.ultrasoundImage.ymap = self.imgDataStruct.scBmodeStruct.ymap
+        else:
+            self.imArray = self.imgDataStruct.bMode
+            
         self.initialImgRf = self.imgDataStruct.rf
         self.initialRefRf = self.refDataStruct.rf
-
-        scConfig = ScConfig()
-        scConfig.width = self.imgInfoStruct.width1
-        scConfig.tilt = self.imgInfoStruct.tilt1
-        scConfig.startDepth = self.imgInfoStruct.startDepth1
-        scConfig.endDepth = self.imgInfoStruct.endDepth1
-
-        utcData = UtcData()
-        utcData.scConfig = scConfig
-        utcData.scConfig = scConfig
         self.roiSelectionGUI.utcData = utcData
-        self.roiSelectionGUI.ultrasoundImage.xmap = self.imgDataStruct.scBmodeStruct.xmap
-        self.roiSelectionGUI.ultrasoundImage.ymap = self.imgDataStruct.scBmodeStruct.ymap
 
         self.acceptFrameButton.clicked.connect(self.acceptClariusFrame)
         self.displaySlidingFrames()
@@ -406,7 +413,8 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.acceptFrame()
 
     def acceptClariusFrame(self):
-        self.roiSelectionGUI.ultrasoundImage.scBmode = self.imgDataStruct.scBmode[self.frame]
+        if hasattr(self.imgDataStruct, 'scBmode'):
+            self.roiSelectionGUI.ultrasoundImage.scBmode = self.imgDataStruct.scBmode[self.frame]
         self.roiSelectionGUI.ultrasoundImage.bmode = self.imgDataStruct.bMode[self.frame]
         self.roiSelectionGUI.ultrasoundImage.axialResRf = self.imgInfoStruct.depth / self.initialImgRf.shape[1]
         self.roiSelectionGUI.ultrasoundImage.lateralResRf = self.roiSelectionGUI.ultrasoundImage.axialResRf * (
