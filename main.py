@@ -26,6 +26,9 @@ class WelcomeGui(Ui_WelcomePage, QWidget):
                 "Mean Transit Time (MTT)",
                 "TMPPV",
                 "ROI Area (mm^2)",
+                "TIC y vals",
+                "TIC t vals",
+                "Lognorm y vals"
             ]
         )
 

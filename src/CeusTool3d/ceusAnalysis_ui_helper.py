@@ -678,6 +678,9 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 "Mean Transit Time (MTT)": [self.mtt],
                 "TMPPV": [self.normFact],
                 "VOI Volume (mm^3)": [self.voxelScale],
+                "TIC y vals": [str(np.array(self.lastGui.ticY))],
+                "TIC t vals": [str(np.array(self.lastGui.ticX[:, 0]))],
+                "Lognorm y vals": [str(np.array(self.wholecurve)) if hasattr(self, "wholecurve") else None],
             }
         self.exportDataGUI.dataFrame = pd.DataFrame.from_dict(curData)
         self.exportDataGUI.lastGui = self
@@ -746,10 +749,10 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
 
         # Do the fitting
         try:
-            params, _, wholecurve = lf.data_fit(
+            params, _, self.wholecurve = lf.data_fit(
                 [x, self.lastGui.ticY], normFact, autoT0
             )
-            self.ax.plot(self.lastGui.ticX[:, 0], wholecurve)
+            self.ax.plot(self.lastGui.ticX[:, 0], self.wholecurve)
             range = max(self.lastGui.ticX[:, 0]) - min(self.lastGui.ticX[:, 0])
             self.ax.set_xlim(
                 xmin=min(self.lastGui.ticX[:, 0]) - (0.05 * range),
