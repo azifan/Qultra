@@ -207,17 +207,17 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.utcData.scanConvertCmaps()
 
         mbfMean = np.mean(self.utcData.mbfArr)
-        ssMean = np.mean(np.array(self.utcData.ssArr)/1e6)
+        ssMean = np.mean(np.array(self.utcData.ssArr))
         siMean = np.mean(self.utcData.siArr)
         self.avMbfVal.setText(f"{np.round(mbfMean, decimals=1)}")
-        self.avSsVal.setText(f"{np.round(ssMean*1e6, decimals=2)}")
+        self.avSsVal.setText(f"{np.round(ssMean, decimals=2)}")
         self.avSiVal.setText(f"{np.round(siMean, decimals=1)}")
 
         npsArr = [window.results.nps for window in self.utcData.utcAnalysis.roiWindows]
         avNps = np.mean(npsArr, axis=0)
         f = self.utcData.utcAnalysis.roiWindows[0].results.f
         x = np.linspace(min(f), max(f), 100)
-        y = ssMean*x + siMean
+        y = ssMean*x/1e6 + siMean
 
         del self.psGraphDisplay
         self.psGraphDisplay = PsGraphDisplay()
@@ -347,69 +347,60 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.legAx.clear()
         self.figLeg.set_visible(True)
         a = np.array([[0, 1]])
-        if curDisp == "MBF":
+        if curDisp == "" or curDisp == "clear":
+            self.figLeg.set_visible(False)
+            self.canvasLeg.draw()
+            return
+        elif curDisp == "MBF":
             img = self.legAx.imshow(a, cmap="viridis")
             self.legAx.set_visible(False)
-            # cax = plt.axes([0, 0.1, 0.25, 0.8])
             self.figLeg.colorbar(
                 orientation="vertical", cax=self.cax, mappable=img
             )
             self.legAx.text(2.1, 0.21, "Midband Fit", rotation=270, size=9)
-            self.legAx.tick_params("y", labelsize=7, pad=0.5)
-            # plt.text(3, 0.17, "Midband Fit", rotation=270, size=5)
-            # plt.tick_params('y', labelsize=5, pad=0.7)
-            self.cax.set_yticks([0, 0.25, 0.5, 0.75, 1])
-            self.cax.set_yticklabels(
-                [
-                    int(self.utcData.minMbf * 10) / 10,
-                    int((((self.utcData.maxMbf - self.utcData.minMbf) / 4) + self.utcData.minMbf) * 10) / 10,
-                    int((((self.utcData.maxMbf - self.utcData.minMbf) / 2) + self.utcData.minMbf) * 10) / 10,
-                    int(((3 * (self.utcData.maxMbf - self.utcData.minMbf) / 4) + self.utcData.minMbf) * 10) / 10,
-                    int(self.utcData.maxMbf * 10) / 10,
-                ]
-            )
+            minVal = self.utcData.minMbf
+            maxVal = self.utcData.maxMbf
         elif curDisp == "SS":
             img = self.legAx.imshow(a, cmap="magma")
             self.legAx.set_visible(False)
-            # cax = plt.axes([0, 0.1, 0.25, 0.8])
             self.figLeg.colorbar(orientation="vertical", cax=self.cax, mappable=img)
             self.legAx.text(2.2, 0, "Spectral Slope (1e-6)", rotation=270, size=6)
             self.legAx.tick_params("y", labelsize=7, pad=0.7)
-            # plt.text(3, 0.02, "Spectral Slope (1e-6)", rotation=270, size=4)
-            # plt.tick_params('y', labelsize=4, pad=0.3)
-            self.cax.set_yticks([0, 0.25, 0.5, 0.75, 1])
-            self.cax.set_yticklabels(
-                [
-                    int(self.utcData.minSs * 100000000) / 100,
-                    int((((self.utcData.maxSs - self.utcData.minSs) / 4) + self.utcData.minSs) * 10000000) / 100,
-                    int((((self.utcData.maxSs - self.utcData.minSs) / 2) + self.utcData.minSs) * 100000000) / 100,
-                    int(((3 * (self.utcData.maxSs - self.utcData.minSs) / 4) + self.utcData.minSs) * 100000000) / 100,
-                    int(self.utcData.maxSs * 100000000) / 100,
-                ]
-            )
+            minVal = self.utcData.minSs
+            maxVal = self.utcData.maxSs
         elif curDisp == "SI":
             img = self.legAx.imshow(a, cmap="plasma")
             self.legAx.set_visible(False)
-            # cax = plt.axes([0, 0.1, 0.25, 0.8])
             self.figLeg.colorbar(orientation="vertical", cax=self.cax, mappable=img)
             self.legAx.text(2.2, 0.09, "Spectral Intercept", rotation=270, size=6)
             self.legAx.tick_params("y", labelsize=7, pad=0.7)
-            # plt.text(3, 0, "Spectral Intercept", rotation=270, size=5)
-            # plt.tick_params('y', labelsize=5, pad=0.7)
-            self.cax.set_yticks([0, 0.25, 0.5, 0.75, 1])
-            self.cax.set_yticklabels(
-                [
-                    int(self.utcData.minSi * 10) / 10,
-                    int((((self.utcData.maxSi - self.utcData.minSi) / 4) + self.utcData.minSi) * 10) / 10,
-                    int((((self.utcData.maxSi - self.utcData.minSi) / 2) + self.utcData.minSi) * 10) / 10,
-                    int(((3 * (self.utcData.maxSi - self.utcData.minSi) / 4) + self.utcData.minSi) * 10) / 10,
-                    int(self.utcData.maxSi * 10) / 10,
-                ]
-            )
-        elif curDisp == "" or curDisp == "clear":
-            self.figLeg.set_visible(False)
+            minVal = self.utcData.minSi
+            maxVal = self.utcData.maxSi
+        else:
+            raise ValueError("Invalid value for curDisp")
+            
+        self.legAx.tick_params("y", labelsize=7, pad=0.5)
+        self.cax.set_yticks([0, 0.25, 0.5, 0.75, 1])
+        self.cax.set_yticklabels(
+            [
+                np.round(minVal, 1),
+                np.round(
+                    ((maxVal - minVal) / 4)
+                    + minVal,
+                    1,
+                ),
+                np.round(
+                    ((maxVal - minVal) / 2)
+                    + minVal,
+                    1,
+                ),
+                np.round(
+                    (3 * (maxVal - minVal) / 4)
+                    + minVal,
+                    1,
+                ),
+                np.round(maxVal, 1),
+            ]
+        )
         self.figLeg.set_facecolor((1, 1, 1, 1))
-        # self.horizLayoutLeg.removeWidget(self.canvasLeg)
-        # self.canvasLeg = FigureCanvas(self.figLeg)
-        # self.horizLayoutLeg.addWidget(self.canvasLeg)
         self.canvasLeg.draw()
