@@ -453,35 +453,8 @@ QPushButton:checked {
   <widget class="QLabel" name="avMbfLabel">
    <property name="geometry">
     <rect>
-     <x>800</x>
+     <x>780</x>
      <y>0</y>
-     <width>81</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-	color: white;
-	background-color: rgba(0,0,0,0);
-}</string>
-   </property>
-   <property name="text">
-    <string>Av.  MBF</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="avSsLabel">
-   <property name="geometry">
-    <rect>
-     <x>800</x>
-     <y>35</y>
      <width>91</width>
      <height>51</height>
     </rect>
@@ -498,7 +471,34 @@ QPushButton:checked {
 }</string>
    </property>
    <property name="text">
-    <string>Av.  SS (1e-6)</string>
+    <string>Av.  MBF (dB)</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="avSsLabel">
+   <property name="geometry">
+    <rect>
+     <x>780</x>
+     <y>35</y>
+     <width>111</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+	background-color: rgba(0,0,0,0);
+}</string>
+   </property>
+   <property name="text">
+    <string>Av. SS (dB/MHz)</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -507,7 +507,7 @@ QPushButton:checked {
   <widget class="QLabel" name="avSiLabel">
    <property name="geometry">
     <rect>
-     <x>800</x>
+     <x>780</x>
      <y>70</y>
      <width>71</width>
      <height>51</height>
@@ -525,7 +525,7 @@ QPushButton:checked {
 }</string>
    </property>
    <property name="text">
-    <string>Av.  SI</string>
+    <string>Av.  SI (dB)</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>

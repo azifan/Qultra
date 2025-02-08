@@ -590,8 +590,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.drawRoiButton.setCheckable(False)
             self.redrawRoiButton.setHidden(False)
             self.closeRoiButton.setHidden(True)
-            self.crosshairCursor.set_active(False)
             self.undoLastPtButton.clicked.disconnect()
+            self.cid = self.figure.canvas.mpl_disconnect(self.cid)
+            self.crosshairCursor.set_active(False)
             self.plotOnCanvas()
 
     def undoLastRoi(
