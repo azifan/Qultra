@@ -279,7 +279,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             niftiScan = niftiScan[:nameIdx+len(".nii.gz")]
             
             if self.imagePathInput.text().replace("'", '"') == niftiScan:
-                mask = nibIm.get_fdata().astype(np.uint8)
+                mask = np.asarray(nibIm.dataobj, dtype=np.uint8)
             else:
                 print("Mask is not compatible with this image")
                 return
@@ -468,22 +468,21 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             self.updateCrosshairs()
 
     def openImage(self, bmodePath):
-        self.nibImg = nib.load(self.inputTextPath, mmap=False)
-        dataNibImg = np.array(self.nibImg.get_fdata())
+        nibCeusImg = nib.load(self.inputTextPath, mmap=False)
+        self.ceus4dImg = np.asarray(nibCeusImg.dataobj, dtype=np.uint8)
         
-        dataNibImg = dataNibImg.astype(np.uint8)
-        self.ceus4dImg = dataNibImg.copy()
+        self.data4dImg = self.ceus4dImg
 
-        self.data4dImg = dataNibImg
         self.x, self.y, self.z, self.numSlices = self.data4dImg.shape
         self.maskCoverImg = np.zeros([self.x, self.y, self.z, 4])
         self.curSliceSlider.setMaximum(self.numSlices - 1)
 
         if bmodePath is not None:
-            self.bmode4dImg = np.array(nib.load(bmodePath, mmap=False).get_fdata().astype(np.uint8))
+            nibBmodeImg = nib.load(bmodePath, mmap=False)
+            self.bmode4dImg = np.asarray(nibBmodeImg.dataobj, dtype=np.uint8)
             self.toggleButton.show()
 
-        self.header = self.nibImg.header["pixdim"]  # [dims, voxel dims (3 vals), timeconst, 0, 0, 0], assume mm/pix
+        self.header = nibCeusImg.header["pixdim"]  # [dims, voxel dims (3 vals), timeconst, 0, 0, 0], assume mm/pix
         self.sliceArray = np.round(
             [i * self.timeconst for i in range(1, self.ceus4dImg.shape[3] + 1)],
             decimals=2,
