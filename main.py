@@ -36,6 +36,7 @@ class WelcomeGui(Ui_WelcomePage, QWidget):
         del self.nextPage
         self.nextPage = SelectImageGUI_UtcTool2dIQ()
         self.nextPage.show()
+        self.nextPage.resize(self.size())
         self.nextPage.welcomeGui = self
         self.hide()
 

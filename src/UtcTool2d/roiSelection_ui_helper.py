@@ -113,25 +113,10 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             }"""
             )
 
-        self.imagePathInput.setHidden(True)
-        self.phantomPathInput.setHidden(True)
-        self.drawRoiButton.setHidden(True)
-        self.closeRoiButton.setHidden(True)
-        self.undoLastPtButton.setHidden(True)
-        self.redrawRoiButton.setHidden(True)
-        self.acceptRoiButton.setHidden(True)
-        self.undoLoadedRoiButton.setHidden(True)
-        self.acceptLoadedRoiButton.setHidden(True)
-        self.userDrawRectangleButton.setHidden(True)
-        self.drawFreehandButton.setHidden(True)
-        self.backFromFreehandButton.setHidden(True)
-        self.backFromRectangleButton.setHidden(True)
-        self.acceptRectangleButton.setHidden(True)
-        self.physicalRectDimsLabel.setHidden(True)
-        self.physicalRectHeightLabel.setHidden(True)
-        self.physicalRectWidthLabel.setHidden(True)
-        self.physicalRectHeightVal.setHidden(True)
-        self.physicalRectWidthVal.setHidden(True)
+        self.setLayout(self.fullScreenLayout)
+        self.hideRectButtons()
+        self.hideFreehandedButtons()
+        self.hideLoadedRoiButtons()
         self.acceptLoadedRoiButton.clicked.connect(self.acceptROI)
         self.acceptRectangleButton.clicked.connect(self.acceptRect)
         self.undoLoadedRoiButton.clicked.connect(self.undoRoiLoad)
@@ -176,8 +161,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.selector.set_active(False)
         self.cid: int
 
-        self.redrawRoiButton.setHidden(True)
-
         self.editImageDisplayButton.clicked.connect(self.openImageEditor)
         self.drawRoiButton.clicked.connect(self.recordDrawRoiClicked)
         self.userDrawRectangleButton.clicked.connect(self.recordDrawRectClicked)
@@ -186,12 +169,65 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.redrawRoiButton.clicked.connect(self.undoLastRoi)
         self.acceptRoiButton.clicked.connect(self.acceptROI)
         self.backButton.clicked.connect(self.backToWelcomeScreen)
-        self.newRoiButton.clicked.connect(self.drawNewRoi)
+        self.drawFreehandButton.clicked.connect(self.drawFreehandRoi)
         self.drawRectangleButton.clicked.connect(self.startDrawRectRoi)
         self.loadRoiButton.clicked.connect(self.openLoadRoiWindow)
         self.backFromFreehandButton.clicked.connect(self.backFromFreehand)
         self.backFromRectangleButton.clicked.connect(self.backFromRect)
         self.saveRoiButton.clicked.connect(self.saveRoi)
+        
+    def hideInitialButtons(self):
+        self.drawFreehandButton.hide()
+        self.drawRectangleButton.hide()
+        self.loadRoiButton.hide()
+        
+    def showInitialButtons(self):
+        self.drawFreehandButton.show()
+        self.drawRectangleButton.show()
+        self.loadRoiButton.show()
+        
+    def hideFreehandedButtons(self):
+        self.undoLastPtButton.hide()
+        self.closeRoiButton.hide()
+        self.acceptRoiButton.hide()
+        self.backFromFreehandButton.hide()
+        self.drawRoiButton.hide()
+        self.redrawRoiButton.hide()
+        
+    def showFreehandedButtons(self):
+        self.undoLastPtButton.show()
+        self.closeRoiButton.show()
+        self.acceptRoiButton.show()
+        self.backFromFreehandButton.show()
+        self.drawRoiButton.show()
+        
+    def hideRectButtons(self):
+        self.userDrawRectangleButton.hide()
+        self.backFromRectangleButton.hide()
+        self.acceptRectangleButton.hide()
+        self.physicalRectDimsLabel.hide()
+        self.physicalRectHeightLabel.hide()
+        self.physicalRectWidthLabel.hide()
+        self.physicalRectHeightVal.hide()
+        self.physicalRectWidthVal.hide()
+        
+    def showRectButtons(self):
+        self.userDrawRectangleButton.show()
+        self.backFromRectangleButton.show()
+        self.acceptRectangleButton.show()
+        self.physicalRectDimsLabel.show()
+        self.physicalRectHeightLabel.show()
+        self.physicalRectWidthLabel.show()
+        self.physicalRectHeightVal.show()
+        self.physicalRectWidthVal.show()
+        
+    def hideLoadedRoiButtons(self):
+        self.undoLoadedRoiButton.hide()
+        self.acceptLoadedRoiButton.hide()
+        
+    def showLoadedRoiButtons(self):
+        self.undoLoadedRoiButton.show()
+        self.acceptLoadedRoiButton.show()
 
     def saveRoi(self):
         del self.saveRoiGUI
@@ -205,79 +241,46 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.saveRoiGUI.show()
 
     def undoRoiLoad(self):
-        self.undoLoadedRoiButton.setHidden(True)
-        self.acceptLoadedRoiButton.setHidden(True)
-        self.loadRoiButton.setHidden(False)
-        self.newRoiButton.setHidden(False)
-        self.drawRectangleButton.setHidden(False)
-
+        self.undoLastRoi(); self.closeRoiButton.hide()
+        self.hideLoadedRoiButtons()
+        self.showInitialButtons()
         self.utcData.rectCoords = []
-        self.undoLastRoi()
-
+        
     def openLoadRoiWindow(self):
         self.loadRoiGUI.chooseRoiGUI = self
         self.loadRoiGUI.show()
 
     def backFromFreehand(self):
-        self.newRoiButton.setHidden(False)
-        self.loadRoiButton.setHidden(False)
-        self.drawRectangleButton.setHidden(False)
-        self.drawRoiButton.setHidden(True)
-        self.undoLastPtButton.setHidden(True)
-        self.closeRoiButton.setHidden(True)
-        self.acceptRoiButton.setHidden(True)
-        self.backFromFreehandButton.setHidden(True)
         self.undoLastRoi()
+        self.hideFreehandedButtons()
+        self.showInitialButtons()
         self.drawRoiButton.setChecked(False)
         self.recordDrawRoiClicked()
 
     def backFromRect(self):
-        self.newRoiButton.setHidden(False)
-        self.drawRectangleButton.setHidden(False)
-        self.loadRoiButton.setHidden(False)
-        self.userDrawRectangleButton.setHidden(True)
-        self.backFromRectangleButton.setHidden(True)
-        self.acceptRectangleButton.setHidden(True)
-        self.physicalRectDimsLabel.setHidden(True)
-        self.physicalRectHeightLabel.setHidden(True)
-        self.physicalRectWidthLabel.setHidden(True)
-        self.physicalRectHeightVal.setHidden(True)
-        self.physicalRectWidthVal.setHidden(True)
         self.physicalRectHeightVal.setText("0")
         self.physicalRectWidthVal.setText("0")
         self.userDrawRectangleButton.setChecked(False)
-        self.undoLastRoi()
+        self.undoLastRoi(); self.closeRoiButton.hide()
+        self.hideRectButtons()
+        self.showInitialButtons()
         self.utcData.rectCoords = []
         self.selector.set_active(False)
         if len(self.ax.patches) > 0:
             self.ax.patches.pop()
         self.canvas.draw()
 
-    def drawNewRoi(self):
-        self.newRoiButton.setHidden(True)
-        self.loadRoiButton.setHidden(True)
-        self.drawRectangleButton.setHidden(True)
-        self.drawRoiButton.setHidden(False)
-        self.undoLastPtButton.setHidden(False)
-        self.closeRoiButton.setHidden(False)
-        self.acceptRoiButton.setHidden(False)
-        self.backFromFreehandButton.setHidden(False)
+    def drawFreehandRoi(self):
+        self.hideInitialButtons()
+        self.showFreehandedButtons()
 
     def startDrawRectRoi(self):
-        self.newRoiButton.setHidden(True)
-        self.drawRectangleButton.setHidden(True)
-        self.loadRoiButton.setHidden(True)
-        self.userDrawRectangleButton.setHidden(False)
-        self.backFromRectangleButton.setHidden(False)
-        self.acceptRectangleButton.setHidden(False)
-        self.physicalRectDimsLabel.setHidden(False)
-        self.physicalRectHeightLabel.setHidden(False)
-        self.physicalRectWidthLabel.setHidden(False)
-        self.physicalRectHeightVal.setHidden(False)
-        self.physicalRectWidthVal.setHidden(False)
+        self.hideInitialButtons()
+        self.showRectButtons()
 
     def backToWelcomeScreen(self):
         self.lastGui.show()
+        self.lastGui.resize(self.size())
         self.hide()
 
     def changeContrast(self):
@@ -305,8 +308,8 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.editImageDisplayGUI.show()
 
     def setFilenameDisplays(self, imageName, phantomName):
-        self.imagePathInput.setHidden(False)
-        self.phantomPathInput.setHidden(False)
+        self.imagePathInput.show()
+        self.phantomPathInput.show()
         self.imagePathInput.setText(imageName)
         self.phantomPathInput.setText(phantomName)
 
@@ -538,7 +541,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.canvas.draw()
 
     def undoLastPt(self):  # When drawing ROI, undo last point plotted
-        if len(self.pointsPlottedX) > 0:
+        if len(self.pointsPlottedX) > 0 and self.drawRoiButton.isCheckable():
             scatteredPoint = self.scatteredPoints.pop()
             scatteredPoint.remove()
             self.pointsPlottedX.pop()
@@ -591,7 +594,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.drawRoiButton.setCheckable(False)
             self.redrawRoiButton.setHidden(False)
             self.closeRoiButton.setHidden(True)
-            self.undoLastPtButton.clicked.disconnect()
             self.cid = self.figure.canvas.mpl_disconnect(self.cid)
             self.crosshairCursor.set_active(False)
             self.plotOnCanvas()
@@ -607,7 +609,6 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.drawRoiButton.setCheckable(True)
         self.closeRoiButton.setHidden(False)
         self.redrawRoiButton.setHidden(True)
-        self.undoLastPtButton.clicked.connect(self.undoLastPt)
         self.plotOnCanvas()
 
     def updateBModeSettings(
