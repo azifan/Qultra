@@ -238,7 +238,7 @@
          </property>
          <property name="styleSheet">
           <string notr="true">QFrame {
-	background-color: rgb(49, 0, 124);
+	background-color: rgb(99, 0, 174);
 	border: 1px solid black;
 }</string>
          </property>
