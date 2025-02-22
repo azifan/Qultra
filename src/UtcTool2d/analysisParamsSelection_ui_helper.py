@@ -17,6 +17,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.setLayout(self.fullScreenLayout)
 
         if system == "Windows":
             self.roiSidebarLabel.setStyleSheet(
@@ -393,20 +394,20 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             QImage.Format.Format_ARGB32,
         )
 
-        self.previewFrameMask.setPixmap(
-            QPixmap.fromImage(self.qImgMask).scaled(self.widthScale, self.depthScale)
-        )
+        # self.previewFrameMask.setPixmap(
+        #     QPixmap.fromImage(self.qImgMask).scaled(self.widthScale, self.depthScale)
+        # )
 
-        self.qIm = QImage(
-            self.imData,
-            self.arWidth,
-            self.arHeight,
-            self.bytesLine,
-            QImage.Format.Format_RGB888,
-        )
-        self.previewFrame.setPixmap(
-            QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale)
-        )
+        # self.qIm = QImage(
+        #     self.imData,
+        #     self.arWidth,
+        #     self.arHeight,
+        #     self.bytesLine,
+        #     QImage.Format.Format_RGB888,
+        # )
+        # self.previewFrame.setPixmap(
+        #     QPixmap.fromImage(self.qIm).scaled(self.widthScale, self.depthScale)
+        # )
 
         self.updateRoiSize()
         self.axWinSizeVal.valueChanged.connect(self.updateRoiSize)
@@ -417,6 +418,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
     def backToLastScreen(self):
         self.lastGui.utcData = self.utcData
         self.lastGui.show()
+        self.lastGui.resize(self.size())
         self.hide()
 
     def setFilenameDisplays(self, imageName, phantomName):
@@ -448,6 +450,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
             return
         self.rfAnalysisGUI.show()
         self.rfAnalysisGUI.lastGui = self
+        self.rfAnalysisGUI.resize(self.size())
         self.hide()
 
 

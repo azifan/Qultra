@@ -15,6 +15,7 @@ class ExportDataGUI(Ui_exportData, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.setLayout(self.fullScreenLayout)
 
         if system == "Windows":
             self.roiSidebarLabel.setStyleSheet(
@@ -231,6 +232,7 @@ class ExportDataGUI(Ui_exportData, QWidget):
 
     def backToAnalysis(self):
         self.lastGui.show()
+        self.lastGui.resize(self.size())
         self.hide()
 
     def newFileOptionSelected(self):

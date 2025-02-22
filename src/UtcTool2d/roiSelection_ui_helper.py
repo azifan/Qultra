@@ -841,6 +841,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             # self.analysisParamsGUI.plotRoiPreview()
             self.analysisParamsGUI.show()
             self.editImageDisplayGUI.hide()
+            self.analysisParamsGUI.resize(self.size())
             self.hide()
 
 
