@@ -120,35 +120,13 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
             }"""
             )
 
-        self.chooseImageFileButton.setHidden(True)
-        self.choosePhantomFileButton.setHidden(True)
-        self.chooseImageFolderButton.setHidden(True)
-        self.choosePhantomFolderButton.setHidden(True)
-        self.clearImagePathButton.setHidden(True)
-        self.clearPhantomPathButton.setHidden(True)
-        self.selectImageErrorMsg.setHidden(True)
-        self.generateImageButton.setHidden(True)
-        self.imagePathInput.setHidden(True)
-        self.phantomPathInput.setHidden(True)
-        self.selectDataLabel.setHidden(True)
-        self.imageFilenameDisplay.setHidden(True)
-        self.phantomFilenameDisplay.setHidden(True)
-        self.imagePathLabelCanon.setHidden(True)
-        self.phantomPathLabelCanon.setHidden(True)
-        self.imagePathLabelClarius.setHidden(True)
-        self.phantomPathLabelClarius.setHidden(True)
-        self.imagePathLabelVerasonics.setHidden(True)
-        self.phantomPathLabelVerasonics.setHidden(True)
-        self.imagePathLabel.setHidden(True)
-        self.phantomPathLabel.setHidden(True)
-        self.acceptFrameButton.setHidden(True)
-        self.totalFramesLabel.setHidden(True)
-        self.ofFramesLabel.setHidden(True)
-        self.curFrameSlider.setHidden(True)
-        self.curFrameLabel.setHidden(True)
-        self.imPreview.setHidden(True)
-        self.selectFrameLabel.setHidden(True)
-        self.philips3dCheckBox.setHidden(True)
+        self.setLayout(self.fullScreenLayout)
+        self.fullScreenLayout.removeItem(self.imgSelectionLayout)
+        self.hideImgSelectionLayout()
+        self.fullScreenLayout.removeItem(self.framePreviewLayout)
+        self.hideFramePreviewLayout()
+        self.fullScreenLayout.setStretchFactor(self.sidebarLayout, 1)
+        self.fullScreenLayout.setStretchFactor(self.parserOptionsLayout, 10)
 
         self.welcomeGui: QWidget
         self.roiSelectionGUI = None
@@ -173,7 +151,75 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
 
     def backToWelcomeScreen(self):
         self.welcomeGui.show()
+        self.welcomeGui.resize(self.size())
         self.hide()
+        
+    def hideParserOptionsLayout(self):
+        self.canonButton.hide()
+        self.clariusButton.hide()
+        self.verasonicsButton.hide()
+        self.terasonButton.hide()
+        self.philipsButton.hide()
+        self.siemensButton.hide()
+        self.selectImageMethodLabel.hide()
+        
+    def showParserOptionsLayout(self):
+        self.canonButton.show()
+        self.clariusButton.show()
+        self.verasonicsButton.show()
+        self.terasonButton.show()
+        self.philipsButton.show()
+        self.siemensButton.show()
+        self.selectImageMethodLabel.show()
+        
+    def hideImgSelectionLayout(self):
+        self.generateImageButton.hide()
+        self.choosePhantomFileButton.hide()
+        self.choosePhantomFolderButton.hide()
+        self.clearPhantomPathButton.hide()
+        self.phantomPathInput.hide()
+        self.phantomPathLabel.hide()
+        self.chooseImageFileButton.hide()
+        self.chooseImageFolderButton.hide()
+        self.clearImagePathButton.hide()
+        self.imagePathInput.hide()
+        self.imagePathLabel.hide()
+        self.philips3dCheckBox.hide()
+        self.selectDataLabel.hide()
+        self.selectImageErrorMsg.hide()
+    
+    def showImgSelectionLayout(self):
+        self.generateImageButton.show()
+        self.choosePhantomFileButton.show()
+        self.choosePhantomFolderButton.show()
+        self.clearPhantomPathButton.show()
+        self.phantomPathInput.show()
+        self.phantomPathLabel.show()
+        self.chooseImageFileButton.show()
+        self.chooseImageFolderButton.show()
+        self.clearImagePathButton.show()
+        self.imagePathInput.show()
+        self.imagePathLabel.show()
+        self.philips3dCheckBox.show()
+        self.selectDataLabel.show()
+        
+    def hideFramePreviewLayout(self):
+        self.totalFramesLabel.hide()
+        self.ofFramesLabel.hide()
+        self.curFrameSlider.hide()
+        self.curFrameLabel.hide()
+        self.acceptFrameButton.hide()
+        self.imPreview.hide()
+        self.selectFrameLabel.hide()
+        
+    def showFramePreviewLayout(self):
+        self.totalFramesLabel.show()
+        self.ofFramesLabel.show()
+        self.curFrameSlider.show()
+        self.curFrameLabel.show()
+        self.acceptFrameButton.show()
+        self.imPreview.show()
+        self.selectFrameLabel.show()
 
     def moveToRoiSelection(self):
         if self.machine == "Verasonics":
@@ -205,7 +251,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
                     )
                 else:
                     self.selectImageErrorMsg.setText("ERROR: Presets don't match")
-                    self.selectImageErrorMsg.setHidden(False)
+                    self.selectImageErrorMsg.show()
                     return
             elif self.machine == "Clarius":
                 self.openClariusImage()
@@ -225,8 +271,9 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
                 return
             self.roiSelectionGUI.show()
             self.roiSelectionGUI.lastGui = self
-            self.selectImageErrorMsg.setHidden(True)
+            self.selectImageErrorMsg.hide()
             self.loadingScreen.hide()
+            self.roiSelectionGUI.resize(self.size())
             self.hide()
 
     def openSiemensImage(self):
@@ -360,42 +407,18 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
 
         self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.imPreview.width(), self.imPreview.height(), Qt.AspectRatioMode.IgnoreAspectRatio))
 
-        self.totalFramesLabel.setHidden(False)
-        self.ofFramesLabel.setHidden(False)
-        self.curFrameSlider.setHidden(False)
-        self.curFrameLabel.setHidden(False)
-        self.imPreview.setHidden(False)
-        self.selectFrameLabel.setHidden(False)
-        self.imagePathInput.setHidden(True)
-        self.phantomPathInput.setHidden(True)
-        self.clearImagePathButton.setHidden(True)
-        self.clearPhantomPathButton.setHidden(True)
-        self.generateImageButton.setHidden(True)
-        self.selectImageMethodLabel.setHidden(True)
-        self.canonButton.setHidden(True)
-        self.clariusButton.setHidden(True)
-        self.imagePathLabelClarius.setHidden(True)
-        self.phantomPathLabelClarius.setHidden(True)
-        self.verasonicsButton.setHidden(True)
-        self.terasonButton.setHidden(True)
-        self.philipsButton.setHidden(True)
-        self.siemensButton.setHidden(True)
-        self.chooseImageFileButton.setHidden(True)
-        self.choosePhantomFileButton.setHidden(True)
-        self.imagePathLabel.setHidden(True)
-        self.phantomPathLabel.setHidden(True)
-        self.selectDataLabel.setHidden(True)
-        self.acceptFrameButton.setHidden(False)
-        self.philips3dCheckBox.setHidden(True)
-
+        self.fullScreenLayout.removeItem(self.imgSelectionLayout)
+        self.hideImgSelectionLayout()
+        self.fullScreenLayout.addItem(self.framePreviewLayout)
+        self.showFramePreviewLayout()
+        self.fullScreenLayout.setStretchFactor(self.framePreviewLayout, 10)
+        self.totalFramesLabel.setText(str(self.imArray.shape[0]-1))
         self.curFrameSlider.setMinimum(0)
         self.curFrameSlider.setMaximum(self.imArray.shape[0]-1)
-        self.curFrameLabel.setText("0")
-        self.totalFramesLabel.setText(str(self.imArray.shape[0]-1))
         self.curFrameSlider.valueChanged.connect(self.frameChanged)
-
+        self.curFrameLabel.setText("0")
         self.loadingScreen.hide()
-        self.update()   
+        self.update()
     
     def frameChanged(self):
         self.frame = self.curFrameSlider.value()
@@ -429,6 +452,7 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.roiSelectionGUI.processImage(self.imgDataStruct, self.refDataStruct, self.imgInfoStruct, self.refInfoStruct)
         self.roiSelectionGUI.lastGui = self
         self.roiSelectionGUI.show()
+        self.roiSelectionGUI.resize(self.size())
         self.loadingScreen.hide()
         self.hide()
 
@@ -445,28 +469,14 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
     def clearPhantomPath(self):
         self.phantomPathInput.clear()
 
-    def chooseImagePrep(self):
-        self.imagePathInput.setHidden(False)
-        self.phantomPathInput.setHidden(False)
-        self.clearImagePathButton.setHidden(False)
-        self.clearPhantomPathButton.setHidden(False)
-        self.generateImageButton.setHidden(False)
-        self.selectImageMethodLabel.setHidden(True)
-        self.canonButton.setHidden(True)
-        self.clariusButton.setHidden(True)
-        self.verasonicsButton.setHidden(True)
-        self.terasonButton.setHidden(True)
-        self.philipsButton.setHidden(True)
-        self.siemensButton.setHidden(True)
-
     def philipsClicked(self):
-        self.chooseImagePrep()
-        self.selectDataLabel.setHidden(False)
-        self.imagePathLabel.setHidden(False)
-        self.phantomPathLabel.setHidden(False)
-        self.chooseImageFileButton.setHidden(False)
-        self.choosePhantomFileButton.setHidden(False)
-        self.philips3dCheckBox.setHidden(False)
+        self.fullScreenLayout.removeItem(self.parserOptionsLayout)
+        self.hideParserOptionsLayout()
+        self.fullScreenLayout.addItem(self.imgSelectionLayout)
+        self.showImgSelectionLayout()
+        self.fullScreenLayout.setStretchFactor(self.imgSelectionLayout, 10)
+        self.chooseImageFileButton.hide()
+        self.choosePhantomFileButton.hide()
 
         self.imagePathLabel.setText("Input Path to Image file\n (.rf, .mat)")
         self.phantomPathLabel.setText("Input Path to Phantom file\n (.rf, .mat)")
@@ -475,12 +485,14 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.fileExts = "*.rf *.mat"
 
     def terasonClicked(self):
-        self.chooseImagePrep()
-        self.selectDataLabel.setHidden(False)
-        self.imagePathLabel.setHidden(False)
-        self.phantomPathLabel.setHidden(False)
-        self.chooseImageFileButton.setHidden(False)
-        self.choosePhantomFileButton.setHidden(False)
+        self.fullScreenLayout.removeItem(self.parserOptionsLayout)
+        self.hideParserOptionsLayout()
+        self.fullScreenLayout.addItem(self.imgSelectionLayout)
+        self.fullScreenLayout.setStretchFactor(self.imgSelectionLayout, 10)
+        self.showImgSelectionLayout()
+        self.chooseImageFolderButton.hide()
+        self.choosePhantomFolderButton.hide()
+        self.philips3dCheckBox.hide()
 
         self.imagePathLabel.setText("Input Path to Image file\n (.mat)")
         self.phantomPathLabel.setText("Input Path to Phantom file\n (.mat)")
@@ -489,12 +501,14 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.fileExts = "*.mat"
 
     def siemensClicked(self):
-        self.chooseImagePrep()
-        self.selectDataLabel.setHidden(False)
-        self.imagePathLabel.setHidden(False)
-        self.phantomPathLabel.setHidden(False)
-        self.chooseImageFileButton.setHidden(False)
-        self.choosePhantomFileButton.setHidden(False)
+        self.fullScreenLayout.removeItem(self.parserOptionsLayout)
+        self.hideParserOptionsLayout()
+        self.fullScreenLayout.addItem(self.imgSelectionLayout)
+        self.fullScreenLayout.setStretchFactor(self.imgSelectionLayout, 10)
+        self.showImgSelectionLayout()
+        self.chooseImageFolderButton.hide()
+        self.choosePhantomFolderButton.hide()
+        self.philips3dCheckBox.hide()
 
         self.imagePathLabel.setText("Input Path to Image file\n (.rfd)")
         self.phantomPathLabel.setText("Input Path to Phantom file\n (.rfd)")
@@ -505,23 +519,33 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
     def canonClicked(
         self,
     ):  # Move user to screen to select individual files to generate image
-        self.chooseImagePrep()
-        self.selectDataLabel.setHidden(False)
-        self.imagePathLabelCanon.setHidden(False)
-        self.phantomPathLabelCanon.setHidden(False)
-        self.chooseImageFileButton.setHidden(False)
-        self.choosePhantomFileButton.setHidden(False)
+        self.fullScreenLayout.removeItem(self.parserOptionsLayout)
+        self.hideParserOptionsLayout()
+        self.fullScreenLayout.addItem(self.imgSelectionLayout)
+        self.fullScreenLayout.setStretchFactor(self.imgSelectionLayout, 10)
+        self.showImgSelectionLayout()
+        self.chooseImageFolderButton.hide()
+        self.choosePhantomFolderButton.hide()
+        self.philips3dCheckBox.hide()
+        
+        self.imagePathLabel.setText("Input Path to Image file\n (.bin)")
+        self.phantomPathLabel.setText("Input Path to Phantom file\n (.bin)")
 
         self.machine = "Canon"
         self.fileExts = "*.bin"
 
     def clariusClicked(self):
-        self.chooseImagePrep()
-        self.selectDataLabel.setHidden(False)
-        self.imagePathLabelClarius.setHidden(False)
-        self.phantomPathLabelClarius.setHidden(False)
-        self.chooseImageFileButton.setHidden(False)
-        self.choosePhantomFileButton.setHidden(False)
+        self.fullScreenLayout.removeItem(self.parserOptionsLayout)
+        self.hideParserOptionsLayout()
+        self.fullScreenLayout.addItem(self.imgSelectionLayout)
+        self.fullScreenLayout.setStretchFactor(self.imgSelectionLayout, 10)
+        self.showImgSelectionLayout()
+        self.chooseImageFolderButton.hide()
+        self.choosePhantomFolderButton.hide()
+        self.philips3dCheckBox.hide()
+        
+        self.imagePathLabel.setText("Input Path to Image file\n (.raw)")
+        self.phantomPathLabel.setText("Input Path to Phantom file\n (.raw)")
 
         self.machine = "Clarius"
         self.fileExts = "*.raw"
@@ -529,26 +553,18 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
     def verasonicsClicked(
         self,
     ):  # Move user to screen to select individual files to generate image
-        self.chooseImagePrep()
-        self.selectDataLabel.setHidden(False)
-        self.imagePathLabelVerasonics.setHidden(False)
-        self.chooseImageFileButton.setHidden(False)
-
-        self.phantomPathInput.setHidden(True)
-        self.clearPhantomPathButton.setHidden(True)
-
-        imagePathLabelPos = self.imagePathLabelCanon.pos()
-        imagePathLabelPos.setX(625)
-        self.imagePathLabelVerasonics.move(imagePathLabelPos)
-        chooseImageFilePos = self.chooseImageFileButton.pos()
-        chooseImageFilePos.setX(625)
-        self.chooseImageFileButton.move(chooseImageFilePos)
-        clearImagePathPos = self.clearImagePathButton.pos()
-        clearImagePathPos.setX(765)
-        self.clearImagePathButton.move(clearImagePathPos)
-        imagePathPos = self.imagePathInput.pos()
-        imagePathPos.setX(655)
-        self.imagePathInput.move(imagePathPos)
+        self.fullScreenLayout.removeItem(self.parserOptionsLayout)
+        self.hideParserOptionsLayout()
+        self.fullScreenLayout.addItem(self.imgSelectionLayout)
+        self.fullScreenLayout.setStretchFactor(self.imgSelectionLayout, 10)
+        self.showImgSelectionLayout()
+        self.chooseImageFolderButton.hide()
+        self.choosePhantomFolderButton.hide()
+        self.philips3dCheckBox.hide()
+        self.phantomPathInput.hide()
+        self.clearPhantomPathButton.hide()
+        
+        self.imagePathLabel.setText("Input Path to Image file\n (.mat)")
 
         self.machine = "Verasonics"
         self.fileExts = "*.mat"
@@ -560,11 +576,11 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         os.mkdir("Junk")
 
         selectImageHelper(self.imagePathInput, self.fileExts)
-        self.selectImageErrorMsg.setHidden(True)
+        self.selectImageErrorMsg.hide()
 
     def selectPhantomFile(self):
         selectImageHelper(self.phantomPathInput, self.fileExts)
-        self.selectImageErrorMsg.setHidden(True)
+        self.selectImageErrorMsg.hide()
 
 
 if __name__ == "__main__":

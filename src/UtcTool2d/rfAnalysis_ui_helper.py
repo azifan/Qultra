@@ -23,6 +23,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.setLayout(self.fullScreenLayout)
 
         if system == "Windows":
             self.roiSidebarLabel.setStyleSheet(
@@ -266,6 +267,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
             self.imagePathInput.text(), self.phantomPathInput.text()
         )
         self.exportDataGUI.show()
+        self.exportDataGUI.resize(self.size())
         self.hide()
 
     def backToLastScreen(self):
@@ -273,6 +275,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         del self.psGraphDisplay
         self.lastGui.utcData = self.utcData
         self.lastGui.show()
+        self.lastGui.resize(self.size())
         self.hide()
 
     def setFilenameDisplays(self, imageName, phantomName):

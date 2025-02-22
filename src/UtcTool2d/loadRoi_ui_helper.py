@@ -45,15 +45,8 @@ class LoadRoiGUI(Ui_loadRoi, QWidget):
             self.chooseRoiGUI.utcData.splineX = roiInfo["Spline X"]
             self.chooseRoiGUI.utcData.splineY = roiInfo["Spline Y"]
             self.chooseRoiGUI.plotOnCanvas()
-            self.chooseRoiGUI.acceptLoadedRoiButton.setHidden(False)
-            self.chooseRoiGUI.undoLoadedRoiButton.setHidden(False)
-            self.chooseRoiGUI.newRoiButton.setHidden(True)
-            self.chooseRoiGUI.loadRoiButton.setHidden(True)
-            self.chooseRoiGUI.drawRoiButton.setChecked(True)
-            self.chooseRoiGUI.drawRoiButton.setCheckable(True)
-            self.chooseRoiGUI.redrawRoiButton.setHidden(True)
-            self.chooseRoiGUI.drawRectangleButton.setHidden(True)
-            self.chooseRoiGUI.closeRoiButton.setHidden(True)
+            self.chooseRoiGUI.hideInitialButtons()
+            self.chooseRoiGUI.showFreehandedButtons()
 
             self.hide()
             self.chooseRoiGUI.show()
