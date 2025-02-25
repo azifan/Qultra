@@ -392,19 +392,6 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.arHeight = self.imData.shape[0]
         self.arWidth = self.imData.shape[1]
         self.qIm = QImage(self.imData, self.arWidth, self.arHeight, self.bytesLine, QImage.Format.Format_Grayscale8)
-
-        quotient = self.imgInfoStruct.width / self.imgInfoStruct.depth
-        if quotient > (721/501):
-            self.widthScale = 721
-            self.depthScale = self.widthScale / (self.imgInfoStruct.width/self.imgInfoStruct.depth)
-        else:
-            self.widthScale = 501 * quotient
-            self.depthScale = 501
-        self.yBorderMin = 110 + ((501 - self.depthScale)/2)
-        self.yBorderMax = 611 - ((501 - self.depthScale)/2)
-        self.xBorderMin = 410 + ((721 - self.widthScale)/2)
-        self.xBorderMax = 1131 - ((721 - self.widthScale)/2)
-
         self.imPreview.setPixmap(QPixmap.fromImage(self.qIm).scaled(self.imPreview.width(), self.imPreview.height(), Qt.AspectRatioMode.IgnoreAspectRatio))
 
         self.fullScreenLayout.removeItem(self.imgSelectionLayout)

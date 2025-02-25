@@ -149,9 +149,9 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.utcData: UtcData
         self.lastGui: SelectImageSection.SelectImageGUI_UtcTool2dIQ
 
-        self.crosshairCursor = Cursor(
-            self.ax, color="gold", linewidth=0.4, useblit=True
-        )
+        # self.crosshairCursor = Cursor(
+        #     self.ax, color="gold", linewidth=0.4, useblit=True
+        # )
         self.selector = RectangleSelector(
             self.ax,
             self.drawRect,
@@ -354,8 +354,12 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             )
             if len(self.pointsPlottedX) > 1:
                 xSpline, ySpline = calculateSpline(
-                    self.pointsPlottedX, self.pointsPlottedY
+                    np.array(self.pointsPlottedX) / self.utcData.pixWidth, np.array(self.pointsPlottedY) / self.utcData.pixDepth
                 )
+                xSpline *= self.utcData.pixWidth
+                ySpline *= self.utcData.pixDepth
+                xSpline = np.clip(xSpline, a_min=0, a_max=self.utcData.pixWidth-1)
+                ySpline = np.clip(ySpline, a_min=0, a_max=self.utcData.pixDepth-1)
                 self.spline = self.ax.plot(
                     xSpline, ySpline, color="cyan", zorder=1, linewidth=0.75
                 )
@@ -363,7 +367,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
         self.figure.subplots_adjust(
             left=0, right=1, bottom=0, top=1, hspace=0.2, wspace=0.2
         )
-        self.crosshairCursor.set_active(False)
+        # self.crosshairCursor.set_active(False)
         plt.tick_params(bottom=False, left=False, labelbottom=False, labelleft=False)
         self.canvas.draw()  # Refresh canvas
 
@@ -522,11 +526,11 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.cid = self.figure.canvas.mpl_connect(
                 "button_press_event", self.interpolatePoints
             )
-            self.crosshairCursor.set_active(True)
+            # self.crosshairCursor.set_active(True)
         else:  # No longer let b-mode be drawn on
             if hasattr(self, "cid"):
                 self.cid = self.figure.canvas.mpl_disconnect(self.cid)
-            self.crosshairCursor.set_active(False)
+            # self.crosshairCursor.set_active(False)
         self.canvas.draw()
 
     def recordDrawRectClicked(self):
@@ -550,9 +554,15 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 oldSpline = self.spline.pop(0)
                 oldSpline.remove()
                 if len(self.pointsPlottedX) > 1:
-                    self.utcData.splineX, self.utcData.splineY = calculateSpline(
-                        self.pointsPlottedX, self.pointsPlottedY
+                    xSpline, ySpline = calculateSpline(
+                        np.array(self.pointsPlottedX) / self.utcData.pixWidth, np.array(self.pointsPlottedY) / self.utcData.pixDepth
                     )
+                    xSpline *= self.utcData.pixWidth
+                    ySpline *= self.utcData.pixDepth
+                    xSpline = np.clip(xSpline, a_min=0, a_max=self.utcData.pixWidth-1)
+                    ySpline = np.clip(ySpline, a_min=0, a_max=self.utcData.pixDepth-1)
+                    self.utcData.splineX = xSpline
+                    self.utcData.splineY = ySpline
                     self.spline = self.ax.plot(
                         self.utcData.splineX,
                         self.utcData.splineY,
@@ -571,9 +581,16 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             if self.pointsPlottedX[0] != self.pointsPlottedX[-1] and self.pointsPlottedY[0] != self.pointsPlottedY[-1]:
                 self.pointsPlottedX.append(self.pointsPlottedX[0])
                 self.pointsPlottedY.append(self.pointsPlottedY[0])
-            self.utcData.splineX, self.utcData.splineY = calculateSpline(
-                self.pointsPlottedX, self.pointsPlottedY
+            xSpline, ySpline = calculateSpline(
+                np.array(self.pointsPlottedX) / self.utcData.pixWidth, np.array(self.pointsPlottedY) / self.utcData.pixDepth
             )
+            xSpline *= self.utcData.pixWidth
+            ySpline *= self.utcData.pixDepth
+            xSpline = np.clip(xSpline, a_min=0, a_max=self.utcData.pixWidth-1)
+            ySpline = np.clip(ySpline, a_min=0, a_max=self.utcData.pixDepth-1)
+            self.utcData.splineX = xSpline
+            self.utcData.splineY = ySpline
+            
             self.utcData.splineX = np.clip(self.utcData.splineX, a_min=0, a_max=self.utcData.pixWidth-1)
             self.utcData.splineY = np.clip(self.utcData.splineY, a_min=0, a_max=self.utcData.pixDepth-1)
 
@@ -595,7 +612,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.redrawRoiButton.setHidden(False)
             self.closeRoiButton.setHidden(True)
             self.cid = self.figure.canvas.mpl_disconnect(self.cid)
-            self.crosshairCursor.set_active(False)
+            # self.crosshairCursor.set_active(False)
             self.plotOnCanvas()
 
     def undoLastRoi(
@@ -680,7 +697,11 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
                 oldSpline = self.spline.pop(0)
                 oldSpline.remove()
 
-            xSpline, ySpline = calculateSpline(self.pointsPlottedX, self.pointsPlottedY)
+            xSpline, ySpline = calculateSpline(
+                np.array(self.pointsPlottedX) / self.utcData.pixWidth, np.array(self.pointsPlottedY) / self.utcData.pixDepth
+            )
+            xSpline *= self.utcData.pixWidth
+            ySpline *= self.utcData.pixDepth
             xSpline = np.clip(xSpline, a_min=0, a_max=self.utcData.pixWidth-1)
             ySpline = np.clip(ySpline, a_min=0, a_max=self.utcData.pixDepth-1)
             self.spline = self.ax.plot(
