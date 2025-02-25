@@ -151,6 +151,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.exportDataGUI = ExportDataGUI()
         self.lastGui: AnalysisParamsSelection.AnalysisParamsGUI
         self.utcData: UtcData
+        self.frame: int
         self.newData = None
         self.psGraphDisplay = PsGraphDisplay()
         self.saveConfigGUI = SaveConfigGUI()
@@ -259,7 +260,8 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
                 "Midband Fit (MBF)": [np.mean(self.utcData.mbfArr)],
                 "Spectral Slope (SS)": [np.mean(self.utcData.ssArr)],
                 "Spectral Intercept (SI)": [np.mean(self.utcData.siArr)],
-                "ROI Name": ""
+                "ROI Name": "",
+                "Frame Number": [self.frame],
             }
         self.exportDataGUI.dataFrame = pd.DataFrame.from_dict(curData)
         self.exportDataGUI.lastGui = self

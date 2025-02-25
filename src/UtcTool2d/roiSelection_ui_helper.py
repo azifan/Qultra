@@ -834,6 +834,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
             self.analysisParamsGUI.utcData = self.utcData
             self.analysisParamsGUI.initParams()
             self.analysisParamsGUI.lastGui = self
+            self.analysisParamsGUI.frame = self.frame
             self.analysisParamsGUI.setFilenameDisplays(
                 self.imagePathInput.text(),
                 self.phantomPathInput.text(),
