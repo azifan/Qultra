@@ -97,6 +97,8 @@ class ExportDataGUI(Ui_exportData, QWidget):
                 font-weight:bold;
             }"""
             )
+            
+        self.frame: int
 
         self.newFolderPathInput.setHidden(True)
         self.newFileNameInput.setHidden(True)

@@ -202,6 +202,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.loadConfigGUI = LoadConfigGUI()
         self.lastGui: RoiSelectionSection.RoiSelectionGUI
         self.utcData: UtcData
+        self.frame: int
 
         self.continueButton.clicked.connect(self.continueToRfAnalysis)
         self.backButton.clicked.connect(self.backToLastScreen)
@@ -451,6 +452,7 @@ class AnalysisParamsGUI(Ui_analysisParams, QWidget):
         self.rfAnalysisGUI.show()
         self.rfAnalysisGUI.lastGui = self
         self.rfAnalysisGUI.resize(self.size())
+        self.rfAnalysisGUI.frame = self.frame
         self.hide()
 
 
