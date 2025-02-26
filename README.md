@@ -38,7 +38,7 @@ From here, a lognormal curve is fitted, returning the area under the curve (AUC)
 
 First, download [Python3.11.8](https://www.python.org/downloads/release/python-3118/) (non-Conda version) from the Python website. Once installed, note its path. We will refer to this path as `$PYTHON` below.
 
-Next, complete the following steps. Note lines commented with `# Unix` should only be run on MacOS or Linux while lines commented with `# Windows` should only be run on Windows.
+Next, complete the following steps. Note lines commented with `# Unix` should only be run on MacOS or Linux while lines commented with `# Windows (cmd)` should only be run on the Windows command prompt.
 
 ```shell
 git clone https://github.com/TUL-Dev/QuantUS.git
@@ -46,13 +46,13 @@ cd QuantUS
 $PYTHON -m pip install virtualenv
 $PYTHON -m virtualenv .venv
 source .venv/bin/activate # Unix
-.venv\Scripts\activate # Windows cmd
+.venv\Scripts\activate # Windows (cmd)
 sudo apt-get update & sudo apt-get install python3-dev # Linux
 pip install -r requirements.txt
 ```
 
 Following this example, this environment can be accessed via the `source .venv/bin/activate`
-command from the repository directory on Unix systems, and by `.venv\Scripts\activate` on Windows.
+command from the repository directory on Unix systems, and by `.venv\Scripts\activate` on Windows command prompt.
 
 ## Building
 
@@ -63,9 +63,8 @@ After configuring a Python virtual environment, finish preparing QuantUS to be r
 chmod +x saveQt.sh
 ./saveQt.sh
 
-# Using Python virtual env (Windows)
-ren saveQt.sh saveQt.bat
-.\saveQt.bat
+# Using Python virtual env (Windows (cmd))
+.\saveQt.sh
 ```
 
 ## Running
@@ -77,10 +76,10 @@ source .venv/bin/activate
 python main.py
 ```
 
-### Windows
+### Windows (cmd)
 
 ```shell
-call .venv\scripts\activate.bat
+.venv\scripts\activate
 python main.py
 ```
 
@@ -95,7 +94,7 @@ data.
 This dataset can be installed locally using our Python virtual environment. Specifically, the commands for installation are
 
 ```shell
-source .venv/bin/activate | call .venv\Scripts\activate.bat
+source .venv/bin/activate | .venv\Scripts\activate
 python sampleData.py
 ```
 

@@ -1,6 +1,5 @@
 import os
 import re
-import platform
 
 from openpyxl import load_workbook, Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -8,77 +7,11 @@ from PyQt6.QtWidgets import QWidget, QFileDialog, QApplication
 
 from src.CeusMcTool2d.exportData_ui import Ui_exportData
 
-system = platform.system()
-
 
 class ExportDataGUI(Ui_exportData, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-
-        if system == "Windows":
-            self.imageSelectionLabelSidebar.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.imageLabel.setStyleSheet(
-                """QLabel {
-                font-size: 13px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.imagePathInput.setStyleSheet(
-                """QLabel {
-                font-size: 11px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-            }"""
-            )
-            self.roiSidebarLabel.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.analysisParamsLabel.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight:bold;
-            }"""
-            )
-            self.ticAnalysisLabel.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.rfAnalysisLabel.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
 
         self.newFolderPathInput.setHidden(True)
         self.newFileNameInput.setHidden(True)

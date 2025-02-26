@@ -1,4 +1,3 @@
-import platform
 import os
 
 import numpy as np
@@ -13,8 +12,6 @@ from src.CeusMcTool2d.ceusAnalysis_ui import Ui_ceusAnalysis
 from src.CeusMcTool2d.exportData_ui_helper import ExportDataGUI
 from src.CeusMcTool2d.genParamap_ui_helper import GenParamapGUI, ParamapInputs
 
-system = platform.system()
-
 def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
     new_cmap = colors.LinearSegmentedColormap.from_list(
         "trunc({n},{a:.2f},{b:.2f})".format(n=cmap.name, a=minval, b=maxval),
@@ -27,150 +24,6 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-
-        if system == "Windows":
-            self.imageSelectionLabelSidebar.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.imageLabel.setStyleSheet(
-                """QLabel {
-                font-size: 13px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.imagePathInput.setStyleSheet(
-                """QLabel {
-                font-size: 11px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-            }"""
-            )
-            self.roiSidebarLabel.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.analysisParamsLabel.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight:bold;
-            }"""
-            )
-            self.ticAnalysisLabel.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.rfAnalysisLabel.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.aucLabel.setStyleSheet(
-                """QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }"""
-            )
-            self.aucVal.setStyleSheet(
-                """QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }"""
-            )
-            self.peLabel.setStyleSheet(
-                """QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }"""
-            )
-            self.peVal.setStyleSheet(
-                """QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }"""
-            )
-            self.mttLabel.setStyleSheet(
-                """QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }"""
-            )
-            self.mttVal.setStyleSheet(
-                """QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }"""
-            )
-            self.tpLabel.setStyleSheet(
-                """QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }"""
-            )
-            self.tpVal.setStyleSheet(
-                """QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            # }"""
-            )
-            # self.tmppvLabel.setStyleSheet("""QLabel {
-            #     color: white;
-            #     background-color: rgba(0,0,0,0);
-            #     font-size: 13px;
-            # }""")
-            # self.tmppvVal.setStyleSheet("""QLabel {
-            #     color: white;
-            #     background-color: rgba(0,0,0,0);
-            #     font-size: 13px;
-            # }""")
-            self.voiVolumeLabel.setStyleSheet(
-                """QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }"""
-            )
-            self.voiVolumeVal.setStyleSheet(
-                """QLabel {
-                color: white;
-                background-color: rgba(0,0,0,0);
-                font-size: 13px;
-            }"""
-            )
 
         self.mcResultsArray = None
         self.curFrameIndex = None
