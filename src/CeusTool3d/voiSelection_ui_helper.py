@@ -1,5 +1,4 @@
 import os
-import platform
 from pathlib import Path
 from itertools import chain
 from contextlib import suppress
@@ -24,83 +23,10 @@ from src.CeusTool3d.advancedRoi_ui_helper import AdvancedRoiDrawGUI
 from src.Utils.qtSupport import MouseTracker, qImToPIL
 from src.Utils.spline import calculateSpline3D, calculateSpline, removeDuplicates
 
-system = platform.system()
-
 class VoiSelectionGUI(Ui_constructVoi, QWidget):
     def __init__(self):
-        # self.selectImage = QWidget()
         super().__init__()
         self.setupUi(self)
-
-        if system == "Windows":
-            self.imageSelectionLabelSidebar.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.imageLabel.setStyleSheet(
-                """QLabel {
-                font-size: 13px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.imagePathInput.setStyleSheet(
-                """QLabel {
-                font-size: 11px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-            }"""
-            )
-            self.roiSidebarLabel.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.analysisParamsLabel.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight:bold;
-            }"""
-            )
-            self.ticAnalysisLabel.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.rfAnalysisLabel.setStyleSheet(
-                """QLabel {
-                font-size: 18px;
-                color: rgb(255, 255, 255);
-                background-color: rgba(255, 255, 255, 0);
-                border: 0px;
-                font-weight: bold;
-            }"""
-            )
-            self.voiAlphaSpinBox.setStyleSheet(
-                """QSpinBox{
-                background-color: white;
-                font-size: 13px;
-            }"""
-            )
 
         self.setLayout(self.fullScreenLayout)
         self.hideVoiAlphaLayout()

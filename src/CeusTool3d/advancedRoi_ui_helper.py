@@ -1,6 +1,3 @@
-
-import platform
-
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -10,8 +7,6 @@ from PyQt6.QtWidgets import QWidget, QApplication, QHBoxLayout
 from PyQt6.QtGui import QResizeEvent
 
 from src.CeusTool3d.advancedRoi_ui import Ui_advancedRoi
-
-system = platform.system()
 
 def calculateSpline(xpts, ypts):  # 2D spline interpolation
     cv = []

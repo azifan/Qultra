@@ -1,5 +1,3 @@
-import platform
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -15,9 +13,6 @@ from src.CeusTool3d.ceusAnalysis_ui import Ui_ceusAnalysis
 from src.CeusTool3d.exportData_ui_helper import ExportDataGUI
 from src.CeusTool3d.legend_ui_helper import LegendDisplay
 from src.Utils.qtSupport import MouseTracker, qImToPIL
-
-
-system = platform.system()
 
 
 class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
