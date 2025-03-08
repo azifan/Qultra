@@ -366,6 +366,7 @@ class RoiSelectionGUI(QWidget, Ui_constructRoi):
     ):
         self.ultrasoundImage.rf = imgDataStruct.rf
         self.ultrasoundImage.phantomRf = refDataStruct.rf
+        assert self.ultrasoundImage.rf.shape == self.ultrasoundImage.phantomRf.shape
 
         analysisConfig = AnalysisConfig()
         analysisConfig.analysisFreqBand = [imgInfoStruct.lowBandFreq, imgInfoStruct.upBandFreq]
