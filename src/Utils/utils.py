@@ -502,13 +502,14 @@ def xml2nifti(folderPath, fileDestination):
     imarray_org[imarray_org < 0] = 0
     imarray_org = imarray_org.astype("uint8")
     imarray_org2 = np.squeeze(imarray_org)
+    del imarray_org
     imarray_org2 = imarray_org2.swapaxes(0, 3)
     imarray_org2 = imarray_org2.swapaxes(1, 2)
     print("Saving cleaned up 4D:")
     print(str(datetime.now()))
 
     affine = np.eye(4)
-    niiarray = nib.Nifti1Image(np.transpose(imarray_org2.astype("uint8")), affine)
+    niiarray = nib.Nifti1Image(np.transpose(imarray_org2), affine)
     niiarray.header["pixdim"] = [
         4.0,
         orgres[2],
