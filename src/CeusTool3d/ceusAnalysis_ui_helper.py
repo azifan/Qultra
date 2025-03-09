@@ -232,7 +232,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                         (self.minAuc + ((self.maxAuc - self.minAuc) / 4))/(10**scale), decimals=2
                     ),
                     np.round(
-                        (self.minAuc + ((self.maxAuc - self.minAuc) / 4))/(10**scale), decimals=2
+                        (self.minAuc + ((self.maxAuc - self.minAuc) / 2))/(10**scale), decimals=2
                     ),
                     np.round(
                         (self.minAuc + (3 * (self.maxAuc - self.minAuc) / 4))/(10**scale), decimals=2
@@ -296,7 +296,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 [
                     np.round(self.minPe, decimals=2),
                     np.round(self.minPe + ((self.maxPe - self.minPe) / 4), decimals=2),
-                    np.round(self.minPe + ((self.maxPe - self.minPe) / 4), decimals=2),
+                    np.round(self.minPe + ((self.maxPe - self.minPe) / 2), decimals=2),
                     np.round(
                         self.minPe + (3 * (self.maxPe - self.minPe) / 4), decimals=2
                     ),
@@ -369,7 +369,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 [
                     np.round(self.minTp, decimals=1),
                     np.round(self.minTp + ((self.maxTp - self.minTp) / 4), decimals=1),
-                    np.round(self.minTp + ((self.maxTp - self.minTp) / 4), decimals=1),
+                    np.round(self.minTp + ((self.maxTp - self.minTp) / 2), decimals=1),
                     np.round(
                         self.minTp + (3 * (self.maxTp - self.minTp) / 4), decimals=1
                     ),
@@ -436,7 +436,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                         self.minMtt + ((self.maxMtt - self.minMtt) / 4), decimals=1
                     ),
                     np.round(
-                        self.minMtt + ((self.maxMtt - self.minMtt) / 4), decimals=1
+                        self.minMtt + ((self.maxMtt - self.minMtt) / 2), decimals=1
                     ),
                     np.round(
                         self.minMtt + (3 * (self.maxMtt - self.minMtt) / 4), decimals=1
