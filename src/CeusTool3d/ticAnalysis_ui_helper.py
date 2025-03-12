@@ -146,6 +146,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
     def sliceValueChanged(self):
         if not self.t0Slider.isHidden():
             self.curSliceIndex = self.findSliceFromTime(self.t0Slider.value())
+            self.selectedFrameVal.setText(str(self.curSliceIndex))
         self.updateCrosshairs()
 
     def initT0(self):
@@ -365,6 +366,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
             )
             self.curSliceIndex = self.findSliceFromTime(xdata[ind])
             self.canvas.draw()
+            self.selectedFrameVal.setText(str(self.curSliceIndex))
             self.updateCrosshairs()
 
     def changeAxialSlices(self):
