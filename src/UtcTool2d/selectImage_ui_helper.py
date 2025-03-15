@@ -12,7 +12,7 @@ from pyquantus.parse.canon import findPreset
 from pyquantus.parse.philipsMat import philips2dRfMatParser
 from pyquantus.parse.philipsRf import philipsRfParser
 from pyquantus.parse.siemens import siemensRfParser
-from pyquantus.parse.clarius import clariusRfParser
+from pyquantus.parse.clarius import ClariusTarUnpacker, clariusRfParser
 from pyquantus.utc import UtcData
 from pyquantus.parse.objects import ScConfig
 from src.UtcTool2d.loadingScreen_ui_helper import LoadingScreenGUI
@@ -205,12 +205,41 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.displaySlidingFrames()
         
     def openClariusImage(self):
-        imageRfPath = self.imagePathInput.text()
-        imageInfoPath = imageRfPath.replace(".raw", ".yml")
-        imageTgcPath = imageRfPath.replace("_rf.raw", "_env.tgc.yml")
-        phantomRfPath = self.phantomPathInput.text()
-        phantomInfoPath = phantomRfPath.replace(".raw", ".yml")
-        phantomTgcPath = phantomRfPath.replace("_rf.raw", "_env.tgc.yml")
+        if self.imagePathInput.text().endswith(".tar"):
+            ClariusTarUnpacker(self.imagePathInput.text(), "single_tar")
+            unpackedTarFolder = Path(self.imagePathInput.text().replace(".tar", "_extracted"))
+            imageRfPath = ""; imageTgcPath = ""; imageInfoPath = ""
+            for file in unpackedTarFolder.iterdir():
+                if file.name.endswith("_rf.raw"):
+                    imageRfPath = str(file)
+                elif file.name.endswith("_env.tgc.yml"):
+                    imageTgcPath = str(file)
+                elif file.name.endswith("_rf.yml"):
+                    imageInfoPath = str(file)
+            if imageRfPath == "" or imageInfoPath == "" or imageTgcPath == "":
+                raise Exception("Missing files in tar")
+        else:
+            imageRfPath = self.imagePathInput.text()
+            imageInfoPath = imageRfPath.replace(".raw", ".yml")
+            imageTgcPath = imageRfPath.replace("_rf.raw", "_env.tgc.yml")
+        if self.phantomPathInput.text().endswith(".tar"):
+            ClariusTarUnpacker(self.phantomPathInput.text(), "single_tar")
+            unpackedTarFolder = Path(self.phantomPathInput.text().replace(".tar", "_extracted"))
+            phantomRfPath = ""; phantomTgcPath = ""; phantomInfoPath = ""
+            for file in unpackedTarFolder.iterdir():            
+                if file.name.endswith("_rf.raw"):
+                    phantomRfPath = str(file.absolute())
+                elif file.name.endswith("_env.tgc.yml"):
+                    phantomTgcPath = str(file.absolute())
+                elif file.name.endswith("_rf.yml"):
+                    phantomInfoPath = str(file.absolute())
+            if phantomRfPath == "" or phantomInfoPath == "" or phantomTgcPath == "":
+                raise Exception("Missing files in tar")
+        else:
+            phantomRfPath = self.phantomPathInput.text()
+            phantomInfoPath = phantomRfPath.replace(".raw", ".yml")
+            phantomTgcPath = phantomRfPath.replace("_rf.raw", "_env.tgc.yml")
+            
         if not Path(imageTgcPath).exists():
             imageTgcPath = None
         if not Path(phantomTgcPath).exists():
@@ -447,11 +476,11 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.choosePhantomFolderButton.hide()
         self.philips3dCheckBox.hide()
         
-        self.imagePathLabel.setText("Input Path to Image file\n (.raw)")
-        self.phantomPathLabel.setText("Input Path to Phantom file\n (.raw)")
+        self.imagePathLabel.setText("Input Path to Image file\n (.raw, .tar)")
+        self.phantomPathLabel.setText("Input Path to Phantom file\n (.raw, .tar)")
 
         self.machine = "Clarius"
-        self.fileExts = "*.raw"
+        self.fileExts = "*.raw *.tar"
 
     def verasonicsClicked(
         self,
