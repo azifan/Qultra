@@ -33,6 +33,7 @@ From here, a lognormal curve is fitted, returning the area under the curve (AUC)
 ## Requirements
 
 * [Python](https://www.python.org/downloads/)
+* [Homebrew](https://brew.sh/) (MacOS only)
 
 ## Environment
 
