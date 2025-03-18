@@ -68,7 +68,7 @@ def scanConvert3Va(rxLines, lineAngles, planeAngles, beamDist, imgSize, fovSize,
 
     return img
 
-def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams, isLin) -> Tuple[np.ndarray, list]:
+def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams, isLin=True, scale=True) -> Tuple[np.ndarray, list]:
     if len(dbEnvDatFullVolSeries.shape) != 4:
         numVolumes = 1
         nz, nx, ny = dbEnvDatFullVolSeries.shape
@@ -92,19 +92,6 @@ def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams, isLin) -> Tuple[n
 
     NonLinThr=3.5e4; NonLinDiv=1.7e4
     LinThr=3e4; LinDiv=3e4
-    # width = abs(azimSteerAngleStart) + abs(azimSteerAngleEnd)
-    # startDepth = scParams.VDB_2D_ECHO_START_DEPTH_SIP
-    # endDepth = scParams.VDB_2D_ECHO_STOP_DEPTH_SIP
-    # desiredHeight = 500
-    
-    # scans = []
-    # from pyquantus.parse.transforms import scanConvert
-    # for scan in range(dbEnvDatFullVolSeries.shape[2]):
-    #     arr = dbEnvDatFullVolSeries[:, :, scan]
-    #     out, _, _ = scanConvert((arr-NonLinThr)*255/NonLinDiv, width, startDepth, endDepth, desiredHeight)
-    #     scans.append(np.transpose(out.scArr))
-    #     # scans.append((dbEnvDatFullVolSeries[:, :, scan]-NonLinThr)*255/NonLinDiv)
-    # imgOut = np.array(scans).swapaxes(0,1)
     
     # Generate image
     imgOut = []
@@ -113,19 +100,33 @@ def scanConvert3dVolumeSeries(dbEnvDatFullVolSeries, scParams, isLin) -> Tuple[n
             rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries[k].shape[1])
             rxAngsElVec = np.einsum('ikj->ijk', np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries[k].shape[2]))
             curImgOut = scanConvert3Va(dbEnvDatFullVolSeries[k], rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
-            if not isLin:
-                imgOut.append((curImgOut-NonLinThr)*255/NonLinDiv)
+            if scale:
+                if not isLin:
+                    imgOut.append((curImgOut-NonLinThr)*255/NonLinDiv)
+                else:
+                    imgOut.append((curImgOut-LinThr)*255/LinDiv)
             else:
-                imgOut.append((curImgOut-LinThr)*255/LinDiv)
+                curImgOut = np.array(curImgOut)
+                curImgOut /= np.amax(curImgOut)
+                curImgOut *= 255
+                imgOut = curImgOut
+                imgOut.append(curImgOut)
+                
         imgOut = np.array(imgOut)
     else:
         rxAngsAzVec = np.linspace(rxAngAz[0],rxAngAz[-1],dbEnvDatFullVolSeries.shape[1])
         rxAngsElVec = np.linspace(rxAngEl[0],rxAngEl[-1],dbEnvDatFullVolSeries.shape[2])
         curImgOut = scanConvert3Va(dbEnvDatFullVolSeries, rxAngsAzVec, rxAngsElVec, imgDpth,imgSize,fovSize, apexDist)
-        if not isLin:
-            imgOut = (curImgOut-NonLinThr)*255/NonLinDiv
+        if scale:
+            if not isLin:
+                imgOut = (curImgOut-NonLinThr)*255/NonLinDiv
+            else:
+                imgOut = (curImgOut-LinThr)*255/LinDiv
         else:
-            imgOut = (curImgOut-LinThr)*255/LinDiv
+            curImgOut = np.array(curImgOut)
+            curImgOut /= np.amax(curImgOut)
+            curImgOut *= 255
+            imgOut = curImgOut
     
     return imgOut, fovSize
 

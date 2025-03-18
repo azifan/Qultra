@@ -23,7 +23,6 @@ import src.Parsers.philips3dRf as phil3d
 
 def selectImageHelper(pathInput, fileExts):
     if not os.path.exists(pathInput.text()):  # check if file path is manually typed
-        # NOTE: .bin is currently not supported
         fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter=fileExts)
         if fileName != "":  # If valid file is chosen
             pathInput.setText(fileName)
@@ -277,6 +276,8 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         phantomFilePath = Path(self.phantomPathInput.text())
         
         if self.philips3dCheckBox.isChecked():
+            if imageFilePath.suffix != '.rf' or phantomFilePath.suffix != '.rf':
+                raise Exception("Please select .rf files for Philips 3D")
             self.imgDataStruct, self.imgInfoStruct = phil3d.getVolume(imageFilePath)
             self.refDataStruct, self.refInfoStruct = phil3d.getVolume(phantomFilePath)
             self.imArray = self.imgDataStruct.bMode
@@ -407,8 +408,8 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.fullScreenLayout.addItem(self.imgSelectionLayout)
         self.showImgSelectionLayout()
         self.fullScreenLayout.setStretchFactor(self.imgSelectionLayout, 10)
-        self.chooseImageFileButton.hide()
-        self.choosePhantomFileButton.hide()
+        self.chooseImageFolderButton.hide()
+        self.choosePhantomFolderButton.hide()
 
         self.imagePathLabel.setText("Input Path to Image file\n (.rf, .mat)")
         self.phantomPathLabel.setText("Input Path to Phantom file\n (.rf, .mat)")

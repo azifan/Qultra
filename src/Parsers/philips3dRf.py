@@ -81,7 +81,7 @@ def getVolume(rfPath: Path, sipNumOutBits: int = 8, DRlowerdB: int = 20, DRupper
     dBEnvData_vol, rfVol = bandpassFilterEnvLog(rfDataArr,scParams)
 
     #Scan Conversion of 3D volume time series (Only doing 1 volume here)
-    SC_Vol, bmodeDims = scanConvert3dVolumeSeries(dBEnvData_vol, scParams)
+    SC_Vol, bmodeDims = scanConvert3dVolumeSeries(dBEnvData_vol, scParams, scale=False)
     # SC_rfVol, rfDims = scanConvert3dVolumeSeries(rfVol, scParams, normalize=False)
 
     #Parameters for basic visualization of volume
@@ -89,8 +89,10 @@ def getVolume(rfPath: Path, sipNumOutBits: int = 8, DRlowerdB: int = 20, DRupper
     upperLim = slope * DRupperdB
     lowerLim = slope * DRlowerdB
 
-    SC_Vol = formatVolumePix(SC_Vol, lowerLim=lowerLim, upperLim=upperLim)
-    # SC_rfVol = np.transpose(SC_rfVol.squeeze().swapaxes(0,1))
+    # Format image for output
+    SC_Vol = formatVolumePix(SC_Vol)
+    SC_Vol = np.clip(SC_Vol, lowerLim, upperLim)
+    SC_Vol = (SC_Vol - lowerLim)/(upperLim - lowerLim) * 255
     bmodeDims = [bmodeDims[2], bmodeDims[0], bmodeDims[1]]
     # rfDims = [rfDims[2], rfDims[0], rfDims[1]]
 
