@@ -215,8 +215,10 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
                     imageTgcPath = str(file)
                 elif file.name.endswith("_rf.yml"):
                     imageInfoPath = str(file)
-            if imageRfPath == "" or imageInfoPath == "" or imageTgcPath == "":
+            if imageRfPath == "" or imageInfoPath == "":
                 raise Exception("Missing files in tar")
+            if imageTgcPath == "":
+                imageTgcPath = None
         else:
             imageRfPath = self.imagePathInput.text()
             imageInfoPath = imageRfPath.replace(".raw", ".yml")
@@ -232,17 +234,19 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
                     phantomTgcPath = str(file.absolute())
                 elif file.name.endswith("_rf.yml"):
                     phantomInfoPath = str(file.absolute())
-            if phantomRfPath == "" or phantomInfoPath == "" or phantomTgcPath == "":
+            if phantomRfPath == "" or phantomInfoPath == "":
                 raise Exception("Missing files in tar")
+            if phantomTgcPath == "":
+                phantomTgcPath = None
         else:
             phantomRfPath = self.phantomPathInput.text()
             phantomInfoPath = phantomRfPath.replace(".raw", ".yml")
             phantomTgcPath = phantomRfPath.replace("_rf.raw", "_env.tgc.yml")
             
-        if not Path(imageTgcPath).exists():
-            imageTgcPath = None
-        if not Path(phantomTgcPath).exists():
-            phantomTgcPath = None
+            if not Path(imageTgcPath).exists():
+                imageTgcPath = None
+            if not Path(phantomTgcPath).exists():
+                phantomTgcPath = None
 
         self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct, scanConverted = clariusRfParser(
             imageRfPath, imageTgcPath, imageInfoPath,
