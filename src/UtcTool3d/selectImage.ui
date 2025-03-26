@@ -2,6 +2,12 @@
 <ui version="4.0">
  <class>selectImage</class>
  <widget class="QWidget" name="selectImage">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -9,18 +15,6 @@
     <width>1512</width>
     <height>832</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>201</width>
-    <height>31</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>16777215</width>
-    <height>16777215</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>Select Ultrasound Image</string>
@@ -33,13 +27,16 @@
   <widget class="QWidget" name="horizontalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>-520</x>
+     <x>0</x>
      <y>0</y>
-     <width>2402</width>
-     <height>844</height>
+     <width>3022</width>
+     <height>751</height>
     </rect>
    </property>
-   <layout class="QHBoxLayout" name="fullScreenLayout" stretch="1,10,10,10">
+   <layout class="QHBoxLayout" name="fullScreenLayout" stretch="1,10,10">
+    <property name="spacing">
+     <number>50</number>
+    </property>
     <item>
      <layout class="QVBoxLayout" name="sidebarLayout" stretch="0,0">
       <property name="spacing">
@@ -179,7 +176,7 @@
           </property>
          </widget>
         </widget>
-        <widget class="QFrame" name="roiSidebar">
+        <widget class="QFrame" name="voiSidebar">
          <property name="geometry">
           <rect>
            <x>0</x>
@@ -206,7 +203,7 @@
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-         <widget class="QLabel" name="roiSidebarLabel">
+         <widget class="QLabel" name="voiSidebarLabel">
           <property name="geometry">
            <rect>
             <x>0</x>
@@ -225,7 +222,7 @@
 }</string>
           </property>
           <property name="text">
-           <string>Region of Interest (ROI) Selection</string>
+           <string>Volume of Interest (VOI) Selection</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -418,7 +415,7 @@
 	background-color: rgb(28, 0, 101);
 }</string>
         </property>
-        <layout class="QGridLayout" name="backButtonGrid" rowstretch="0,0">
+        <layout class="QGridLayout" name="backButtonGrid_2" rowstretch="0,0">
          <property name="sizeConstraint">
           <enum>QLayout::SetMinAndMaxSize</enum>
          </property>
@@ -493,210 +490,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QVBoxLayout" name="framePreviewLayout" stretch="1,10,1">
-      <property name="leftMargin">
-       <number>30</number>
-      </property>
-      <property name="topMargin">
-       <number>30</number>
-      </property>
-      <property name="rightMargin">
-       <number>30</number>
-      </property>
-      <property name="bottomMargin">
-       <number>30</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="selectFrameLabel">
-        <property name="styleSheet">
-         <string notr="true">QLabel {
-	font-size: 29px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-        </property>
-        <property name="text">
-         <string>Select Frame to Analyze:</string>
-        </property>
-        <property name="textFormat">
-         <enum>Qt::AutoText</enum>
-        </property>
-        <property name="scaledContents">
-         <bool>false</bool>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-       <widget class="QLabel" name="imPreview">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>501</width>
-          <height>321</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QLabel {
-	background-color: transparent;
-}</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="frameControlsLayout">
-        <item>
-         <widget class="QSlider" name="curFrameSlider">
-          <property name="minimumSize">
-           <size>
-            <width>251</width>
-            <height>41</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>251</width>
-            <height>41</height>
-           </size>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="curFrameLabel">
-          <property name="styleSheet">
-           <string notr="true">QLabel {
-	font-size: 15px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-          </property>
-          <property name="text">
-           <string>0</string>
-          </property>
-          <property name="textFormat">
-           <enum>Qt::AutoText</enum>
-          </property>
-          <property name="scaledContents">
-           <bool>false</bool>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="ofFramesLabel">
-          <property name="styleSheet">
-           <string notr="true">QLabel {
-	font-size: 15px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-          </property>
-          <property name="text">
-           <string>of</string>
-          </property>
-          <property name="textFormat">
-           <enum>Qt::AutoText</enum>
-          </property>
-          <property name="scaledContents">
-           <bool>false</bool>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="totalFramesLabel">
-          <property name="styleSheet">
-           <string notr="true">QLabel {
-	font-size: 15px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(255, 255, 255, 0);
-}</string>
-          </property>
-          <property name="text">
-           <string>0</string>
-          </property>
-          <property name="textFormat">
-           <enum>Qt::AutoText</enum>
-          </property>
-          <property name="scaledContents">
-           <bool>false</bool>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="acceptFrameButton">
-          <property name="minimumSize">
-           <size>
-            <width>201</width>
-            <height>41</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>201</width>
-            <height>41</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-          </property>
-          <property name="text">
-           <string>Accept Frame</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="imgSelectionLayout" stretch="2,2,3,2">
+     <layout class="QVBoxLayout" name="imgSelectionLayout" stretch="2,2,3,0,2">
       <property name="spacing">
        <number>20</number>
       </property>
@@ -749,7 +543,7 @@
            <number>20</number>
           </property>
           <item>
-           <spacer name="verticalSpacer_2">
+           <spacer name="verticalSpacer_10">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
@@ -807,33 +601,6 @@
           <item>
            <layout class="QHBoxLayout" name="chooseImageButtonsLayout">
             <item>
-             <widget class="QPushButton" name="chooseImageFolderButton">
-              <property name="minimumSize">
-               <size>
-                <width>131</width>
-                <height>41</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>131</width>
-                <height>41</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-              </property>
-              <property name="text">
-               <string>Choose Folder</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QPushButton" name="chooseImageFileButton">
               <property name="minimumSize">
                <size>
@@ -890,7 +657,7 @@
            </layout>
           </item>
           <item>
-           <spacer name="verticalSpacer_3">
+           <spacer name="verticalSpacer_11">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
@@ -913,7 +680,7 @@
            <number>20</number>
           </property>
           <item>
-           <spacer name="verticalSpacer_4">
+           <spacer name="verticalSpacer_12">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
@@ -971,33 +738,6 @@
           <item>
            <layout class="QHBoxLayout" name="choosePhantomButtonsLayout">
             <item>
-             <widget class="QPushButton" name="choosePhantomFolderButton">
-              <property name="minimumSize">
-               <size>
-                <width>131</width>
-                <height>41</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>131</width>
-                <height>41</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-              </property>
-              <property name="text">
-               <string>Choose Folder</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QPushButton" name="choosePhantomFileButton">
               <property name="minimumSize">
                <size>
@@ -1054,7 +794,7 @@
            </layout>
           </item>
           <item>
-           <spacer name="verticalSpacer_5">
+           <spacer name="verticalSpacer_13">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
@@ -1098,6 +838,56 @@
        </widget>
       </item>
       <item>
+       <layout class="QVBoxLayout" name="frameRateLayout">
+        <property name="spacing">
+         <number>6</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="frameRateLabel">
+          <property name="styleSheet">
+           <string notr="true">QLabel {
+	font-size: 16px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(255, 255, 255, 0);
+}</string>
+          </property>
+          <property name="text">
+           <string>No frame rate found!
+Select frame rate to use (fps):</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::NoTextInteraction</set>
+          </property>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <widget class="QDoubleSpinBox" name="frameRateValue">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QDoubleSpinBox {
+	background: white;
+	color: black;
+}</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <widget class="QLabel" name="selectImageErrorMsg">
         <property name="styleSheet">
          <string notr="true">QLabel {
@@ -1119,23 +909,20 @@ of image data</string>
      </layout>
     </item>
     <item>
-     <layout class="QVBoxLayout" name="parserOptionsLayout">
+     <layout class="QVBoxLayout" name="parserOptionsLayout" stretch="1,10">
       <property name="spacing">
        <number>50</number>
       </property>
       <property name="leftMargin">
        <number>30</number>
       </property>
-      <property name="topMargin">
-       <number>30</number>
-      </property>
       <property name="rightMargin">
        <number>30</number>
       </property>
       <property name="bottomMargin">
-       <number>30</number>
+       <number>200</number>
       </property>
-      <item>
+      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
        <widget class="QLabel" name="selectImageMethodLabel">
         <property name="styleSheet">
          <string notr="true">QLabel {
@@ -1188,156 +975,6 @@ of image data</string>
         </property>
         <property name="text">
          <string>Philips RF</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="siemensButton">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>51</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-        </property>
-        <property name="text">
-         <string>Siemens RF</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="terasonButton">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>51</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-        </property>
-        <property name="text">
-         <string>Terason RF</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="clariusButton">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>51</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-        </property>
-        <property name="text">
-         <string>Clarius RF</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="canonButton">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>51</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-        </property>
-        <property name="text">
-         <string>Canon IQ</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="verasonicsButton">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>51</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QPushButton {
-	color: white;
-	font-size: 16px;
-	background: rgb(90, 37, 255);
-	border-radius: 15px;
-}</string>
-        </property>
-        <property name="text">
-         <string>Verasonics IQ (disabled)</string>
         </property>
        </widget>
       </item>

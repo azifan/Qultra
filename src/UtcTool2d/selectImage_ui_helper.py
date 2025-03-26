@@ -18,7 +18,6 @@ from pyquantus.parse.objects import ScConfig
 from src.UtcTool2d.loadingScreen_ui_helper import LoadingScreenGUI
 from src.UtcTool2d.selectImage_ui import Ui_selectImage
 from src.UtcTool2d.roiSelection_ui_helper import RoiSelectionGUI
-import src.Parsers.philips3dRf as phil3d
 
 
 def selectImageHelper(pathInput, fileExts):
@@ -99,7 +98,6 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.clearImagePathButton.hide()
         self.imagePathInput.hide()
         self.imagePathLabel.hide()
-        self.philips3dCheckBox.hide()
         self.selectDataLabel.hide()
         self.selectImageErrorMsg.hide()
     
@@ -115,7 +113,6 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.clearImagePathButton.show()
         self.imagePathInput.show()
         self.imagePathLabel.show()
-        self.philips3dCheckBox.show()
         self.selectDataLabel.show()
         
     def hideFramePreviewLayout(self):
@@ -275,17 +272,6 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         imageFilePath = Path(self.imagePathInput.text())
         phantomFilePath = Path(self.phantomPathInput.text())
         
-        if self.philips3dCheckBox.isChecked():
-            if imageFilePath.suffix != '.rf' or phantomFilePath.suffix != '.rf':
-                raise Exception("Please select .rf files for Philips 3D")
-            self.imgDataStruct, self.imgInfoStruct = phil3d.getVolume(imageFilePath)
-            self.refDataStruct, self.refInfoStruct = phil3d.getVolume(phantomFilePath)
-            self.imArray = self.imgDataStruct.bMode
-            self.initialImgRf = self.imgDataStruct.rf
-            self.initialRefRf = self.refDataStruct.rf
-            self.displaySlidingFrames()
-            return
-        
         imageFile = open(imageFilePath, 'rb')
         imageSig = list(imageFile.read(8))
         phantomFile = open(phantomFilePath, 'rb')
@@ -425,7 +411,6 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.showImgSelectionLayout()
         self.chooseImageFolderButton.hide()
         self.choosePhantomFolderButton.hide()
-        self.philips3dCheckBox.hide()
 
         self.imagePathLabel.setText("Input Path to Image file\n (.mat)")
         self.phantomPathLabel.setText("Input Path to Phantom file\n (.mat)")
@@ -441,7 +426,6 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.showImgSelectionLayout()
         self.chooseImageFolderButton.hide()
         self.choosePhantomFolderButton.hide()
-        self.philips3dCheckBox.hide()
 
         self.imagePathLabel.setText("Input Path to Image file\n (.rfd)")
         self.phantomPathLabel.setText("Input Path to Phantom file\n (.rfd)")
@@ -459,7 +443,6 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.showImgSelectionLayout()
         self.chooseImageFolderButton.hide()
         self.choosePhantomFolderButton.hide()
-        self.philips3dCheckBox.hide()
         
         self.imagePathLabel.setText("Input Path to Image file\n (.bin)")
         self.phantomPathLabel.setText("Input Path to Phantom file\n (.bin)")
@@ -475,7 +458,6 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.showImgSelectionLayout()
         self.chooseImageFolderButton.hide()
         self.choosePhantomFolderButton.hide()
-        self.philips3dCheckBox.hide()
         
         self.imagePathLabel.setText("Input Path to Image file\n (.raw, .tar)")
         self.phantomPathLabel.setText("Input Path to Phantom file\n (.raw, .tar)")
@@ -493,7 +475,6 @@ class SelectImageGUI_UtcTool2dIQ(Ui_selectImage, QWidget):
         self.showImgSelectionLayout()
         self.chooseImageFolderButton.hide()
         self.choosePhantomFolderButton.hide()
-        self.philips3dCheckBox.hide()
         self.phantomPathInput.hide()
         self.clearPhantomPathButton.hide()
         
