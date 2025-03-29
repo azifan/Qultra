@@ -17,20 +17,6 @@ class WelcomeGui(Ui_WelcomePage, QWidget):
         self.dceus2dButton.clicked.connect(self.moveToDceusMc2d)
         self.nextPage = None
         self.setLayout(self.verticalLayout)
-        self.ceus2dMcData = pd.DataFrame(
-            columns=[
-                "Patient",
-                "Area Under Curve (AUC)",
-                "Peak Enhancement (PE)",
-                "Time to Peak (TP)",
-                "Mean Transit Time (MTT)",
-                "TMPPV",
-                "ROI Area (mm^2)",
-                "TIC y vals",
-                "TIC t vals",
-                "Lognorm y vals"
-            ]
-        )
 
     def moveToUtc2d(self):
         del self.nextPage
@@ -51,7 +37,6 @@ class WelcomeGui(Ui_WelcomePage, QWidget):
     def moveToDceusMc2d(self):
         del self.nextPage
         self.nextPage = SelectImageGUI_CeusMcTool2d()
-        self.nextPage.dataFrame = self.ceus2dMcData
         self.nextPage.show()
         self.nextPage.welcomeGui = self
         self.hide()

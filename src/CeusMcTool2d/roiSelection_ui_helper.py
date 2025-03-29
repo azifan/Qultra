@@ -47,7 +47,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.boundBackButton.setHidden(True)
         self.acceptConstRoiButton.setHidden(True)
         self.df = None
-        self.dataFrame = None
         self.niftiSegPath = None
 
         self.curFrameIndex = 0
@@ -178,7 +177,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.acceptConstRoiButton.setHidden(False)
 
     def backToLastScreen(self):
-        self.lastGui.dataFrame = self.dataFrame
         self.lastGui.show()
         self.hide()
 
@@ -1861,7 +1859,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         self.ticAnalysisGui.fullPath = self.fullPath
         self.ticAnalysisGui.cineRate, self.ticAnalysisGui.axRes, self.ticAnalysisGui.latRes = self.cineRate, self.axRes, self.latRes
-        self.ticAnalysisGui.dataFrame = self.dataFrame
         self.ticAnalysisGui.mc = self.mc
         self.ticAnalysisGui.w_CE, self.ticAnalysisGui.h_CE = self.w_CE, self.h_CE
         self.ticAnalysisGui.w_bmode, self.ticAnalysisGui.h_bmode = self.w_bmode, self.h_bmode
