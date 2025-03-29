@@ -637,7 +637,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 "Mean Transit Time (MTT)": [self.mtt],
                 "t0": [self.t0Val.text()],
                 "TMPPV": [normFact],
-                "ROI Area (mm^2)": [self.roiArea*self.axRes*self.latRes],
+                "ROI Area (pix)": [self.roiArea],
                 "TIC y vals": [str(np.array(y))],
                 "TIC t vals": [str(np.array(x))],
                 "Lognorm y vals": [str(np.array(self.wholecurve)) if hasattr(self, "wholecurve") else None],
