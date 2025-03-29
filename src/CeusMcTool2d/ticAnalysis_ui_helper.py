@@ -42,7 +42,6 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.y0_CE = None
         self.w_CE = None
         self.h_CE = None
-        self.dataFrame = None
         self.ticArray = None
         self.segCoverMask = None
         self.mc = False
@@ -73,7 +72,6 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.acceptT0Button.clicked.connect(self.acceptT0)
 
     def backToLastScreen(self):
-        self.lastGui.dataFrame = self.dataFrame
         self.lastGui.show()
         self.hide()
 
@@ -300,6 +298,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
                 xmin=min(self.ticX[:, 0]) - (0.05 * range),
                 xmax=max(self.ticX[:, 0]) + (0.05 * range),
             )
+            self.ceusAnalysisGui.wholecurve = np.array(wholecurve)
         except RuntimeError:
             print("RunTimeError")
             params = np.array(
@@ -351,7 +350,6 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         self.ceusAnalysisGui.yCur = self.yCur
         self.ceusAnalysisGui.x = self.x
         self.ceusAnalysisGui.y = self.y
-        self.ceusAnalysisGui.dataFrame = self.dataFrame
         self.ceusAnalysisGui.sliceArray = self.sliceArray
         self.ceusAnalysisGui.x0_bmode = self.x0_bmode
         self.ceusAnalysisGui.y0_bmode = self.y0_bmode

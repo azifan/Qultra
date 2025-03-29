@@ -71,7 +71,6 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
 
         self.roiSelectionGui = None
         self.welcomeGui = None
-        self.dataFrame = None
 
         self.generateImageButton.clicked.connect(self.moveToRoiSelection)
         self.chooseSpreadsheetFileButton.clicked.connect(self.getSpreadsheetPath)
@@ -212,7 +211,6 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
                 self.imagesScrollArea.setItem(i, 0, item)
 
     def backToWelcomeScreen(self):
-        self.welcomeGui.ceus2dMcData = self.dataFrame
         self.welcomeGui.show()
         self.hide()
 
@@ -267,7 +265,6 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         ):
             del self.roiSelectionGui
             self.roiSelectionGui = RoiSelectionGUI()
-            self.roiSelectionGui.dataFrame = self.dataFrame
             if self.format == "DicomExcel":
                 xcel_dir = Path(self.spreadsheetPath.text())
                 xcel_dir = xcel_dir.parent.absolute()

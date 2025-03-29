@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.colors as colors
@@ -41,7 +42,6 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.y0_CE = None
         self.w_CE = None
         self.h_CE = None
-        self.dataFrame = None
         self.exportDataGUI = None
         self.auc = None
         self.pe = None
@@ -52,6 +52,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.genParamapGUI = None
         self.roiArea = None
         self.newData = None
+        self.wholecurve: np.ndarray
         self.axRes, self.latRes, self.cineRate, self.fullPath, self.mc = None, None, None, None, None
 
 
@@ -115,7 +116,6 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.curSliceSpinBox.valueChanged.connect(self.curSliceSpinBoxValueChanged)
         self.backButton.clicked.connect(self.backToLastScreen)
         self.exportDataButton.clicked.connect(self.moveToExport)
-        self.saveDataButton.clicked.connect(self.saveData)
         self.genParamapButton.clicked.connect(self.startGenParamap)
 
     def showAuc(self):
@@ -624,40 +624,32 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         self.loadParamapButton.setHidden(False)
 
     def moveToExport(self):
-        if len(self.dataFrame):
-            del self.exportDataGUI
-            self.exportDataGUI = ExportDataGUI()
-            self.exportDataGUI.dataFrame = self.dataFrame
-            self.exportDataGUI.lastGui = self
-            self.exportDataGUI.setFilenameDisplays(self.imagePathInput.text())
-            self.exportDataGUI.show()
-            self.hide()
-
-    def saveData(self):
-        if self.newData is None:
-            if self.axRes != -1:
-                self.newData = {
-                    "Patient": self.imagePathInput.text(),
-                    "Area Under Curve (AUC)": self.auc,
-                    "Peak Enhancement (PE)": self.pe,
-                    "Time to Peak (TP)": self.tp,
-                    "Mean Transit Time (MTT)": self.mtt,
-                    "ROI Area (mm^2)": self.roiArea*self.axRes*self.latRes,
-                }
-                self.dataFrame = self.dataFrame.append(self.newData, ignore_index=True)
-            else:
-                self.newData = {
-                    "Patient": self.imagePathInput.text(),
-                    "Area Under Curve (AUC)": self.auc,
-                    "Peak Enhancement (PE)": self.pe,
-                    "Time to Peak (TP)": self.tp,
-                    "Mean Transit Time (MTT)": self.mtt,
-                    "ROI Area (mm^2)": self.roiArea,
-                }
-                self.dataFrame = self.dataFrame.append(self.newData, ignore_index=True)
+        del self.exportDataGUI
+        self.exportDataGUI = ExportDataGUI()
+        normFact = np.max(self.lastGui.ticY)
+        y = self.lastGui.ticY / normFact
+        x = self.lastGui.ticX[:, 0] - np.min(self.lastGui.ticX[:, 0])
+        curData = {
+                "Patient": [self.imagePathInput.text().split("_")[0]],
+                "Area Under Curve (AUC)": [self.auc],
+                "Peak Enhancement (PE)": [self.pe],
+                "Time to Peak (TP)": [self.tp],
+                "Mean Transit Time (MTT)": [self.mtt],
+                "t0": [self.t0Val.text()],
+                "TMPPV": [normFact],
+                "ROI Area (mm^2)": [self.roiArea*self.axRes*self.latRes],
+                "TIC y vals": [str(np.array(y))],
+                "TIC t vals": [str(np.array(x))],
+                "Lognorm y vals": [str(np.array(self.wholecurve)) if hasattr(self, "wholecurve") else None],
+            }
+        self.exportDataGUI.dataFrame = pd.DataFrame.from_dict(curData)
+        self.exportDataGUI.lastGui = self
+        self.exportDataGUI.setFilenameDisplays(self.imagePathInput.text())
+        self.exportDataGUI.show()
+        self.exportDataGUI.resize(self.size())
+        self.hide()
 
     def backToLastScreen(self):
-        self.lastGui.dataFrame = self.dataFrame
         self.lastGui.fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.1)
         self.lastGui.show()
         self.hide()
