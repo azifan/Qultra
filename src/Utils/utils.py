@@ -509,7 +509,7 @@ def xml2nifti(folderPath, fileDestination):
     print(str(datetime.now()))
 
     affine = np.eye(4)
-    niiarray = nib.Nifti1Image(np.transpose(imarray_org2), affine)
+    niiarray = nib.Nifti1Image(imarray_org2, affine)
     niiarray.header["pixdim"] = [
         4.0,
         orgres[2],
