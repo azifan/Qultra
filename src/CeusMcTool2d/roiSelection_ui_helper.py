@@ -1,5 +1,5 @@
 import os
-import json
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -16,6 +16,7 @@ import src.Utils.motionCorrection as mc
 from src.CeusMcTool2d.roiSelection_ui import Ui_constructRoi
 from src.CeusMcTool2d.ticAnalysis_ui_helper import TicAnalysisGUI
 from src.CeusMcTool2d.saveRoi_ui_helper import SaveRoiGUI
+from src.Parsers.visualsonics2dCeus import visualsonics2dCeusParser
 
 # Assumes no gap between images
 # imDimsHashTable = {("TOSHIBA_MEC_US", "TUS-AI900"): (0.0898, 0.145, 0.410, 0.672)} #stores relative (x0_bmode, y0_bmode, w_bmode, h_bmode)
@@ -66,6 +67,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.ref_frames = None
         self.xcelIndices = None
         self.curLeftLineX = -1
+        self.imWidth = None; self.imDepth = None
 
         self.imDrawn = 0
         self.axRes, self.latRes, self.cineRate, self.fullPath, self.mc = -1, -1, None, None, False
@@ -125,7 +127,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             nibIm = nib.load(fileName)
             if (
                 self.imagePathInput.text().replace("'", '"')
-                == str(nibIm.header["descrip"])[2:-1]
+                == str(nibIm.header["descrip"]).split("b'")[1].split("'")[0]
             ):
                 self.loadRoi(nibIm.get_fdata().astype(np.uint8))
 
@@ -149,11 +151,15 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.segMask = mask
         self.segCoverMask = np.zeros((self.numSlices, self.y, self.x, 4))
         self.pointsPlotted = np.transpose(maskPoints)
-        for point in self.pointsPlotted:
-            self.segCoverMask[point[0], point[1], point[2]] = [128, 0, 128, 100]
-            newY = point[1] + (self.y0_bmode - self.y0_CE)
-            newX = point[2] + (self.x0_bmode - self.x0_CE)
-            self.segCoverMask[point[0], newY, newX] = [0, 255, 0, 100]
+        if self.x0_bmode == -1:
+            for point in self.pointsPlotted:
+                self.segCoverMask[point[0], point[1], point[2]] = [0, 255, 0, 100]
+        else:
+            for point in self.pointsPlotted:
+                self.segCoverMask[point[0], point[1], point[2]] = [128, 0, 128, 100]
+                newY = point[1] + (self.y0_bmode - self.y0_CE)
+                newX = point[2] + (self.x0_bmode - self.x0_CE)
+                self.segCoverMask[point[0], newY, newX] = [0, 255, 0, 100]
 
         self.backFromLoadButton.setHidden(True)
         self.preLoadedRoiButton.setHidden(True)
@@ -875,26 +881,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.curRightLineX = self.widthScale - 1
         self.curTopLineY = 0
         self.curBottomLineY = self.depthScale - 1
-
         self.fullPath = cePath
-
-        # painter = QPainter(self.imCoverLabel.pixmap())
-        # self.imCoverLabel.pixmap().fill(Qt.GlobalColor.transparent)
-        # painter.setPen(Qt.GlobalColor.yellow)
-        # xScale = self.widthScale/self.x
-        # yScale = self.depthScale/self.y
-        # self.bmodeStartX = self.imX0 + int(xScale*self.x0_bmode)
-        # self.bmodeEndX = self.bmodeStartX + int(xScale*self.w_bmode)
-        # self.bmodeStartY = self.imY0 + int(yScale*self.y0_bmode)
-        # self.bmodeEndY = self.bmodeStartY + int(yScale*self.h_bmode)
-        # self.ceStartX = self.imX0 + int(xScale*self.x0_CE)
-        # self.ceEndX = self.ceStartX + int(xScale*self.w_CE)
-        # self.ceStartY = self.imY0 + int(yScale*self.y0_CE)
-        # self.ceEndY = self.ceStartY + int(yScale*self.h_CE)
-        # painter.drawRect(int(self.x0_bmode*xScale), int(self.y0_bmode*yScale), int(self.w_bmode*xScale), int(self.h_bmode*yScale))
-        # painter.drawRect(int(self.x0_CE*xScale), int(self.y0_CE*yScale), int(self.w_CE*xScale), int(self.h_CE*yScale))
-        # painter.end()
-        # self.update()
 
         self.curSliceSlider.setMaximum(self.numSlices - 1)
         self.curSliceSpinBox.setMaximum(self.numSlices - 1)
@@ -1039,6 +1026,120 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         self.redrawRoiButton.clicked.connect(self.undoLastRoi)
         self.drawRoiButton.clicked.connect(self.startRoiDraw)
+        
+    def openVisualsonicsXmlImage(self, path):
+        _, self.fullGrayArray, info = visualsonics2dCeusParser(Path(path))
+        self.fullArray = np.zeros((self.fullGrayArray.shape[0], self.fullGrayArray.shape[1], self.fullGrayArray.shape[2], 3))
+        self.fullPath = str(Path(path).absolute())
+        
+        aviPath = next(Path(path).parent.glob("*.avi"), None)
+        if aviPath is None:
+            self.cineRate = 1 # default
+        else:
+            cap = cv2.VideoCapture(aviPath)
+            self.cineRate = cap.get(cv2.CAP_PROP_FPS)
+        
+        clipFact = 1; dynRange = 150
+        for i in range(self.fullGrayArray.shape[0]):
+            frame = self.fullGrayArray[i]/np.amax(self.fullGrayArray)*255
+            maxVal = clipFact*np.amax(frame); minVal = np.amax(frame) - dynRange
+            frame = np.clip(frame, minVal, maxVal)
+            frame = 255 * (frame - np.min(frame)) / (np.max(frame) - np.min(frame))
+            self.fullArray[i] = cv2.cvtColor(np.array(frame, dtype=np.uint8), cv2.COLOR_GRAY2RGB)
+        
+        self.numSlices, self.y, self.x = self.fullGrayArray.shape
+        self.imX0 = 350
+        self.imX1 = 1151
+        self.imY0 = 80
+        self.imY1 = 561
+        xLen = self.imX1 - self.imX0
+        yLen = self.imY1 - self.imY0
+        
+        width, depth = (info.contrastWidthAxis[-1] - info.contrastDepthAxis[0]), (info.contrastDepthAxis[-1] - info.contrastDepthAxis[0])
+
+        quotient = width / depth
+        if quotient > (xLen / yLen):
+            self.widthScale = xLen
+            self.depthScale = int(self.widthScale / quotient)
+            emptySpace = yLen - self.depthScale
+            yBuffer = int(emptySpace / 2)
+            self.imY0 += yBuffer
+            self.imY1 -= yBuffer
+        else:
+            self.widthScale = int(yLen * quotient)
+            self.depthScale = yLen
+            emptySpace = xLen - self.widthScale
+            xBuffer = int(emptySpace / 2)
+            self.imX0 += xBuffer
+            self.imX1 -= xBuffer
+            
+        self.x0_bmode = -1; self.x0_CE = 0
+        self.y0_bmode = -1; self.y0_CE = 0
+        self.w_bmode = 0; self.w_CE = self.x
+        self.h_bmode = 0; self.h_CE = self.y
+
+        self.imPlane.move(self.imX0, self.imY0)
+        self.imPlane.resize(self.widthScale, self.depthScale)
+        self.imMaskLayer.move(self.imX0, self.imY0)
+        self.imMaskLayer.resize(self.widthScale, self.depthScale)
+        self.imCoverLabel.move(self.imX0, self.imY0)
+        self.imCoverLabel.resize(self.widthScale, self.depthScale)
+        self.mcImDisplayLabel.move(self.imX0, self.imY0)
+        self.mcImDisplayLabel.resize(self.widthScale, self.depthScale)
+
+        self.imCoverPixmap = QPixmap(self.widthScale, self.depthScale)
+        self.imCoverPixmap.fill(Qt.GlobalColor.transparent)
+        self.imCoverLabel.setPixmap(self.imCoverPixmap)
+
+        self.maskCoverImg = np.zeros([self.y, self.x, 4])
+
+        self.curSliceSlider.setMaximum(self.numSlices - 1)
+        self.curSliceSpinBox.setMaximum(self.numSlices - 1)
+
+        self.sliceArray = np.round(
+            [i * (1 / self.cineRate) for i in range(self.numSlices)], decimals=2
+        )
+
+        self.curSliceTotal.setText(str(self.numSlices - 1))
+
+        self.curSliceSpinBox.setValue(self.curFrameIndex)
+        self.curSliceSlider.setValue(self.curFrameIndex)
+        self.curSliceSlider.valueChanged.connect(self.curSliceSliderValueChanged)
+        self.curSliceSpinBox.valueChanged.connect(self.curSliceSpinBoxValueChanged)
+
+        self.xScale = self.widthScale / self.x
+        self.yScale = self.depthScale / self.y
+        self.curLeftLineX = 0
+        self.curRightLineX = self.widthScale - 1
+        self.curTopLineY = 0
+        self.curBottomLineY = self.depthScale - 1
+
+        self.updateBoundLines("Left X")
+
+        self.drawRoiButton.setCheckable(True)
+
+        # self.updateIm()
+
+        # self.loadRoiButton.setHidden(True)
+        # self.newRoiButton.setHidden(True)
+        # self.defImBoundsButton.setHidden(False)
+        self.defImBoundsButton.clicked.connect(self.startBoundDef)
+
+        self.closeRoiButton.clicked.connect(
+            self.acceptPolygon
+        )  # called to exit the paint function
+        self.undoLastPtButton.clicked.connect(
+            self.undoLastPoint
+        )  # deletes last drawn rectangle if on sag or cor slices
+
+        self.redrawRoiButton.clicked.connect(self.undoLastRoi)
+        self.drawRoiButton.clicked.connect(self.startRoiDraw)
+        
+        canvas = self.imCoverLabel.pixmap()
+        canvas.fill(Qt.GlobalColor.transparent)
+        self.imCoverLabel.setPixmap(canvas)
+        self.updateIm()
+
 
     def openDicomImage(self, index, xcel_dir):
         if index > -1:
@@ -1087,101 +1188,6 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             self.imX0 += xBuffer
             self.imX1 -= xBuffer
 
-        # try:
-        #     self.x0_bmode, self.x0_CE, self.w_bmode, self.w_CE = find_x0_bmode_CE(
-        #         ds, self.CE_side, ar.shape[2]
-        #     )
-        #     manufacturer = ds.Manufacturer
-        #     model = ds.ManufacturerModelName
-        #     imBoundariesPath = os.path.join("CeusMcTool2d", "imBoundaries.json")
-
-        #     try:
-        #         self.y0_bmode = int(ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0)
-        #         self.h_bmode = int(
-        #             ds.SequenceOfUltrasoundRegions[0].RegionLocationMaxY1
-        #             - ds.SequenceOfUltrasoundRegions[0].RegionLocationMinY0
-        #             + 1
-        #         )
-        #         with open(imBoundariesPath, "r") as fp:
-        #             imDimsHashTable = json.load(fp)
-        #         try:
-        #             relativeImDims = imDimsHashTable[", ".join((manufacturer, model))]
-        #         except (NameError, KeyError):
-        #             imDimsHashTable[", ".join((manufacturer, model))] = [
-        #                 self.x0_bmode / self.x,
-        #                 self.y0_bmode / self.y,
-        #                 self.w_bmode / self.x,
-        #                 self.h_bmode / self.y,
-        #             ]
-        #             os.remove(imBoundariesPath)
-        #             with open(imBoundariesPath, "w") as fp:
-        #                 json.dump(imDimsHashTable, fp, sort_keys=True, indent=4)
-        #     except (FileNotFoundError, NameError, ValueError, AttributeError, IndexError, KeyError):
-        #         with open(imBoundariesPath, "r") as fp:
-        #             imDimsHashTable = json.load(fp)
-        #         try:
-        #             relativeImDims = imDimsHashTable[", ".join((manufacturer, model))]
-        #         except (NameError, ValueError, IndexError, FileNotFoundError, KeyError):
-        #             print("Transducer model and data format not supported!")
-        #             return
-        #         self.y0_bmode = round(relativeImDims[1] * self.y)
-        #         self.w_bmode = round(relativeImDims[2] * self.x)
-        #         self.h_bmode = round(relativeImDims[3] * self.y)
-        #         self.x0_bmode = round(relativeImDims[0] * self.x)
-        #         if self.CE_side == "r":
-        #             self.x0_CE = self.x0_bmode + self.w_bmode
-        #         else:
-        #             self.x0_CE = (
-        #                 self.x0_bmode - self.w_bmode
-        #             )  # assumes CE and bmode have same width
-        #         self.w_CE = self.w_bmode
-        #     self.y0_CE = self.y0_bmode
-        #     self.h_CE = self.h_bmode
-
-        #     self.imPlane.move(self.imX0, self.imY0)
-        #     self.imPlane.resize(self.widthScale, self.depthScale)
-        #     self.imMaskLayer.move(self.imX0, self.imY0)
-        #     self.imMaskLayer.resize(self.widthScale, self.depthScale)
-        #     self.imCoverLabel.move(self.imX0, self.imY0)
-        #     self.imCoverLabel.resize(self.widthScale, self.depthScale)
-        #     self.mcImDisplayLabel.move(self.imX0, self.imY0)
-        #     self.mcImDisplayLabel.resize(self.widthScale, self.depthScale)
-
-        #     self.imCoverPixmap = QPixmap(self.widthScale, self.depthScale)
-        #     self.imCoverPixmap.fill(Qt.GlobalColor.transparent)
-        #     self.imCoverLabel.setPixmap(self.imCoverPixmap)
-
-        #     canvas = self.imCoverLabel.pixmap()
-        #     painter = QPainter(canvas)
-        #     self.imCoverLabel.pixmap().fill(Qt.GlobalColor.transparent)
-        #     painter.setPen(Qt.GlobalColor.yellow)
-        #     xScale = self.widthScale / self.x
-        #     yScale = self.depthScale / self.y
-        #     self.bmodeStartX = self.imX0 + int(xScale * self.x0_bmode)
-        #     self.bmodeEndX = self.bmodeStartX + int(xScale * self.w_bmode)
-        #     self.bmodeStartY = self.imY0 + int(yScale * self.y0_bmode)
-        #     self.bmodeEndY = self.bmodeStartY + int(yScale * self.h_bmode)
-        #     self.ceStartX = self.imX0 + int(xScale * self.x0_CE)
-        #     self.ceEndX = self.ceStartX + int(xScale * self.w_CE)
-        #     self.ceStartY = self.imY0 + int(yScale * self.y0_CE)
-        #     self.ceEndY = self.ceStartY + int(yScale * self.h_CE)
-        #     painter.drawRect(
-        #         int(self.x0_bmode * xScale),
-        #         int(self.y0_bmode * yScale),
-        #         int(self.w_bmode * xScale),
-        #         int(self.h_bmode * yScale),
-        #     )
-        #     painter.drawRect(
-        #         int(self.x0_CE * xScale),
-        #         int(self.y0_CE * yScale),
-        #         int(self.w_CE * xScale),
-        #         int(self.h_CE * yScale),
-        #     )
-        #     painter.end()
-        #     self.imCoverLabel.setPixmap(canvas)
-        #     self.update()
-
-        # except AttributeError:
         self.loadRoiButton.setHidden(True)
         self.newRoiButton.setHidden(True)
         self.defImBoundsButton.setHidden(False)
@@ -1509,12 +1515,13 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         self.ceEndX = self.ceStartX + int(xScale * self.w_CE)
         self.ceStartY = self.imY0 + int(yScale * self.y0_CE)
         self.ceEndY = self.ceStartY + int(yScale * self.h_CE)
-        painter.drawRect(
-            int(self.x0_bmode * xScale),
-            int(self.y0_bmode * yScale),
-            int(self.w_bmode * xScale),
-            int(self.h_bmode * yScale),
-        )
+        if self.x0_bmode >= 0 and self.y0_bmode >= 0 and self.w_bmode > 0 and self.h_bmode > 0:
+            painter.drawRect(
+                int(self.x0_bmode * xScale),
+                int(self.y0_bmode * yScale),
+                int(self.w_bmode * xScale),
+                int(self.h_bmode * yScale),
+            )
         painter.drawRect(
             int(self.x0_CE * xScale),
             int(self.y0_CE * yScale),
@@ -1680,7 +1687,15 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
             # if self.xCur < self.imX1 and self.xCur > self.imX0 and self.yCur < self.imY1 and self.yCur > self.imY0:
             #     self.actualX = int((self.xCur - self.imX0 - 1)*(self.y-1)/self.depthScale)
             #     self.actualY = int((self.yCur - self.imY0 - 1)*(self.x-1)/self.widthScale)
-            if (
+            if self.x0_bmode == -1:
+                self.actualX = int(
+                    (self.xCur - self.imX0 - 1) * (self.x - 1) / self.widthScale
+                )
+                self.actualY = int(
+                    (self.yCur - self.imY0 - 1) * (self.y - 1) / self.depthScale
+                )
+                self.imDrawn = 2
+            elif (
                 self.imDrawn != 2
                 and self.xCur < self.bmodeEndX
                 and self.xCur > self.bmodeStartX

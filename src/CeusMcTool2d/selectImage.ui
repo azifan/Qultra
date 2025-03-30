@@ -593,7 +593,7 @@ QTableWidget::item {
    <property name="geometry">
     <rect>
      <x>540</x>
-     <y>70</y>
+     <y>30</y>
      <width>431</width>
      <height>131</height>
     </rect>
@@ -625,7 +625,7 @@ QTableWidget::item {
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>260</y>
+     <y>200</y>
      <width>281</width>
      <height>51</height>
     </rect>
@@ -646,7 +646,7 @@ QTableWidget::item {
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>490</y>
+     <y>430</y>
      <width>281</width>
      <height>51</height>
     </rect>
@@ -835,7 +835,7 @@ QTableWidget::item {
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>380</y>
+     <y>320</y>
      <width>281</width>
      <height>51</height>
     </rect>
@@ -940,7 +940,7 @@ QTableWidget::item {
    <property name="geometry">
     <rect>
      <x>610</x>
-     <y>600</y>
+     <y>540</y>
      <width>281</width>
      <height>51</height>
     </rect>
@@ -955,6 +955,27 @@ QTableWidget::item {
    </property>
    <property name="text">
     <string>Direct DICOM</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="visualsonicsXmlButton">
+   <property name="geometry">
+    <rect>
+     <x>610</x>
+     <y>660</y>
+     <width>281</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	color: white;
+	font-size: 16px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}</string>
+   </property>
+   <property name="text">
+    <string>Visualsonics XML</string>
    </property>
   </widget>
  </widget>
