@@ -82,6 +82,7 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         self.dicomDirectButton.clicked.connect(self.dicomDirectSelected)
         self.aviButton.clicked.connect(self.aviSelected)
         self.clearAviButton.clicked.connect(self.aviPath.clear)
+        self.visualsonicsXmlButton.clicked.connect(self.visualsonicsXmlSelected)
 
     def moveToFileChoice(self):
         self.selectFormatLabel.setHidden(True)
@@ -89,6 +90,7 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         self.dicomExcelButton.setHidden(True)
         self.aviButton.setHidden(True)
         self.dicomDirectButton.setHidden(True)
+        self.visualsonicsXmlButton.setHidden(True)
 
         self.selectDataLabel.setHidden(False)
         self.findImagesButton.setHidden(False)
@@ -135,6 +137,20 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
 
         self.format = "DicomExcel"
         self.findImagesButton.clicked.connect(self.listImages)
+        
+    def visualsonicsXmlSelected(self):
+        self.moveToFileChoice()
+        self.aviPath.setHidden(False)
+        self.clearAviButton.setHidden(False)
+        self.chooseAviButton.setHidden(False)
+        self.selectAviLabel.setHidden(False)
+        self.findImagesButton.setText("Open Image")
+        self.selectAviLabel.setText("Select Visualsonics XML File (.xml)")
+        
+        self.format = "VisualsonicsXml"
+        self.chooseAviButton.clicked.connect(self.getXmlPath)
+        self.clearAviButton.clicked.connect(self.aviPath.clear)
+        self.findImagesButton.clicked.connect(self.moveToRoiSelection)
 
     def dicomDirectSelected(self):
         self.moveToFileChoice()
@@ -232,6 +248,11 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
         fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter="*.avi")
         if fileName != "":
             self.aviPath.setText(fileName)
+            
+    def getXmlPath(self):
+        fileName, _ = QFileDialog.getOpenFileName(None, "Open File", filter="*.xml")
+        if fileName != "":
+            self.aviPath.setText(fileName)
 
     def getSpreadsheetPath(self):
         if self.format == "DicomExcel":
@@ -281,6 +302,9 @@ class SelectImageGUI_CeusMcTool2d(Ui_selectImage, QWidget):
                 self.roiSelectionGui.openNiftiImage(
                     self.niftiBmodeInput.text(), self.niftiCeInput.text()
                 )
+            elif self.format == "VisualsonicsXml":
+                self.roiSelectionGui.setFilenameDisplays(self.aviPath.text())
+                self.roiSelectionGui.openVisualsonicsXmlImage(self.aviPath.text())
             else:
                 self.roiSelectionGui.setFilenameDisplays(self.aviPath.text())
                 self.roiSelectionGui.openAviImage(self.aviPath.text())
