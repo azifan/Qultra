@@ -1034,7 +1034,7 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
         
         aviPath = next(Path(path).parent.glob("*.avi"), None)
         if aviPath is None:
-            self.cineRate = 1 # default
+            self.cineRate = 21 # default
         else:
             cap = cv2.VideoCapture(aviPath)
             self.cineRate = cap.get(cv2.CAP_PROP_FPS)

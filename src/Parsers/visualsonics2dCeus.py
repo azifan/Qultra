@@ -93,7 +93,7 @@ def readImg(info: VisualSonicsInfo, filepath: Path) -> np.ndarray:
         info (VisualSonicsInfo): VisualSonicsInfo object
     """
     # Process contrast mode
-    fname = filepath.parent / f'{info.studyId}.3d.contrast'
+    fname = filepath.parent / f'{info.studyId}.contrast'
     contrastNumSamples = info.contrastNumSamples
     contrastNumLines = info.contrastNumLines
     
@@ -118,30 +118,30 @@ def readImg(info: VisualSonicsInfo, filepath: Path) -> np.ndarray:
     modeIm = np.log(np.abs(rawData))
     modeIm[np.isinf(modeIm)] = 0
     
-    # Process B-mode
-    fname = filepath.parent / f'{info.studyId}.3d.bmode'
-    bmodeNumSamples = info.bmodeNumSamples // 2
-    bmodeNumLines = info.bmodeNumLines
+    # # Process B-mode
+    # fname = filepath.parent / f'{info.studyId}.bmode'
+    # bmodeNumSamples = info.bmodeNumSamples // 2
+    # bmodeNumLines = info.bmodeNumLines
     
-    fileSize = os.path.getsize(fname)
-    sz = 1
-    frameHeader = 56 # bytes
-    bytesPerFrame = (sz * bmodeNumSamples * bmodeNumLines + frameHeader)
-    numOfFrames = (fileSize - fileHeader) // bytesPerFrame
+    # fileSize = os.path.getsize(fname)
+    # sz = 1
+    # frameHeader = 56 # bytes
+    # bytesPerFrame = (sz * bmodeNumSamples * bmodeNumLines + frameHeader)
+    # numOfFrames = (fileSize - fileHeader) // bytesPerFrame
     
-    bmode = np.zeros((numOfFrames, bmodeNumSamples, bmodeNumLines))
+    # bmode = np.zeros((numOfFrames, bmodeNumSamples, bmodeNumLines))
     
-    with open(fname, 'rb') as fid:
-        for frame in tqdm(range(numOfFrames)):
-            header = fileHeader + frameHeader * (frame+1) + (sz * bmodeNumSamples * bmodeNumLines) * frame
-            for i in range(bmodeNumLines):
-                fid.seek(header + (sz * bmodeNumSamples) * i, 0)
-                bmode[frame, :, i] = np.fromfile(fid, dtype=np.uint8, count=bmodeNumSamples)
+    # with open(fname, 'rb') as fid:
+    #     for frame in tqdm(range(numOfFrames)):
+    #         header = fileHeader + frameHeader * (frame+1) + (sz * bmodeNumSamples * bmodeNumLines) * frame
+    #         for i in range(bmodeNumLines):
+    #             fid.seek(header + (sz * bmodeNumSamples) * i, 0)
+    #             bmode[frame, :, i] = np.fromfile(fid, dtype=np.uint8, count=bmodeNumSamples)
     
-    bmode *= (256 / 100)
-    bmode[np.isinf(bmode)] = 0
+    # bmode *= (256 / 100)
+    # bmode[np.isinf(bmode)] = 0
         
-    return bmode, modeIm
+    return None, modeIm
 
 def visualsonics2dCeusParser(filepath: Path) -> np.ndarray:
     info = readInfo(filepath)
