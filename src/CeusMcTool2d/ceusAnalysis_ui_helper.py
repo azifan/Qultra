@@ -627,7 +627,7 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
         del self.exportDataGUI
         self.exportDataGUI = ExportDataGUI()
         normFact = np.max(self.lastGui.ticY)
-        y = self.lastGui.ticY / normFact
+        y = self.lastGui.ticY #/ normFact
         x = self.lastGui.ticX[:, 0] - np.min(self.lastGui.ticX[:, 0])
         curData = {
                 "Patient": [self.imagePathInput.text().split("_")[0]],
@@ -638,9 +638,9 @@ class CeusAnalysisGUI(Ui_ceusAnalysis, QWidget):
                 "t0": [self.t0Val.text()],
                 "TMPPV": [normFact],
                 "ROI Area (pix)": [self.roiArea],
-                "TIC y vals": [str(np.array(y))],
-                "TIC t vals": [str(np.array(x))],
-                "Lognorm y vals": [str(np.array(self.wholecurve)) if hasattr(self, "wholecurve") else None],
+                "TIC y vals": [np.array(y)],
+                "TIC t vals": [np.array(x)],
+                "Lognorm y vals": [np.array(self.wholecurve) if hasattr(self, "wholecurve") else None],
             }
         self.exportDataGUI.dataFrame = pd.DataFrame.from_dict(curData)
         self.exportDataGUI.lastGui = self

@@ -190,7 +190,7 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
         global ticX, ticY
         # y -= min(y)
         # x[:,0] -= np.min(x[:,0])
-        y = y / np.max(y)
+        # y = y / np.max(y)
         self.ticX = x
         self.ticY = y
         ticX = self.ticX
@@ -314,13 +314,12 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
             # params = np.array([np.max(self.ticY)*tmppv, np.trapz(self.ticY*tmppv, x=self.ticX[:,0]), self.ticX[-1,0], np.argmax(self.ticY), np.max(self.ticX[:,0])*2, 0]);
         self.fig.subplots_adjust(left=0.1, right=0.97, top=0.85, bottom=0.25)
         self.canvas.draw()
-        # self.ticY *= tmppv
+        self.ticY *= tmppv
 
         self.ceusAnalysisGui.aucVal.setText(str(np.around(params[1], decimals=3)))
         self.ceusAnalysisGui.peVal.setText(str(np.around(params[0], decimals=3)))
         self.ceusAnalysisGui.tpVal.setText(str(np.around(params[2], decimals=2)))
         self.ceusAnalysisGui.mttVal.setText(str(np.around(params[3], decimals=2)))
-        # self.ceusAnalysisGui.tmppvVal.setText(str(np.around(tmppv, decimals=1)))
         if self.axRes != -1:
             self.ceusAnalysisGui.voiVolumeVal.setText(
                 str(np.around(self.roiArea*self.axRes*self.latRes, decimals=1))
@@ -342,7 +341,6 @@ class TicAnalysisGUI(Ui_ticEditor, QWidget):
             self.ceusAnalysisGui.t0Val.setText(
                 str(np.around(self.ticX[0, 0], decimals=2))
             )
-        # self.ceusAnalysisGui.tmppv = tmppv
         self.ceusAnalysisGui.mc = self.mc
         self.ceusAnalysisGui.roiArea = self.roiArea
         self.ceusAnalysisGui.curFrameIndex = self.curFrameIndex

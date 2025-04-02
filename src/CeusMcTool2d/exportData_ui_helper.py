@@ -1,5 +1,6 @@
 import os
 import re
+import pickle
 
 from openpyxl import load_workbook, Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -94,6 +95,14 @@ class ExportDataGUI(Ui_exportData, QWidget):
 
     def createNewFile(self):
         if os.path.exists(self.newFolderPathInput.text()):
+            if (self.newFileNameInput.text().endswith(".pkl") and 
+                  (self.newFileNameInput.text() != ".pkl") and
+                  (not bool(re.search(r"\s", self.newFileNameInput.text())))
+            ):
+                with open(os.path.join(self.newFolderPathInput.text(), self.newFileNameInput.text()), 'wb') as f:
+                    pickle.dump(self.dataFrame, f)
+                self.dataSavedSuccessfully()
+                return
             if not (
                 self.newFileNameInput.text().endswith(".xlsx")
                 and (self.newFileNameInput.text() != ".xlsx")
@@ -102,11 +111,21 @@ class ExportDataGUI(Ui_exportData, QWidget):
                 self.fileNameWarningLabel.setHidden(True)
                 self.fileNameErrorLabel.setHidden(False)
                 return
+                
             try:
+                time = self.dataFrame["TIC t vals"][0]
+                intensities = self.dataFrame["TIC y vals"][0]
+                lognormYvals = self.dataFrame["Lognorm y vals"]
+                lognormYvals = lognormYvals[0] if lognormYvals is not None else [0]*len(time)
+                dataframe = self.dataFrame.drop(columns=["TIC t vals", "TIC y vals", "Lognorm y vals"])
                 wb = Workbook()
                 ws = wb.active
-                for r in dataframe_to_rows(self.dataFrame, index=False, header=True):
+                for r in dataframe_to_rows(dataframe, index=False, header=True):
                     ws.append(r)
+                ws2 = wb.create_sheet(title="Additional TIC Data")
+                ws2.append(["Time", "Intensity", "Lognorm Y Vals"])
+                for t, i, l in zip(time, intensities, lognormYvals):
+                    ws2.append([t, i, l])
                 wb.save(
                     os.path.join(
                         self.newFolderPathInput.text(), self.newFileNameInput.text()
@@ -117,11 +136,12 @@ class ExportDataGUI(Ui_exportData, QWidget):
                 self.dataSavedSuccessfully()
             except Exception as e:
                 print(str(e))
+            
 
     def appendToFile(self):
         if os.path.exists(
             self.appendFilePath.text()
-        ) and self.appendFilePath.text().endswith(".xlsx"):
+        ) and self.appendFilePath.text().endswith(".pkl"):
             try:
                 # Since writes to 'Sheet1', make sure not to change sheet names
                 wb = load_workbook(self.appendFilePath.text())
