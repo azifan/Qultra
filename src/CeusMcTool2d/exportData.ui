@@ -395,7 +395,7 @@
 }</string>
    </property>
    <property name="text">
-    <string>Append Data onto Existing Excel File</string>
+    <string>Append Data onto Existing Excel File\n(DEPRECATED)</string>
    </property>
   </widget>
   <widget class="QPushButton" name="clearAppendFileButton">
