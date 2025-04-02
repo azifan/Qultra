@@ -1839,14 +1839,14 @@ class RoiSelectionGUI(Ui_constructRoi, QWidget):
 
         if self.curLeftLineX != -1:
             TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV_no_MC(
-                self.fullGrayArray, self.segMask, times, 24.09
+                self.fullGrayArray, self.segMask, times, 1
             )
         else:
             TIC, self.ticAnalysisGui.roiArea = mc.generate_TIC_no_TMPPV_no_MC(
-                self.fullGrayArray, self.segMask, times, 24.09
+                self.fullGrayArray, self.segMask, times, 1
             )
 
-        TIC[:, 1] /= np.amax(TIC[:, 1])
+        # TIC[:, 1] /= np.amax(TIC[:, 1])
 
         # Bunch of checks
         if np.isnan(np.sum(TIC[:, 1])):
