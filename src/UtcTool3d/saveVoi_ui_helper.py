@@ -3,7 +3,7 @@ import re
 
 from PyQt6.QtWidgets import QWidget, QFileDialog
 
-from src.CeusTool3d.saveVoi_ui import Ui_saveVoi
+from src.UtcTool3d.saveVoi_ui import Ui_saveVoi
 
 class SaveVoiGUI(Ui_saveVoi, QWidget):
     def __init__(self):

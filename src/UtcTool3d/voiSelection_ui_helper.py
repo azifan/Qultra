@@ -160,12 +160,12 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         del self.saveVoiGUI
         self.saveVoiGUI = SaveVoiGUI()
         self.saveVoiGUI.voiSelectionGUI = self
-        destPath = Path(self.fullPath).parent / Path("nifti_segmentation_QUANTUS")
+        destPath = Path(self.fullImagePath).parent / Path("nifti_segmentation_QUANTUS")
         destPath.mkdir(exist_ok=True)
 
         self.saveVoiGUI.newFolderPathInput.setText(f"{destPath}")
         self.saveVoiGUI.newFileNameInput.setText(
-            str(Path(self.fullPath).name[:-7] + "_segmentation.nii.gz")
+            str(Path(self.fullImagePath).name[:-7] + "_segmentation.nii.gz")
         )
         self.saveVoiGUI.show()
 
@@ -258,8 +258,8 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
 
     def setFilenameDisplays(self, imageName, phantomName):
         self.imagePathInput.setHidden(False)
-        self.fullImagePath = imageName
-        self.fullPhantomPath = phantomName
+        self.fullImagePath = Path(imageName).absolute()
+        self.fullPhantomPath = Path(phantomName).absolute()
         self.imagePathInput.setText(Path(imageName).name)
         self.phantomPathInput.setText(Path(phantomName).name)
 
@@ -421,7 +421,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                     self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 255, 0, int(self.curAlpha)]
                 else:
                     self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
-                self.curPointsPlottedX.append(self.newZVal); self.curPointsPlottedY.append(self.newYVal)
+                self.curPointsPlottedX.append(self.newXVal); self.curPointsPlottedY.append(self.newZVal)
                 self.updateCrosshairs()
         elif not self.drawRoiButton.isHidden() and self.painted == "sag":
             self.scrollPaused = True if not self.scrollPaused else False
@@ -451,7 +451,7 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                     self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 255, 0, int(self.curAlpha)]
                 else:
                     self.maskCoverImg[self.newXVal, self.newYVal, self.newZVal] = [0, 0, 255, int(self.curAlpha)]
-                self.curPointsPlottedX.append(self.newXVal); self.curPointsPlottedY.append(self.newZVal)
+                self.curPointsPlottedX.append(self.newYVal); self.curPointsPlottedY.append(self.newZVal)
                 self.updateCrosshairs()
         elif not self.drawRoiButton.isHidden() and self.painted == "cor":
             self.scrollPaused = True if not self.scrollPaused else False
@@ -568,7 +568,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         qImgAx = qImgAx.convertToFormat(QImage.Format.Format_ARGB32)
 
         tempAx = self.maskCoverImg[:, :, self.newZVal, :]  # 2D data for axial
-        tempAx = np.rot90(np.flipud(tempAx), 3)
         tempAx = np.require(tempAx, np.uint8, "C")
         maskAxH, maskAxW = tempAx[:, :, 0].shape
         maskBytesLineAx, _ = tempAx[:, :, 0].strides
@@ -617,7 +616,6 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
         qImgCor = qImgCor.convertToFormat(QImage.Format.Format_ARGB32)
 
         tempCor = self.maskCoverImg[self.newXVal, :, :, :]  # 2D data for coronal
-        tempCor = np.fliplr(np.rot90(tempCor, 3))
         tempCor = np.require(tempCor, np.uint8, "C")
         maskCorH, maskCorW = tempCor[:, :, 0].shape
         maskBytesLineCor, _ = tempCor[:, :, 0].strides
@@ -655,10 +653,10 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
                         newROI.append((int(x[i]), int(y[i]), self.newZVal))
                 elif self.painted == "sag":
                     if not len(newROI) or newROI[-1] != (self.newXVal, int(y[i]), int(x[i])):
-                        newROI.append((self.newXVal, int(y[i]), int(x[i])))
+                        newROI.append((int(x[i]), self.newYVal, int(y[i])))
                 elif self.painted == "cor":
                     if not len(newROI) or newROI[-1] != (int(x[i]), self.newYVal, int(y[i])):
-                        newROI.append((int(x[i]), self.newYVal, int(y[i])))
+                        newROI.append((self.newXVal, int(x[i]), int(y[i])))
             if not self.drawingNeg:
                 self.interpolatedPoints.append(newROI)
                 self.pointsPlotted.append([self.curPointsPlottedX, self.curPointsPlottedY])
