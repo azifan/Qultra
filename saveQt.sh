@@ -33,9 +33,9 @@ pyuic6 src/UtcTool2d/saveConfig.ui -o src/UtcTool2d/saveConfig_ui.py
 pyuic6 src/UtcTool2d/loadConfig.ui -o src/UtcTool2d/loadConfig_ui.py
 
 pyuic6 src/UtcTool3d/selectImage.ui -o src/UtcTool3d/selectImage_ui.py
-# pyuic6 src/UtcTool3d/loadingScreen.ui -o src/UtcTool3d/loadingScreen_ui.py
+pyuic6 src/UtcTool3d/loadingScreen.ui -o src/UtcTool3d/loadingScreen_ui.py
 # pyuic6 src/UtcTool3d/windowsTooLarge.ui -o src/UtcTool3d/windowsTooLarge_ui.py
-# pyuic6 src/UtcTool3d/saveRoi.ui -o src/UtcTool3d/saveRoi_ui.py
+pyuic6 src/UtcTool3d/saveVoi.ui -o src/UtcTool3d/saveVoi_ui.py
 pyuic6 src/UtcTool3d/voiSelection.ui -o src/UtcTool3d/voiSelection_ui.py
 # pyuic6 src/UtcTool3d/rfAnalysis.ui -o src/UtcTool3d/rfAnalysis_ui.py
 # pyuic6 src/UtcTool3d/loadRoi.ui -o src/UtcTool3d/loadRoi_ui.py
