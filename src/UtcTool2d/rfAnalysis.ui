@@ -935,6 +935,41 @@ QPushButton:checked {
           </property>
          </spacer>
         </item>
+
+        <item>
+         <widget class="QPushButton" name="shapeSelectionButton">
+          <property name="minimumSize">
+           <size>
+            <width>181</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>181</width>
+            <height>41</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+	color: white;
+	font-size: 12px;
+	background: rgb(90, 37, 255);
+	border-radius: 15px;
+}
+QPushButton:checked {
+	color:white; 
+	font-size: 12px;
+	background: rgb(45, 0, 110);
+	border-radius: 15px;
+}</string>
+          </property>
+          <property name="text">
+           <string>Select Component</string>
+          </property>
+         </widget>
+        </item>
+
         <item>
          <widget class="QPushButton" name="displayNpsButton">
           <property name="minimumSize">
