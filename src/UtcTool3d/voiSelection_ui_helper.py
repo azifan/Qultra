@@ -190,11 +190,11 @@ class VoiSelectionGUI(Ui_constructVoi, QWidget):
             nameIdx = niftiScan.rfind(".nii.gz")
             niftiScan = niftiScan[:nameIdx+len(".nii.gz")]
             
-            if self.imagePathInput.text().replace("'", '"') == niftiScan:
-                mask = np.asarray(nibIm.dataobj, dtype=np.uint8)
-            else:
-                print("Mask is not compatible with this image")
-                return
+            # if self.imagePathInput.text().replace("'", '"') == niftiScan:
+            mask = np.asarray(nibIm.dataobj, dtype=np.uint8)
+            # else:
+            #     print("Mask is not compatible with this image")
+            #     return
         else:
             return
         maskPoints = np.where(mask > 0)

@@ -1,4 +1,5 @@
 import os
+import pickle
 from pathlib import Path
 
 import numpy as np
@@ -46,12 +47,12 @@ class SelectImageGUI_UtcTool3d(Ui_selectImage, QWidget):
     def philipsClicked(self):
         self.fullScreenLayout.removeItem(self.parserOptionsLayout)
         self.showImgSelectionLayout()
-        self.imagePathLabel.setText('Input Path to Image file\n (.rf)')
-        self.phantomPathLabel.setText('Input Path to Phantom file\n (.rf)')
+        self.imagePathLabel.setText('Input Path to Image file\n (.pkl)')
+        self.phantomPathLabel.setText('Input Path to Phantom file\n (.pkl)')
         self.hideParserOptionsLayout()
         self.fullScreenLayout.addItem(self.imgSelectionLayout)
         self.fullScreenLayout.setStretchFactor(self.imgSelectionLayout, 10)
-        self.fileExts = "*.rf"
+        self.fileExts = "*.pkl"
         self.prepareForVoiSelection()
         
     def backToWelcomeScreen(self):
@@ -108,13 +109,15 @@ class SelectImageGUI_UtcTool3d(Ui_selectImage, QWidget):
         imageFilePath = Path(self.imagePathInput.text())
         phantomFilePath = Path(self.phantomPathInput.text())
         
-        if imageFilePath.suffix != '.rf' or phantomFilePath.suffix != '.rf':
-            raise Exception("Please select .rf files for Philips 3D")
+        if imageFilePath.suffix != '.pkl' or phantomFilePath.suffix != '.pkl':
+            raise Exception("Please select .pkl files for Philips 3D")
         
         # self.imgDataStruct, self.imgInfoStruct, self.refDataStruct, self.refInfoStruct = philipsRfParser3d(
         #     imageFilePath, phantomFilePath
         # )
-        self.imgDataStruct, self.imgInfoStruct = getVolume(imageFilePath)
+        with open(imageFilePath, 'rb') as f:
+            [self.imgDataStruct, self.imgInfoStruct] = pickle.load(f)
+        # self.imgDataStruct, self.imgInfoStruct = getVolume(imageFilePath)
         
         self.imgDataStruct.scBmode = np.expand_dims(self.imgDataStruct.scBmode, axis=3)
         self.voiSelectionGui.data4dImg = self.imgDataStruct.scBmode
