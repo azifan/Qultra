@@ -30,6 +30,10 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.saveConfigGUI = SaveConfigGUI()
         self.windowsTooLargeGUI = WindowsTooLargeGUI()
         self.selectedImage: np.ndarray | None = None
+        self.selected_window_index = None
+        
+        # Flag to track if we're in component selection mode
+        self.component_selected = False
 
         # Display B-Mode
         self.horizontalLayout = QHBoxLayout(self.imDisplayFrame)
@@ -47,8 +51,8 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.displaySsButton.clicked.connect(self.ssChecked)
         self.displaySiButton.clicked.connect(self.siChecked)
         
-        self._shape_cid   = None
-        self._highlight   = None
+        self._shape_cid = None
+        self._highlight = None
 
         # shape button
         self.shapeSelectionButton.setCheckable(True)
@@ -95,167 +99,148 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.avSsVal.setText(f"{np.round(ssMean, decimals=2)}")
         self.avSiVal.setText(f"{np.round(siMean, decimals=1)}")
 
-        npsArr = [window.results.nps for window in self.utcData.utcAnalysis.roiWindows]
-        avNps = np.mean(npsArr, axis=0)
-        f = self.utcData.utcAnalysis.roiWindows[0].results.f
-        x = np.linspace(min(f), max(f), 100)
-        y = ssMean*x/1e6 + siMean
-
+        # Store data that will be needed for NPS plotting
+        self.npsArr = [window.results.nps for window in self.utcData.utcAnalysis.roiWindows]
+        self.avNps = np.mean(self.npsArr, axis=0)
+        self.freqData = self.utcData.utcAnalysis.roiWindows[0].results.f
+        
+        # Calculate data for the average linear fit line
+        self.x_fit = np.linspace(min(self.freqData), max(self.freqData), 100)
+        self.y_fit = ssMean*self.x_fit/1e6 + siMean
+        
         del self.psGraphDisplay
         self.psGraphDisplay = PsGraphDisplay()
-
-        # ps = self.utcData.utcAnalysis.roiWindows[0].results.ps
-        # rps = self.utcData.utcAnalysis.roiWindows[0].results.rPs
-        # nps = self.utcData.utcAnalysis.roiWindows[0].results.nps
-        # self.psGraphDisplay.plotGraph.plot(f/1e6, ps, pen=pg.mkPen(color="b"), name="PS")
-        # self.psGraphDisplay.plotGraph.plot(f/1e6, rps, pen=pg.mkPen(color="r"), name="rPS")
-        # self.psGraphDisplay.plotGraph.plot(f/1e6, nps+np.amin(ps), pen=pg.mkPen(color="g"), name="NPS")
         
-        print("here is where we are")
-
-        for nps in npsArr:
-            self.psGraphDisplay.plotGraph.plot(f/1e6, nps, pen=pg.mkPen(color=(0, 0, 255, 51)))
-        self.psGraphDisplay.plotGraph.plot(f/1e6, avNps, pen=pg.mkPen(color="r", width=2))
-        self.psGraphDisplay.plotGraph.plot(x/1e6, y, pen=pg.mkPen(color=(255, 172, 28), width=2))
-        self.psGraphDisplay.plotGraph.plot(2*[self.utcData.analysisFreqBand[0]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
-                                            pen=pg.mkPen(color="m", width=2))
-        self.psGraphDisplay.plotGraph.plot(2*[self.utcData.analysisFreqBand[1]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
-                                            pen=pg.mkPen(color="m", width=2))
-        self.psGraphDisplay.plotGraph.setYRange(np.amin(npsArr), np.amax(npsArr))
+        # Reset component selection flag
+        self.component_selected = False
+        
+        # Initial NPS plot setup - this creates the default view
+        self.setupDefaultNpsPlot()
 
         self.plotOnCanvas()
         return 0
+        
+    def setupDefaultNpsPlot(self):
+        """Setup the default NPS plot with all windows and average data"""
+        if not hasattr(self, 'psGraphDisplay') or not hasattr(self, 'npsArr'):
+            return
+            
+        # Clear any existing plots
+        self.psGraphDisplay.plotGraph.clear()
+        
+        # Plot individual NPS curves with low opacity
+        for i, nps in enumerate(self.npsArr):
+            self.psGraphDisplay.plotGraph.plot(self.freqData/1e6, nps, 
+                                             pen=pg.mkPen(color=(0, 0, 255, 51)))
+        
+        # Plot average NPS with higher visibility
+        self.psGraphDisplay.plotGraph.plot(self.freqData/1e6, self.avNps, 
+                                         pen=pg.mkPen(color="r", width=2), 
+                                         name="Average NPS")
+        
+        # Plot average linear fit line
+        self.psGraphDisplay.plotGraph.plot(self.x_fit/1e6, self.y_fit, 
+                                         pen=pg.mkPen(color=(255, 172, 28), width=2), 
+                                         name="Average Linear Fit")
+        
+        # Plot frequency band markers if available
+        if hasattr(self.utcData, 'analysisFreqBand'):
+            self.psGraphDisplay.plotGraph.plot(2*[self.utcData.analysisFreqBand[0]/1e6], 
+                                             [np.amin(self.npsArr), np.amax(self.npsArr)], 
+                                             pen=pg.mkPen(color="m", width=2))
+            self.psGraphDisplay.plotGraph.plot(2*[self.utcData.analysisFreqBand[1]/1e6], 
+                                             [np.amin(self.npsArr), np.amax(self.npsArr)], 
+                                             pen=pg.mkPen(color="m", width=2))
+        
+        # Set y-range to fit all data
+        self.psGraphDisplay.plotGraph.setYRange(np.amin(self.npsArr), np.amax(self.npsArr))
+        
+        # Set a clear title
+        self.psGraphDisplay.plotGraph.setTitle("All NPS Data")
     
     def shapeSelectionButtonClicked(self):
         print("Shape Selection button clicked")
         
         # Check if shape selection should be activated
         if self.shapeSelectionButton.isChecked():
-            if not self.displayMbfButton.isChecked():
-                # If MBF isn't displayed yet, we should display it first
+            # Keep the current parametric map view (don't force MBF)
+            if not (self.displayMbfButton.isChecked() or 
+                   self.displaySsButton.isChecked() or 
+                   self.displaySiButton.isChecked()):
+                # If no parametric map is displayed, show MBF as default
                 self.displayMbfButton.setChecked(True)
                 self.mbfChecked()
                 
             # Enable click events on the canvas for selecting shapes
             if self._shape_cid is None:
                 self._shape_cid = self.canvas.mpl_connect('button_press_event', self.onImageClick)
-            self.cursor.set_active(True)  # Activate the cursor to show where user can click
             
             # Change button text to indicate selection mode is active
             self.shapeSelectionButton.setText("Cancel Selection")
+            self.component_selected = True
         else:
             # Disable shape selection mode
             if self._shape_cid is not None:
                 self.canvas.mpl_disconnect(self._shape_cid)
                 self._shape_cid = None
-            self.cursor.set_active(False)
             self.shapeSelectionButton.setText("Select Component")
+            
             # Redraw without selection highlight if any exists
             if self._highlight is not None:
                 self._highlight.remove()
                 self._highlight = None
                 self.canvas.draw()
+            
+            # Reset component selection flag
+            self.component_selected = False
+            
+            # Reset to default NPS view if NPS is currently displayed
+            if self.displayNpsButton.isChecked():
+                self.setupDefaultNpsPlot()
 
     def onImageClick(self, event):
-        """Handle mouse clicks on the image to select components"""
+        """Handle mouse clicks on the image to select components using finalWindowIdxMap"""
         if not event.inaxes:
             return
         
         print(f"Image clicked at: {event.xdata}, {event.ydata}")
         
-        # Get the displayed image size
-        display_height, display_width = self.selectedImage.shape[:2]
+        # Get the image dimensions
+        image_height, image_width = self.selectedImage.shape[:2]
         
-        # Get the relative position within the image (0 to 1)
-        rel_x = event.xdata / display_width
-        rel_y = event.ydata / display_height
+        if not hasattr(self.utcData, 'finalWindowIdxMap') or self.utcData.finalWindowIdxMap is None:
+            print("Window index map not available")
+            return
         
-        # Find the window that corresponds most closely to this relative position
-        selected_window = None
-        min_distance = float('inf')
+        # Convert click coordinates to integer pixel indices
+        # Adjust for possible differences in display vs actual image dimensions
+        x_pixel = int(event.xdata / image_width * self.utcData.finalWindowIdxMap.shape[1])
+        y_pixel = int(event.ydata / image_height * self.utcData.finalWindowIdxMap.shape[0])
         
-        for i, window in enumerate(self.utcData.utcAnalysis.roiWindows):
-            # Calculate relative position of window center
-            window_width = window.right - window.left
-            window_height = window.bottom - window.top
-            
-            window_center_x = window.left + window_width / 2
-            window_center_y = window.top + window_height / 2
-            
-            # Convert to relative position (0 to 1)
-            max_x = max([w.right for w in self.utcData.utcAnalysis.roiWindows])
-            max_y = max([w.bottom for w in self.utcData.utcAnalysis.roiWindows])
-            
-            rel_window_x = window_center_x / max_x
-            rel_window_y = window_center_y / max_y
-            
-            # Calculate distance in relative space
-            dx = rel_window_x - rel_x
-            dy = rel_window_y - rel_y
-            distance = dx*dx + dy*dy
-            
-            print(f"Window {i}: rel_pos=({rel_window_x:.3f}, {rel_window_y:.3f}), click=({rel_x:.3f}, {rel_y:.3f}), distance={distance:.6f}")
-            
-            # Update closest window if this one is closer
-            if distance < min_distance:
-                min_distance = distance
-                selected_window = i
+        # Ensure pixel coordinates are within the valid range
+        x_pixel = max(0, min(x_pixel, self.utcData.finalWindowIdxMap.shape[1] - 1))
+        y_pixel = max(0, min(y_pixel, self.utcData.finalWindowIdxMap.shape[0] - 1))
         
-        print(f"Selected window based on minimum distance: {selected_window}, distance={min_distance:.6f}")
+        # Get the window index from the map
+        selected_index = self.utcData.finalWindowIdxMap[y_pixel, x_pixel]
         
-        # Only select if the distance is below a threshold
-        distance_threshold = 0.1  # Adjust if needed (0.1 = 10% of image size)
+        print(f"Pixel coordinates: ({x_pixel}, {y_pixel}), Selected index: {selected_index}")
         
-        if selected_window is not None and min_distance < distance_threshold:
-            print(f"Selected window {selected_window}")
-            self.highlightSelectedWindow(selected_window)
-            self.updateNpsGraphWithSelection(selected_window)
+        # Check if a valid window was selected (-1 indicates no window at that position)
+        if selected_index >= 0:
+            print(f"Selected window {selected_index}")
+            self.highlightSelectedWindow(selected_index)
+            self.updateNpsGraphWithSelection(selected_index)
+            
+            # Set the component selected flag
+            self.component_selected = True
             
             # If NPS graph isn't visible yet, show it
             if not self.displayNpsButton.isChecked():
                 self.displayNpsButton.setChecked(True)
                 self.displayNps()
         else:
-            print("No window selected (too far)")
-
-        # Alternative approach that might work better:
-        # Simply use x and y index to find the corresponding window in a grid layout
-        if selected_window is None:
-            # Get all unique x and y positions to determine the grid
-            x_positions = sorted(list(set([w.left for w in self.utcData.utcAnalysis.roiWindows])))
-            y_positions = sorted(list(set([w.top for w in self.utcData.utcAnalysis.roiWindows])))
-            
-            # Calculate number of columns and rows
-            num_cols = len(x_positions)
-            num_rows = len(y_positions)
-            
-            # Calculate the grid cell size
-            cell_width = display_width / num_cols
-            cell_height = display_height / num_rows
-            
-            # Calculate grid indices based on click position
-            grid_x = int(event.xdata / cell_width)
-            grid_y = int(event.ydata / cell_height)
-            
-            # Constrain to valid range
-            grid_x = max(0, min(grid_x, num_cols - 1))
-            grid_y = max(0, min(grid_y, num_rows - 1))
-            
-            # Calculate the window index based on grid position
-            # This assumes windows are arranged in a grid pattern
-            grid_index = grid_y * num_cols + grid_x
-            
-            # Make sure we don't go out of bounds
-            if 0 <= grid_index < len(self.utcData.utcAnalysis.roiWindows):
-                selected_window = grid_index
-                print(f"Selected window based on grid: {selected_window}")
-                self.highlightSelectedWindow(selected_window)
-                self.updateNpsGraphWithSelection(selected_window)
-                
-                # If NPS graph isn't visible yet, show it
-                if not self.displayNpsButton.isChecked():
-                    self.displayNpsButton.setChecked(True)
-                    self.displayNps()
+            print("No window at selected position")
 
     def highlightSelectedWindow(self, window_index):
         """Highlight the selected window on the image"""
@@ -289,7 +274,7 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.canvas.draw()
 
     def updateNpsGraphWithSelection(self, window_index):
-        """Update the NPS graph to highlight the selected window's data"""
+        """Update the NPS graph to show only selected window data and its linear fit"""
         # Make sure the PS graph display exists
         if not hasattr(self, 'psGraphDisplay') or self.psGraphDisplay is None:
             return
@@ -301,47 +286,44 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         window = self.utcData.utcAnalysis.roiWindows[window_index]
         f = window.results.f
         
-        # Get NPS data for all windows (for background)
-        npsArr = [win.results.nps for win in self.utcData.utcAnalysis.roiWindows]
-        avNps = np.mean(npsArr, axis=0)
+        # Get the selected window's NPS
+        selected_nps = window.results.nps
         
-        # Get mean values for the linear fit line
-        ssMean = np.mean(self.utcData.ssArr)
-        siMean = np.mean(self.utcData.siArr)
+        # Get window's specific SS and SI values for the linear fit
+        window_ss = window.results.ss if hasattr(window.results, 'ss') else 0
+        window_si = window.results.si if hasattr(window.results, 'si') else 0
+        window_mbf = window.results.mbf if hasattr(window.results, 'mbf') else 0
+        
+        # Create the linear fit line for this specific window
         x = np.linspace(min(f), max(f), 100)
-        y = ssMean*x/1e6 + siMean
+        y = window_ss*x/1e6 + window_si
         
-        # Plot other windows' NPS data with low opacity
-        for i, nps in enumerate(npsArr):
-            if i != window_index:
-                self.psGraphDisplay.plotGraph.plot(f/1e6, nps, pen=pg.mkPen(color=(0, 0, 255, 30)))
+        # Plot selected window's NPS
+        self.psGraphDisplay.plotGraph.plot(f/1e6, selected_nps, 
+                                          pen=pg.mkPen(color="b", width=2), 
+                                          name=f"Window {window_index+1} NPS")
         
-        # Plot average NPS
-        self.psGraphDisplay.plotGraph.plot(f/1e6, avNps, pen=pg.mkPen(color="r", width=2), name="Average")
-        
-        # Plot selected window's NPS with highlight
-        selected_nps = npsArr[window_index]
-        self.psGraphDisplay.plotGraph.plot(f/1e6, selected_nps, pen=pg.mkPen(color="y", width=3), name=f"Window {window_index+1}")
-        
-        # Plot linear fit line
-        self.psGraphDisplay.plotGraph.plot(x/1e6, y, pen=pg.mkPen(color=(255, 172, 28), width=2), name="Linear Fit")
+        # Plot this window's specific linear fit line
+        self.psGraphDisplay.plotGraph.plot(x/1e6, y, 
+                                          pen=pg.mkPen(color="g", width=2), 
+                                          name="Window Linear Fit")
         
         # Plot frequency band markers
-        self.psGraphDisplay.plotGraph.plot(2*[self.utcData.analysisFreqBand[0]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
-                                            pen=pg.mkPen(color="m", width=2))
-        self.psGraphDisplay.plotGraph.plot(2*[self.utcData.analysisFreqBand[1]/1e6], [np.amin(npsArr), np.amax(npsArr)], 
-                                            pen=pg.mkPen(color="m", width=2))
+        if hasattr(self.utcData, 'analysisFreqBand'):
+            self.psGraphDisplay.plotGraph.plot(2*[self.utcData.analysisFreqBand[0]/1e6], 
+                                              [np.amin(selected_nps), np.amax(selected_nps)], 
+                                              pen=pg.mkPen(color="m", width=2))
+            self.psGraphDisplay.plotGraph.plot(2*[self.utcData.analysisFreqBand[1]/1e6], 
+                                              [np.amin(selected_nps), np.amax(selected_nps)], 
+                                              pen=pg.mkPen(color="m", width=2))
         
-        # Add information about the selected window
-        window_mbf = window.results.mbf if hasattr(window.results, 'mbf') else "N/A"
-        window_ss = window.results.ss if hasattr(window.results, 'ss') else "N/A"
-        window_si = window.results.si if hasattr(window.results, 'si') else "N/A"
+        # Set y-range to fit the data
+        self.psGraphDisplay.plotGraph.setYRange(np.amin(selected_nps), np.amax(selected_nps))
         
-        # Add legend item with window statistics
-        self.psGraphDisplay.plotGraph.setTitle(f"Selected Window {window_index+1}: MBF={window_mbf:.2f}, SS={window_ss:.4f}, SI={window_si:.2f}")
-        
-        # Set y-range to fit all data
-        self.psGraphDisplay.plotGraph.setYRange(np.amin(npsArr), np.amax(npsArr))
+        # Add window statistics to the title
+        self.psGraphDisplay.plotGraph.setTitle(
+            f"Window {window_index+1}: MBF={window_mbf:.2f}dB, SS={window_ss:.4f}dB/MHz, SI={window_si:.2f}dB"
+        )
         
         # Add window statistics to the info area if it exists
         if hasattr(self.psGraphDisplay, 'infoLabel'):
@@ -358,6 +340,12 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
     def displayNps(self):
         print("Display NPS button clicked")
         if self.displayNpsButton.isChecked():
+            # If in component selection mode with a window selected, show that window's specific NPS
+            if self.component_selected and self.selected_window_index is not None:
+                self.updateNpsGraphWithSelection(self.selected_window_index)
+            else:
+                # Otherwise, show the default view with all NPS data
+                self.setupDefaultNpsPlot()
             self.psGraphDisplay.show()
         else:
             self.psGraphDisplay.hide()
@@ -391,6 +379,10 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.lastGui.show()
         self.lastGui.resize(self.size())
         self.hide()
+        
+        # Reset component selection state
+        self.component_selected = False
+        self.selected_window_index = None
 
     def setFilenameDisplays(self, imageName, phantomName):
         self.imagePathInput.setHidden(False)
@@ -416,11 +408,27 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.figure.subplots_adjust(
             left=0, right=1, bottom=0, top=1, hspace=0.2, wspace=0.2
         )
-        self.cursor = matplotlib.widgets.Cursor(
-            self.ax, color="gold", linewidth=0.4, useblit=True
-        )
-        self.cursor.set_active(False)
+        
+        # Removed cursor initialization from here as per feedback
+        
         plt.tick_params(bottom=False, left=False, labelbottom=False, labelleft=False)
+        
+        # Re-add highlight rectangle if one exists
+        if self._highlight is not None and self.selected_window_index is not None:
+            window = self.utcData.utcAnalysis.roiWindows[self.selected_window_index]
+            left = window.left
+            right = window.right
+            top = window.top
+            bottom = window.bottom
+            width = right - left
+            height = bottom - top
+            
+            self._highlight = Rectangle(
+                (left, top), width, height,
+                linewidth=2, edgecolor='r', facecolor='none', zorder=10
+            )
+            self.ax.add_patch(self._highlight)
+        
         self.canvas.draw()  # Refresh canvas
 
     def mbfChecked(self):
@@ -448,7 +456,6 @@ class RfAnalysisGUI(QWidget, Ui_rfAnalysis):
         self.plotOnCanvas()
         
     def siChecked(self):
-        global curDisp
         if self.displaySiButton.isChecked():
             if self.displayMbfButton.isChecked() or self.displaySsButton.isChecked():
                 self.displayMbfButton.setChecked(False)
