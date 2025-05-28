@@ -1,6 +1,3 @@
-<p align="center">
-  <img src="Images/logo.png" alt="drawing" width="700"/>
-</p>
 
 #
 
