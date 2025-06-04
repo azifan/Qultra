@@ -20,6 +20,6 @@ Examples of unacceptable behavior include:
 
 ## Enforcement
 
-Instances of abusive behavior may be reported by contacting the project team at [your-email@example.com]. All complaints will be reviewed and investigated.
+Instances of abusive behavior may be reported by contacting the project team at [azifan@ucsd.edu]. All complaints will be reviewed and investigated.
 
 This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org).
